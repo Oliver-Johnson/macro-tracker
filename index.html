@@ -292,7 +292,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.4</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.5</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -667,9 +667,8 @@ async function startScan() {
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
       if (result) {
         const text = result.getText();
-        if (!codeReader) return; // already processing a scan
         // Pause decoding but keep camera stream alive
-        try { codeReader.reset(); } catch(e) {} codeReader = null;
+        if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
         const food = await lookupBarcode(text);
         if (food) showWeightModal(food, true);
@@ -842,11 +841,8 @@ function showWeightModal(food, keepScanning) {
 }
 
 function confirmLogFood() {
-  const btn = document.querySelector('#weight-modal .btn-primary');
-  if (btn && btn.disabled) return;
-  if (btn) btn.disabled = true;
   const w = parseFloat(document.getElementById('weight-input').value);
-  if (!w || w <= 0) { toast('Enter a valid weight'); if (btn) btn.disabled = false; return; }
+  if (!w || w <= 0) { toast('Enter a valid weight'); return; }
   const f = pendingFood;
   const keepScanning = f._keepScanning;
   const factor = w / 100;
