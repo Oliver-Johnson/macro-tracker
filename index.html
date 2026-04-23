@@ -30,7 +30,7 @@
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
 
   /* ─── Layout ─── */
-  #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+  #app { display: flex; flex-direction: column; height: 100%; }
   .view { display: none; flex: 1; overflow-y: auto; padding: 16px 16px calc(16px + var(--safe-bottom)); }
   .view.active { display: block; }
 
@@ -292,7 +292,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.7</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.8</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1275,6 +1275,14 @@ async function checkForUpdate() {
 // ═══════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════
+
+// Fix Android PWA height — dvh miscomputes during chrome animation
+function fixAppHeight() {
+  document.getElementById('app').style.height = window.innerHeight + 'px';
+}
+fixAppHeight();
+window.addEventListener('resize', fixAppHeight);
+
 renderToday();
 
 // Auto-start scan if on scan tab and view-log is navigated to
