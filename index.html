@@ -714,7 +714,7 @@ function showWeightModal(food, keepScanning) {
   pendingFood = food;
   pendingFood._keepScanning = keepScanning || false;
   document.getElementById('weight-modal-title').textContent = food.name;
-  document.getElementById('weight-modal-macros').textContent = `Per 100g: ${food.kcal} kcal · P ${food.protein}g · C ${food.carbs}g · F ${food.fat}g`;
+  document.getElementById('weight-modal-macros').textContent = `Per 100g: ${r1(food.kcal)} kcal · P ${r1(food.protein)}g · C ${r1(food.carbs)}g · F ${r1(food.fat)}g`;
   document.getElementById('weight-input').value = food.defaultWeight || 100;
   openModal('weight-modal');
 }
