@@ -292,7 +292,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1207,17 +1207,13 @@ if ('serviceWorker' in navigator) {
 }
 
 async function checkForUpdate() {
-  if (!('serviceWorker' in navigator)) { toast('Service worker not supported'); return; }
+  toast('Updating…');
   try {
     const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) { toast('No SW registered'); return; }
-    toast('Checking for updates…');
-    await reg.update();
-    // If no controllerchange fires within 3s, already up to date
-    setTimeout(() => toast('Already up to date'), 3000);
-  } catch(e) {
-    toast('Update check failed');
-  }
+    if (reg) await reg.update();
+  } catch(e) {}
+  // SW is network-first for index.html — reload always fetches latest
+  window.location.reload();
 }
 
 // ═══════════════════════════════════════════════════
