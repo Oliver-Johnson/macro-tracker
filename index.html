@@ -292,7 +292,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.5</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.6</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -382,7 +382,8 @@
     </div>
     <div class="card-title">Ingredients</div>
     <div id="recipe-ingredients-list" style="margin-bottom:10px;"></div>
-    <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="addRecipeIngredient('scan')">+ Scan</button>
       <button class="btn btn-secondary btn-sm" onclick="addRecipeIngredient('search')">+ Search</button>
       <button class="btn btn-secondary btn-sm" onclick="addRecipeIngredient('manual')">+ Manual</button>
       <button class="btn btn-secondary btn-sm" onclick="addRecipeIngredient('saved')">+ Saved</button>
@@ -399,7 +400,7 @@
 <!-- ─── Add ingredient sub-modal ─── -->
 <div class="modal-backdrop" id="ingredient-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('ingredient-modal')">✕</button>
+    <button class="modal-close" onclick="stopIngredientScan(); closeModal('ingredient-modal')">✕</button>
     <div class="modal-title">Add Ingredient</div>
     <div id="ingredient-modal-content"></div>
   </div>
@@ -854,6 +855,13 @@ function confirmLogFood() {
     fat: r1(f.fat * factor),
     barcode: f.barcode || null
   });
+  // Auto-save to custom foods (upsert)
+  const customs = getCustomFoods();
+  const ci = f.barcode ? customs.findIndex(c => c.barcode === f.barcode) : customs.findIndex(c => c.name.toLowerCase() === f.name.toLowerCase());
+  if (ci >= 0) customs[ci] = { ...customs[ci], ...{ name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, defaultWeight: f.defaultWeight || 100, barcode: f.barcode || customs[ci].barcode } };
+  else customs.push({ id: uid(), name: f.name, kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, defaultWeight: f.defaultWeight || 100, barcode: f.barcode || null });
+  LS.set('mt_custom_foods', customs);
+
   closeModal('weight-modal');
   viewingDate = todayKey();
   toast(`Added ${f.name}`);
@@ -974,8 +982,53 @@ function updateRecipePreview() {
     `Recipe totals: ${Math.round(totals.kcal)} kcal · P ${r1(totals.protein)}g · C ${r1(totals.carbs)}g · F ${r1(totals.fat)}g`;
 }
 
+let ingCodeReader = null;
+
+async function startIngredientScan() {
+  if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
+  try {
+    ingCodeReader = new ZXing.BrowserMultiFormatReader();
+    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
+    await ingCodeReader.decodeFromConstraints(constraints, 'ing-scan-video', async (result, err) => {
+      if (result) {
+        const text = result.getText();
+        if (!ingCodeReader) return;
+        try { ingCodeReader.reset(); } catch(e) {} ingCodeReader = null;
+        const statusEl = document.getElementById('ing-scan-status');
+        if (statusEl) statusEl.textContent = 'Looking up barcode…';
+        const food = await lookupBarcode(text);
+        if (food) showIngredientWeight(food);
+        else { toast('Barcode not found — try search'); if (statusEl) statusEl.textContent = 'Not found'; }
+      }
+      if (err && !(err instanceof ZXing.NotFoundException)) console.warn(err);
+    });
+    const statusEl = document.getElementById('ing-scan-status');
+    if (statusEl) statusEl.textContent = 'Point camera at a barcode';
+  } catch(e) {
+    toast('Camera error: ' + e.message);
+  }
+}
+
+function stopIngredientScan() {
+  if (ingCodeReader) { try { ingCodeReader.reset(); } catch(e) {} ingCodeReader = null; }
+  const video = document.getElementById('ing-scan-video');
+  if (video && video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+}
+
 function addRecipeIngredient(mode) {
+  stopIngredientScan();
   const content = document.getElementById('ingredient-modal-content');
+
+  if (mode === 'scan') {
+    content.innerHTML = `
+      <div style="width:100%;aspect-ratio:4/3;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+        <video id="ing-scan-video" style="width:100%;height:100%;object-fit:cover;" autoplay muted playsinline></video>
+      </div>
+      <div id="ing-scan-status" style="font-size:13px;color:var(--muted);text-align:center;">Starting camera…</div>`;
+    openModal('ingredient-modal');
+    startIngredientScan();
+    return;
+  }
 
   if (mode === 'saved') {
     const foods = getCustomFoods();
@@ -1052,6 +1105,7 @@ function confirmIngredient() {
   const w = parseFloat(document.getElementById('ing-weight-final').value);
   if (!w || w <= 0) { toast('Enter weight'); return; }
   editingRecipeIngredients.push({ ...pendingIngFood, weight: w });
+  stopIngredientScan();
   closeModal('ingredient-modal');
   renderRecipeIngredients();
 }
