@@ -551,10 +551,18 @@ async function startScan() {
   try {
     codeReader = new ZXing.BrowserMultiFormatReader();
     scanActive = true;
+    document.getElementById('scan-status').textContent = 'Starting camera…';
+    const hints = new Map();
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    codeReader = new ZXing.BrowserMultiFormatReader(hints);
+    // Use facingMode: environment for rear camera on Android — more reliable than device enumeration
+    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('scan-video');
+    video.srcObject = stream;
+    await video.play();
     document.getElementById('scan-status').textContent = 'Point camera at a barcode';
-    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    const deviceId = devices.length > 1 ? devices[devices.length - 1].deviceId : (devices[0] ? devices[0].deviceId : null);
-    await codeReader.decodeFromVideoDevice(deviceId, 'scan-video', async (result, err) => {
+    await codeReader.decodeFromStream(stream, video, async (result, err) => {
       if (result) {
         stopScan();
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
@@ -567,7 +575,8 @@ async function startScan() {
       }
     });
   } catch(e) {
-    document.getElementById('scan-status').textContent = 'Camera unavailable: ' + e.message;
+    document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
+    toast('Camera unavailable — check permissions');
     scanActive = false;
   }
 }
@@ -1056,7 +1065,7 @@ function toast(msg) {
 //  PWA / SERVICE WORKER
 // ═══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW reg failed', e));
+  navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(e => console.warn('SW reg failed', e));
 }
 
 // ═══════════════════════════════════════════════════
