@@ -1,10 +1,10 @@
 const CACHE_NAME = 'macro-tracker-v1';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.svg',
-  '/icon-512.svg'
+  '/macro-tracker/',
+  '/macro-tracker/index.html',
+  '/macro-tracker/manifest.json',
+  '/macro-tracker/icon-192.svg',
+  '/macro-tracker/icon-512.svg'
 ];
 
 self.addEventListener('install', e => {
