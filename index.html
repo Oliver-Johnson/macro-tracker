@@ -709,10 +709,10 @@ function toggleScan() {
 
 // ─── Open Food Facts ───
 async function lookupBarcode(barcode) {
-  // Custom foods take priority (user-corrected values)
   const customs = getCustomFoods();
-  const customMatch = customs.find(f => f.barcode === barcode);
-  if (customMatch) return { ...customMatch, defaultWeight: customMatch.defaultWeight || 100 };
+  // Custom foods take priority — check by barcode first, then by name
+  const byBarcode = customs.find(f => f.barcode === barcode);
+  if (byBarcode) return { ...byBarcode, defaultWeight: byBarcode.defaultWeight || 100 };
 
   const cache = getBarcodeCache();
   if (cache[barcode] && cache[barcode].defaultWeight !== undefined) return cache[barcode];
@@ -732,6 +732,14 @@ async function lookupBarcode(barcode) {
         defaultWeight: servingQty || productQty || 100,
         barcode
       };
+      // Check custom foods by name — catches foods saved without a barcode association
+      const byName = customs.find(f => f.name.toLowerCase() === food.name.toLowerCase());
+      if (byName) {
+        // Persist the barcode link so future lookups skip the network
+        byName.barcode = barcode;
+        LS.set('mt_custom_foods', customs);
+        return { ...byName, defaultWeight: byName.defaultWeight || food.defaultWeight };
+      }
       cache[barcode] = food;
       LS.set('mt_barcode_cache', cache);
       return food;
