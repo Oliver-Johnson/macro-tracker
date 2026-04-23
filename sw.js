@@ -1,4 +1,4 @@
-const CACHE_NAME = 'macro-tracker-v1';
+const CACHE_NAME = 'macro-tracker-v2';
 const STATIC_ASSETS = [
   '/macro-tracker/',
   '/macro-tracker/index.html',
