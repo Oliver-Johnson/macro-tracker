@@ -562,13 +562,15 @@ async function startScan() {
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
       if (result) {
         const text = result.getText();
-        stopScan();
+        // Pause scanning visually but keep camera stream alive
+        if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
         const food = await lookupBarcode(text);
-        if (food) showWeightModal(food);
+        if (food) showWeightModal(food, true);
         else {
           document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
           toast('Barcode not found — try search');
+          startScan(); // resume
         }
       }
       if (err && !(err instanceof ZXing.NotFoundException)) {
@@ -610,12 +612,15 @@ async function lookupBarcode(barcode) {
     const data = await res.json();
     if (data.status === 1) {
       const n = data.product.nutriments;
+      const servingQty = parseFloat(data.product.serving_quantity) || null;
+      const productQty = parseFloat(data.product.product_quantity) || null;
       const food = {
         name: data.product.product_name || 'Unknown',
         kcal: parseFloat(n['energy-kcal_100g']) || 0,
         protein: parseFloat(n['proteins_100g']) || 0,
         carbs: parseFloat(n['carbohydrates_100g']) || 0,
-        fat: parseFloat(n['fat_100g']) || 0
+        fat: parseFloat(n['fat_100g']) || 0,
+        defaultWeight: servingQty || productQty || 100
       };
       cache[barcode] = food;
       LS.set('mt_barcode_cache', cache);
@@ -705,11 +710,12 @@ function saveAndLogManual() {
 }
 
 // ─── Weight modal ───
-function showWeightModal(food) {
+function showWeightModal(food, keepScanning) {
   pendingFood = food;
+  pendingFood._keepScanning = keepScanning || false;
   document.getElementById('weight-modal-title').textContent = food.name;
   document.getElementById('weight-modal-macros').textContent = `Per 100g: ${food.kcal} kcal · P ${food.protein}g · C ${food.carbs}g · F ${food.fat}g`;
-  document.getElementById('weight-input').value = '100';
+  document.getElementById('weight-input').value = food.defaultWeight || 100;
   openModal('weight-modal');
 }
 
@@ -717,6 +723,7 @@ function confirmLogFood() {
   const w = parseFloat(document.getElementById('weight-input').value);
   if (!w || w <= 0) { toast('Enter a valid weight'); return; }
   const f = pendingFood;
+  const keepScanning = f._keepScanning;
   const factor = w / 100;
   addEntryToLog({
     id: uid(), name: f.name, weight: w,
@@ -728,6 +735,7 @@ function confirmLogFood() {
   closeModal('weight-modal');
   viewingDate = todayKey();
   toast(`Added ${f.name}`);
+  if (keepScanning) startScan();
 }
 
 function addEntryToLog(entry) {
