@@ -667,8 +667,9 @@ async function startScan() {
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
       if (result) {
         const text = result.getText();
-        // Pause scanning visually but keep camera stream alive
-        if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
+        if (!codeReader) return; // already processing a scan
+        // Pause decoding but keep camera stream alive
+        try { codeReader.reset(); } catch(e) {} codeReader = null;
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
         const food = await lookupBarcode(text);
         if (food) showWeightModal(food, true);
@@ -839,8 +840,11 @@ function showWeightModal(food, keepScanning) {
 }
 
 function confirmLogFood() {
+  const btn = document.querySelector('#weight-modal .btn-primary');
+  if (btn && btn.disabled) return;
+  if (btn) btn.disabled = true;
   const w = parseFloat(document.getElementById('weight-input').value);
-  if (!w || w <= 0) { toast('Enter a valid weight'); return; }
+  if (!w || w <= 0) { toast('Enter a valid weight'); if (btn) btn.disabled = false; return; }
   const f = pendingFood;
   const keepScanning = f._keepScanning;
   const factor = w / 100;
