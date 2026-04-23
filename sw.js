@@ -1,5 +1,5 @@
 const CACHE_NAME = 'macro-tracker-v3';
-const APP_VERSION = '2026-04-24.8';
+const APP_VERSION = '2026-04-24.9';
 const STATIC_ASSETS = [
   '/macro-tracker/',
   '/macro-tracker/index.html',
