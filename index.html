@@ -203,7 +203,10 @@
       <div id="scan-status" style="text-align:center; color:var(--muted); font-size:13px; margin-bottom:12px;">
         Point camera at a barcode
       </div>
-      <button class="btn btn-secondary" onclick="toggleScan()">Stop Camera</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1">Stop Camera</button>
+        <button class="btn btn-secondary" onclick="flipCamera()" style="flex:0 0 auto; padding:10px 16px;" title="Flip camera">⟳</button>
+      </div>
     </div>
 
     <!-- Search -->
@@ -546,39 +549,43 @@ function switchLogTab(tab, btn) {
   if (tab === 'scan' && !scanActive) startScan();
 }
 
+let currentFacingMode = 'environment';
+
 async function startScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
+    stopScan();
     codeReader = new ZXing.BrowserMultiFormatReader();
     scanActive = true;
     document.getElementById('scan-status').textContent = 'Starting camera…';
-    const hints = new Map();
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-    codeReader = new ZXing.BrowserMultiFormatReader(hints);
-    // Use facingMode: environment for rear camera on Android — more reliable than device enumeration
-    const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    const video = document.getElementById('scan-video');
-    video.srcObject = stream;
-    await video.play();
-    document.getElementById('scan-status').textContent = 'Point camera at a barcode';
-    await codeReader.decodeFromStream(stream, video, async (result, err) => {
+    const constraints = { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } };
+    await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
       if (result) {
+        const text = result.getText();
         stopScan();
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
-        const food = await lookupBarcode(result.getText());
+        const food = await lookupBarcode(text);
         if (food) showWeightModal(food);
         else {
-          document.getElementById('scan-status').textContent = 'Product not found. Try searching instead.';
+          document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
           toast('Barcode not found — try search');
         }
       }
+      if (err && !(err instanceof ZXing.NotFoundException)) {
+        console.warn('Scan error:', err);
+      }
     });
+    document.getElementById('scan-status').textContent = 'Point camera at a barcode';
   } catch(e) {
     document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
     toast('Camera unavailable — check permissions');
     scanActive = false;
   }
+}
+
+async function flipCamera() {
+  currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+  if (scanActive) await startScan();
 }
 
 function stopScan() {
