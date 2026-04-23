@@ -539,7 +539,14 @@ let editEntryRef = null; // { dateKey, idx }
 function openEditEntry(dateKey, idx) {
   const day = getDayLog(dateKey);
   const e = day.entries[idx];
-  editEntryRef = { dateKey, idx };
+  // Recover barcode from cache if not stored on entry (entries logged before barcode field was added)
+  let barcode = e.barcode || null;
+  if (!barcode) {
+    const cache = getBarcodeCache();
+    const hit = Object.entries(cache).find(([, f]) => f.name === e.name);
+    if (hit) barcode = hit[0];
+  }
+  editEntryRef = { dateKey, idx, barcode };
   document.getElementById('edit-name').value = e.name;
   document.getElementById('edit-weight').value = e.weight || '';
   document.getElementById('edit-kcal').value = r1(e.kcal);
@@ -578,7 +585,7 @@ function saveEditEntryToFoods() {
   const fat = parseFloat(document.getElementById('edit-fat').value) || 0;
   const factor = 100 / w;
   const name = document.getElementById('edit-name').value.trim() || e.name;
-  const barcode = e.barcode || null;
+  const barcode = editEntryRef.barcode || e.barcode || null;
 
   const customs = getCustomFoods();
   // Replace existing entry with same barcode/name, or add new
