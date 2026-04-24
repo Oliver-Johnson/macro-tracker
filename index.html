@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.18</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.19</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1650,13 +1650,18 @@ if ('serviceWorker' in navigator) {
 }
 
 async function checkForUpdate() {
-  toast('Updating…');
+  toast('Checking for update…');
   try {
     const reg = await navigator.serviceWorker.getRegistration();
-    if (reg) await reg.update();
-  } catch(e) {}
-  // Use location.href instead of reload() — avoids PWA viewport resize bug
-  window.location.href = window.location.href;
+    if (!reg) { toast('No service worker'); return; }
+    // reg.update() fetches sw.js bypassing HTTP cache.
+    // If a new SW is found it installs, skipWaiting() fires, then controllerchange
+    // fires on this page → the controllerchange listener (below) reloads the page.
+    await reg.update();
+    // Give the SW a moment to install/activate; if controllerchange hasn't
+    // fired within 3s there was no update.
+    setTimeout(() => toast('Already up to date'), 3000);
+  } catch(e) { toast('Update check failed'); }
 }
 
 // ═══════════════════════════════════════════════════
