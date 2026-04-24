@@ -1,5 +1,5 @@
 const CACHE_NAME = 'macro-tracker-v3';
-const APP_VERSION = '2026-04-24.11';
+const APP_VERSION = '2026-04-24.12';
 const STATIC_ASSETS = [
   '/macro-tracker/',
   '/macro-tracker/index.html',
@@ -41,7 +41,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  if (url.hostname.includes('openfoodfacts.org')) {
+  if (url.hostname.includes('openfoodfacts.org')) { // covers en., uk., world., etc.
     e.respondWith(
       fetch(e.request)
         .then(res => {

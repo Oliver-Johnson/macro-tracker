@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.11</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.12</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -910,23 +910,27 @@ function isEnglishName(name) {
   return nonAscii / name.length < 0.3;
 }
 
-async function fetchOFF(query) {
-  // en.openfoodfacts.org prefers English products; sort by scan count = most recognised first
-  const url = `https://en.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&action=process&fields=code,product_name,nutriments&page_size=24&sort_by=unique_scans_n&lc=en`;
+function offProductToFood(p) {
+  const n = p.nutriments || {};
+  return {
+    name: p.product_name,
+    kcal: parseFloat(n['energy-kcal_100g']) || 0,
+    protein: parseFloat(n['proteins_100g']) || 0,
+    carbs: parseFloat(n['carbohydrates_100g']) || 0,
+    fat: parseFloat(n['fat_100g']) || 0,
+    fibre: parseFloat(n['fiber_100g'] || n['fibers_100g']) || 0,
+    sugar: parseFloat(n['sugars_100g']) || 0,
+    sodium: parseFloat(n['sodium_100g']) || 0,
+  };
+}
+
+async function fetchOFF(query, subdomain = 'en') {
+  const url = `https://${subdomain}.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&action=process&fields=code,product_name,nutriments&page_size=20&sort_by=unique_scans_n&lc=en`;
   const res = await fetch(url);
   const data = await res.json();
   return (data.products || [])
     .filter(p => p.product_name && isEnglishName(p.product_name))
-    .map(p => ({
-      name: p.product_name,
-      kcal: parseFloat(p.nutriments?.['energy-kcal_100g']) || 0,
-      protein: parseFloat(p.nutriments?.['proteins_100g']) || 0,
-      carbs: parseFloat(p.nutriments?.['carbohydrates_100g']) || 0,
-      fat: parseFloat(p.nutriments?.['fat_100g']) || 0,
-      fibre: parseFloat(p.nutriments?.['fiber_100g'] || p.nutriments?.['fibers_100g']) || 0,
-      sugar: parseFloat(p.nutriments?.['sugars_100g']) || 0,
-      sodium: parseFloat(p.nutriments?.['sodium_100g']) || 0,
-    }));
+    .map(offProductToFood);
 }
 
 async function searchUSDA(query) {
@@ -954,20 +958,26 @@ async function searchUSDA(query) {
 
 async function searchOFF(query) {
   try {
-    // Run OFF and USDA in parallel for speed
-    const [offResults, usdaResults] = await Promise.all([fetchOFF(query), searchUSDA(query)]);
+    // Run UK OFF, EN OFF, and USDA in parallel for speed
+    const [ukResults, enResults, usdaResults] = await Promise.all([
+      fetchOFF(query, 'uk'),
+      fetchOFF(query, 'en'),
+      searchUSDA(query)
+    ]);
 
-    // If OFF returns few results, also try singular/plural variant
-    let allOFF = offResults;
-    if (offResults.length < 4) {
+    // Merge OFF results: UK first, then EN deduped
+    const seen = new Set(ukResults.map(r => r.name.toLowerCase()));
+    const allOFF = [...ukResults];
+    enResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); } });
+
+    // If still few results, try singular/plural variant against both subdomains
+    if (allOFF.length < 4) {
       const alt = query.endsWith('s') ? query.slice(0, -1) : query + 's';
-      const altResults = await fetchOFF(alt);
-      const seen = new Set(allOFF.map(r => r.name.toLowerCase()));
-      altResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) allOFF.push(r); });
+      const [ukAlt, enAlt] = await Promise.all([fetchOFF(alt, 'uk'), fetchOFF(alt, 'en')]);
+      [...ukAlt, ...enAlt].forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); } });
     }
 
-    // Merge: custom logic — OFF first (branded/barcoded), USDA fills gaps
-    const seen = new Set(allOFF.map(r => r.name.toLowerCase()));
+    // Merge: OFF first (branded/barcoded), USDA fills gaps
     const merged = [...allOFF];
     usdaResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); merged.push(r); } });
     return merged;
