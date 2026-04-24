@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.21</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.22</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -807,36 +807,86 @@ function switchLogTab(tab, btn) {
 }
 
 let currentFacingMode = 'environment';
-async function startScan() {
+let nativeRafId = null; // requestAnimationFrame id for BarcodeDetector loop
+
+async function handleScannedBarcode(text) {
+  document.getElementById('scan-status').textContent = 'Looking up barcode…';
+  const food = await lookupBarcode(text);
+  if (food) showWeightModal(food, true);
+  else {
+    document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
+    toast('Barcode not found — try search');
+    startScan(); // resume
+  }
+}
+
+async function startScanNative() {
+  const video = document.getElementById('scan-video');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = stream;
+    await new Promise(r => { video.onloadedmetadata = r; });
+    video.play();
+    const detector = new BarcodeDetector({
+      formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','qr_code']
+    });
+    document.getElementById('scan-status').textContent = 'Point camera at a barcode';
+    document.querySelector('[onclick="toggleScan()"]').textContent = 'Stop Camera';
+    const tick = async () => {
+      if (!scanActive) return;
+      try {
+        const results = await detector.detect(video);
+        if (results.length > 0) {
+          scanActive = false; // pause loop before async lookup
+          nativeRafId = null;
+          await handleScannedBarcode(results[0].rawValue);
+        } else {
+          nativeRafId = requestAnimationFrame(tick);
+        }
+      } catch(e) {
+        nativeRafId = requestAnimationFrame(tick);
+      }
+    };
+    nativeRafId = requestAnimationFrame(tick);
+  } catch(e) {
+    document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
+    toast('Camera unavailable — check permissions');
+    scanActive = false;
+  }
+}
+
+async function startScanZXing() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
-    stopScan();
     codeReader = new ZXing.BrowserMultiFormatReader();
-    scanActive = true;
-    document.getElementById('scan-status').textContent = 'Starting camera…';
     const constraints = { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } };
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
       if (result) {
         const text = result.getText();
         if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
-        document.getElementById('scan-status').textContent = 'Looking up barcode…';
-        const food = await lookupBarcode(text);
-        if (food) showWeightModal(food, true);
-        else {
-          document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
-          toast('Barcode not found — try search');
-          startScan(); // resume
-        }
+        await handleScannedBarcode(text);
       }
-      if (err && !(err instanceof ZXing.NotFoundException)) {
-        console.warn('Scan error:', err);
-      }
+      if (err && !(err instanceof ZXing.NotFoundException)) console.warn('Scan error:', err);
     });
     document.getElementById('scan-status').textContent = 'Point camera at a barcode';
+    document.querySelector('[onclick="toggleScan()"]').textContent = 'Stop Camera';
   } catch(e) {
     document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
     toast('Camera unavailable — check permissions');
     scanActive = false;
+  }
+}
+
+async function startScan() {
+  stopScan();
+  scanActive = true;
+  document.getElementById('scan-status').textContent = 'Starting camera…';
+  if ('BarcodeDetector' in window) {
+    await startScanNative();
+  } else {
+    await startScanZXing();
   }
 }
 
@@ -846,10 +896,13 @@ async function flipCamera() {
 }
 
 function stopScan() {
+  // Stop native rAF loop
+  if (nativeRafId) { cancelAnimationFrame(nativeRafId); nativeRafId = null; }
+  // Stop ZXing
   if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
   scanActive = false;
   const video = document.getElementById('scan-video');
-  if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
+  if (video && video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
   document.querySelector('[onclick="toggleScan()"]').textContent = 'Start Camera';
 }
 
@@ -1237,9 +1290,55 @@ function updateRecipePreview() {
 }
 
 let ingCodeReader = null;
+let ingRafId = null;
+let ingScanActive = false;
 
 async function startIngredientScan() {
+  stopIngredientScan();
+  ingScanActive = true;
+  if ('BarcodeDetector' in window) {
+    await startIngredientScanNative();
+  } else {
+    await startIngredientScanZXing();
+  }
+}
+
+async function startIngredientScanNative() {
+  const video = document.getElementById('ing-scan-video');
+  const statusEl = document.getElementById('ing-scan-status');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = stream;
+    await new Promise(r => { video.onloadedmetadata = r; });
+    video.play();
+    const detector = new BarcodeDetector({
+      formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','qr_code']
+    });
+    if (statusEl) statusEl.textContent = 'Point camera at a barcode';
+    const tick = async () => {
+      if (!ingScanActive) return;
+      try {
+        const results = await detector.detect(video);
+        if (results.length > 0) {
+          ingScanActive = false; ingRafId = null;
+          if (statusEl) statusEl.textContent = 'Looking up barcode…';
+          const food = await lookupBarcode(results[0].rawValue);
+          if (food) showIngredientWeight(food);
+          else { toast('Barcode not found — try search'); if (statusEl) statusEl.textContent = 'Not found'; }
+        } else {
+          ingRafId = requestAnimationFrame(tick);
+        }
+      } catch(e) { ingRafId = requestAnimationFrame(tick); }
+    };
+    ingRafId = requestAnimationFrame(tick);
+  } catch(e) { toast('Camera error: ' + e.message); }
+}
+
+async function startIngredientScanZXing() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
+  const statusEl = document.getElementById('ing-scan-status');
   try {
     ingCodeReader = new ZXing.BrowserMultiFormatReader();
     const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
@@ -1248,7 +1347,6 @@ async function startIngredientScan() {
         const text = result.getText();
         if (!ingCodeReader) return;
         try { ingCodeReader.reset(); } catch(e) {} ingCodeReader = null;
-        const statusEl = document.getElementById('ing-scan-status');
         if (statusEl) statusEl.textContent = 'Looking up barcode…';
         const food = await lookupBarcode(text);
         if (food) showIngredientWeight(food);
@@ -1256,17 +1354,16 @@ async function startIngredientScan() {
       }
       if (err && !(err instanceof ZXing.NotFoundException)) console.warn(err);
     });
-    const statusEl = document.getElementById('ing-scan-status');
     if (statusEl) statusEl.textContent = 'Point camera at a barcode';
-  } catch(e) {
-    toast('Camera error: ' + e.message);
-  }
+  } catch(e) { toast('Camera error: ' + e.message); }
 }
 
 function stopIngredientScan() {
+  if (ingRafId) { cancelAnimationFrame(ingRafId); ingRafId = null; }
+  ingScanActive = false;
   if (ingCodeReader) { try { ingCodeReader.reset(); } catch(e) {} ingCodeReader = null; }
   const video = document.getElementById('ing-scan-video');
-  if (video && video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+  if (video && video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
 }
 
 function addRecipeIngredient(mode) {
