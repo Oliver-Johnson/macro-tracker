@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.10</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.11</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -929,18 +929,48 @@ async function fetchOFF(query) {
     }));
 }
 
+async function searchUSDA(query) {
+  // USDA FoodData Central — excellent partial/full-text matching for generic ingredients
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&api_key=DEMO_KEY&pageSize=20&dataType=Foundation,SR%20Legacy,Branded&sortBy=score&sortOrder=desc`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    return (data.foods || []).filter(f => f.description && isEnglishName(f.description)).map(f => {
+      const get = id => (f.foodNutrients || []).find(n => n.nutrientId === id)?.value || 0;
+      return {
+        name: f.description,
+        kcal: r1(get(1008)),
+        protein: r1(get(1003)),
+        carbs: r1(get(1005)),
+        fat: r1(get(1004)),
+        fibre: r1(get(1079)),
+        sugar: r1(get(2000)),
+        sodium: r1(get(1093) / 1000), // mg → g
+        _usda: true
+      };
+    });
+  } catch(e) { return []; }
+}
+
 async function searchOFF(query) {
   try {
-    let results = await fetchOFF(query);
-    // If few results, also try the singular/plural variant
-    if (results.length < 4) {
+    // Run OFF and USDA in parallel for speed
+    const [offResults, usdaResults] = await Promise.all([fetchOFF(query), searchUSDA(query)]);
+
+    // If OFF returns few results, also try singular/plural variant
+    let allOFF = offResults;
+    if (offResults.length < 4) {
       const alt = query.endsWith('s') ? query.slice(0, -1) : query + 's';
       const altResults = await fetchOFF(alt);
-      // Merge, dedup by name
-      const seen = new Set(results.map(r => r.name.toLowerCase()));
-      altResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) results.push(r); });
+      const seen = new Set(allOFF.map(r => r.name.toLowerCase()));
+      altResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) allOFF.push(r); });
     }
-    return results;
+
+    // Merge: custom logic — OFF first (branded/barcoded), USDA fills gaps
+    const seen = new Set(allOFF.map(r => r.name.toLowerCase()));
+    const merged = [...allOFF];
+    usdaResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); merged.push(r); } });
+    return merged;
   } catch(e) { return []; }
 }
 

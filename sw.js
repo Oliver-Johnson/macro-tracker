@@ -1,5 +1,5 @@
 const CACHE_NAME = 'macro-tracker-v3';
-const APP_VERSION = '2026-04-24.10';
+const APP_VERSION = '2026-04-24.11';
 const STATIC_ASSETS = [
   '/macro-tracker/',
   '/macro-tracker/index.html',
@@ -27,7 +27,20 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Network-first for Open Food Facts API
+  // Network-first for Open Food Facts API and USDA
+  if (url.hostname.includes('api.nal.usda.gov')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
   if (url.hostname.includes('openfoodfacts.org')) {
     e.respondWith(
       fetch(e.request)
