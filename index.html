@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.14</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.15</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -812,7 +812,7 @@ async function startScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
     stopScan();
-    const hints = new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]);
+    const hints = ZXing.DecodeHintType ? new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]) : undefined;
     codeReader = new ZXing.BrowserMultiFormatReader(hints);
     scanActive = true;
     document.getElementById('scan-status').textContent = 'Starting camera…';
@@ -1244,7 +1244,7 @@ let ingCodeReader = null;
 async function startIngredientScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
-    const ingHints = new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]);
+    const ingHints = ZXing.DecodeHintType ? new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]) : undefined;
     ingCodeReader = new ZXing.BrowserMultiFormatReader(ingHints);
     const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
     await ingCodeReader.decodeFromConstraints(constraints, 'ing-scan-video', async (result, err) => {
