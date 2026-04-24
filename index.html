@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.20</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.21</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -807,20 +807,16 @@ function switchLogTab(tab, btn) {
 }
 
 let currentFacingMode = 'environment';
-let scanProcessing = false; // lock: prevent re-entrant barcode handling
-
 async function startScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
     stopScan();
-    scanProcessing = false;
-    codeReader = new ZXing.BrowserMultiFormatReader(new Map([[3, true]])); // 3 = TRY_HARDER
+    codeReader = new ZXing.BrowserMultiFormatReader();
     scanActive = true;
     document.getElementById('scan-status').textContent = 'Starting camera…';
     const constraints = { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } };
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
-      if (result && !scanProcessing) {
-        scanProcessing = true;
+      if (result) {
         const text = result.getText();
         if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
@@ -829,7 +825,6 @@ async function startScan() {
         else {
           document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
           toast('Barcode not found — try search');
-          scanProcessing = false;
           startScan(); // resume
         }
       }
@@ -1246,7 +1241,7 @@ let ingCodeReader = null;
 async function startIngredientScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
-    ingCodeReader = new ZXing.BrowserMultiFormatReader(new Map([[3, true]])); // 3 = TRY_HARDER
+    ingCodeReader = new ZXing.BrowserMultiFormatReader();
     const constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
     await ingCodeReader.decodeFromConstraints(constraints, 'ing-scan-video', async (result, err) => {
       if (result) {
