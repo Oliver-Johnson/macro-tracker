@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.13</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.14</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -874,11 +874,12 @@ async function lookupBarcode(barcode) {
     const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
     const data = await res.json();
     if (data.status === 1) {
-      const n = data.product.nutriments;
-      const servingQty = parseFloat(data.product.serving_quantity) || null;
-      const productQty = parseFloat(data.product.product_quantity) || null;
+      const p = data.product;
+      const n = p.nutriments;
+      const servingQty = parseFloat(p.serving_quantity) || null;
+      const productQty = parseFloat(p.product_quantity) || null;
       const food = {
-        name: data.product.product_name || 'Unknown',
+        name: p.product_name_en || p.product_name_gb || p.product_name || 'Unknown',
         kcal: parseFloat(n['energy-kcal_100g']) || 0,
         protein: parseFloat(n['proteins_100g']) || 0,
         carbs: parseFloat(n['carbohydrates_100g']) || 0,
