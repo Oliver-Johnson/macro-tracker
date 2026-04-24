@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.19</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.20</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -807,19 +807,21 @@ function switchLogTab(tab, btn) {
 }
 
 let currentFacingMode = 'environment';
+let scanProcessing = false; // lock: prevent re-entrant barcode handling
 
 async function startScan() {
   if (typeof ZXing === 'undefined') { toast('ZXing not loaded'); return; }
   try {
     stopScan();
+    scanProcessing = false;
     codeReader = new ZXing.BrowserMultiFormatReader(new Map([[3, true]])); // 3 = TRY_HARDER
     scanActive = true;
     document.getElementById('scan-status').textContent = 'Starting camera…';
     const constraints = { video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } };
     await codeReader.decodeFromConstraints(constraints, 'scan-video', async (result, err) => {
-      if (result) {
+      if (result && !scanProcessing) {
+        scanProcessing = true;
         const text = result.getText();
-        // Pause decoding but keep camera stream alive
         if (codeReader) { try { codeReader.reset(); } catch(e) {} codeReader = null; }
         document.getElementById('scan-status').textContent = 'Looking up barcode…';
         const food = await lookupBarcode(text);
@@ -827,6 +829,7 @@ async function startScan() {
         else {
           document.getElementById('scan-status').textContent = 'Product not found — try search tab.';
           toast('Barcode not found — try search');
+          scanProcessing = false;
           startScan(); // resume
         }
       }
