@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-24.23</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-25.1</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -834,12 +834,27 @@ async function startScanNative() {
     });
     document.getElementById('scan-status').textContent = 'Point camera at a barcode';
     document.querySelector('[onclick="toggleScan()"]').textContent = 'Stop Camera';
+    // Offscreen canvas for 180° rotated frame (catches upside-down barcodes)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
     const tick = async () => {
       if (!scanActive) return;
       try {
-        const results = await detector.detect(video);
+        // Try normal orientation first
+        let results = await detector.detect(video);
+        if (results.length === 0) {
+          // Try 180° rotated
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.save();
+          ctx.translate(canvas.width, canvas.height);
+          ctx.rotate(Math.PI);
+          ctx.drawImage(video, 0, 0);
+          ctx.restore();
+          results = await detector.detect(canvas);
+        }
         if (results.length > 0) {
-          scanActive = false; // pause loop before async lookup
+          scanActive = false;
           nativeRafId = null;
           await handleScannedBarcode(results[0].rawValue);
         } else {
@@ -1318,10 +1333,22 @@ async function startIngredientScanNative() {
       formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','qr_code']
     });
     if (statusEl) statusEl.textContent = 'Point camera at a barcode';
+    const ingCanvas = document.createElement('canvas');
+    const ingCtx = ingCanvas.getContext('2d');
     const tick = async () => {
       if (!ingScanActive) return;
       try {
-        const results = await detector.detect(video);
+        let results = await detector.detect(video);
+        if (results.length === 0) {
+          ingCanvas.width = video.videoWidth;
+          ingCanvas.height = video.videoHeight;
+          ingCtx.save();
+          ingCtx.translate(ingCanvas.width, ingCanvas.height);
+          ingCtx.rotate(Math.PI);
+          ingCtx.drawImage(video, 0, 0);
+          ingCtx.restore();
+          results = await detector.detect(ingCanvas);
+        }
         if (results.length > 0) {
           ingScanActive = false; ingRafId = null;
           if (statusEl) statusEl.textContent = 'Looking up barcode…';
