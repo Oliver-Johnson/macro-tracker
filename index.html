@@ -366,7 +366,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-25.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-04-25.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -992,12 +992,14 @@ function offProductToFood(p) {
 }
 
 async function fetchOFF(query, subdomain = 'en') {
-  const url = `https://${subdomain}.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&action=process&fields=code,product_name,nutriments&page_size=20&sort_by=unique_scans_n&lc=en`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return (data.products || [])
-    .filter(p => p.product_name && isEnglishName(p.product_name))
-    .map(offProductToFood);
+  try {
+    const url = `https://${subdomain}.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&action=process&fields=code,product_name,nutriments&page_size=20&sort_by=unique_scans_n&lc=en`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return (data.products || [])
+      .filter(p => p.product_name && isEnglishName(p.product_name))
+      .map(offProductToFood);
+  } catch(e) { return []; }
 }
 
 async function searchUSDA(query) {
@@ -1025,26 +1027,31 @@ async function searchUSDA(query) {
 
 async function searchOFF(query) {
   try {
-    // Run UK OFF, EN OFF, and USDA in parallel for speed
-    const [ukResults, enResults, usdaResults] = await Promise.all([
+    // Run UK, EN, world OFF + USDA in parallel
+    const [ukResults, enResults, worldResults, usdaResults] = await Promise.all([
       fetchOFF(query, 'uk'),
       fetchOFF(query, 'en'),
+      fetchOFF(query, 'world'),
       searchUSDA(query)
     ]);
 
-    // Merge OFF results: UK first, then EN deduped
+    // Merge OFF results: UK first, then EN, then world — deduped by name
     const seen = new Set(ukResults.map(r => r.name.toLowerCase()));
     const allOFF = [...ukResults];
-    enResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); } });
-
-    // If still few results, try singular/plural variant against both subdomains
-    if (allOFF.length < 4) {
-      const alt = query.endsWith('s') ? query.slice(0, -1) : query + 's';
-      const [ukAlt, enAlt] = await Promise.all([fetchOFF(alt, 'uk'), fetchOFF(alt, 'en')]);
-      [...ukAlt, ...enAlt].forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); } });
+    for (const r of [...enResults, ...worldResults]) {
+      if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); }
     }
 
-    // Merge: OFF first (branded/barcoded), USDA fills gaps
+    // If still few results, try singular/plural variant
+    if (allOFF.length < 4) {
+      const alt = query.endsWith('s') ? query.slice(0, -1) : query + 's';
+      const [ukAlt, enAlt, worldAlt] = await Promise.all([fetchOFF(alt, 'uk'), fetchOFF(alt, 'en'), fetchOFF(alt, 'world')]);
+      for (const r of [...ukAlt, ...enAlt, ...worldAlt]) {
+        if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); allOFF.push(r); }
+      }
+    }
+
+    // Merge: OFF first (branded), USDA fills gaps (great for generic ingredients)
     const merged = [...allOFF];
     usdaResults.forEach(r => { if (!seen.has(r.name.toLowerCase())) { seen.add(r.name.toLowerCase()); merged.push(r); } });
     return merged;
