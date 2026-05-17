@@ -377,7 +377,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.2</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.3</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1864,7 +1864,9 @@ async function runOcr(file) {
   setOcrProgress(0);
   try {
     await ensureTesseract();
-    const result = await Tesseract.recognize(file, 'eng', {
+    // Use worker API to set PSM 6 (single block) — forces row-by-row reading
+    // which keeps labels and values on the same line for multi-column tables
+    const worker = await Tesseract.createWorker('eng', 1, {
       logger: m => {
         if (m.status === 'recognizing text') {
           setOcrStatus('Scanning… ' + Math.round(m.progress * 100) + '%');
@@ -1874,7 +1876,11 @@ async function runOcr(file) {
         }
       }
     });
+    await worker.setParameters({ tessedit_pageseg_mode: '6' });
+    const result = await worker.recognize(file);
+    await worker.terminate();
     setOcrProgress(null);
+    console.log('[OCR raw text]\n', result.data.text);
     const nutrition = parseNutritionTable(result.data.text);
     prefillManualForm(nutrition);
   } catch(e) {
