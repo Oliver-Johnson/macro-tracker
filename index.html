@@ -367,16 +367,16 @@
       <div class="field-row">
         <div class="field">
           <label>Protein (g)</label>
-          <input type="number" id="set-protein" placeholder="134">
+          <input type="number" id="set-protein" placeholder="134" oninput="recalcKcal()">
         </div>
         <div class="field">
           <label>Carbs (g)</label>
-          <input type="number" id="set-carbs" placeholder="430">
+          <input type="number" id="set-carbs" placeholder="430" oninput="recalcKcal()">
         </div>
       </div>
       <div class="field" style="max-width:50%;">
         <label>Fat (g)</label>
-        <input type="number" id="set-fat" placeholder="55">
+        <input type="number" id="set-fat" placeholder="55" oninput="recalcKcal()">
       </div>
       <button class="btn btn-primary" onclick="saveSettings()">Save Targets</button>
     </div>
@@ -394,7 +394,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.11</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.12</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1605,6 +1605,13 @@ function saveRecipe() {
 // ═══════════════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════════════
+function recalcKcal() {
+  const p = parseFloat(document.getElementById('set-protein').value) || 0;
+  const c = parseFloat(document.getElementById('set-carbs').value) || 0;
+  const f = parseFloat(document.getElementById('set-fat').value) || 0;
+  document.getElementById('set-kcal').value = Math.round(p * 4 + c * 4 + f * 9);
+}
+
 function renderSettings() {
   const s = getSettings();
   document.getElementById('set-kcal').value = s.kcal;
