@@ -394,7 +394,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.10</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.11</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -558,9 +558,7 @@ function todayKey() { return new Date().toISOString().slice(0, 10); }
 
 function getDayLog(dateKey) {
   const logs = getLogs();
-  let day = logs.find(d => d.date === dateKey);
-  if (!day) { day = { date: dateKey, entries: [] }; logs.push(day); LS.set('mt_logs', logs); }
-  return day;
+  return logs.find(d => d.date === dateKey) || { date: dateKey, entries: [] };
 }
 
 function saveDayLog(dateKey, day) {
@@ -568,6 +566,29 @@ function saveDayLog(dateKey, day) {
   const idx = logs.findIndex(d => d.date === dateKey);
   if (idx >= 0) logs[idx] = day; else logs.push(day);
   LS.set('mt_logs', logs);
+}
+
+function deduplicateLogs() {
+  const logs = getLogs();
+  const seen = {};
+  const deduped = [];
+  for (const day of logs) {
+    if (!seen[day.date]) {
+      seen[day.date] = true;
+      deduped.push(day);
+    } else {
+      const existing = deduped.find(d => d.date === day.date);
+      for (const entry of day.entries || []) {
+        if (!existing.entries.find(e => e.id === entry.id)) {
+          existing.entries.push(entry);
+        }
+      }
+    }
+  }
+  if (deduped.length < logs.length) {
+    LS.set('mt_logs', deduped);
+    console.log(`[dedup] Merged ${logs.length - deduped.length} duplicate date(s)`);
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -1894,6 +1915,7 @@ function fixAppHeight() {
 fixAppHeight();
 window.addEventListener('resize', fixAppHeight);
 
+deduplicateLogs();
 renderToday();
 fetchSyncTargets();
 
