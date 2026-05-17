@@ -386,7 +386,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.5</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.6</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1935,26 +1935,33 @@ function pickImageFile(useCamera) {
 function parseNutritionTable(text) {
   const nutrition = { kcal: null, protein: null, carbs: null, fat: null, fibre: null, sugar: null, sodium: null };
 
-  // Normalize: rejoin split words (e.g. "Carbohy\ndrate" → "Carbohydrate")
-  // and strip < prefix from values like "<0.5g" → "0.5g"
+  // Normalize OCR artefacts:
+  // 1. Rejoin split "Carbohy\ndrate" → "Carbohydrate" (whitespace-only split)
+  // 2. Strip < prefix: "<0.5g" → "0.5g"
+  // 3. Fix "g" misread as "¢": "0.5¢" → "0.5g"
+  // 4. Fix "g" misread as "9" after decimal: "9.89 " → "9.8g " (trailing 9 at word boundary)
   let normalized = text
     .replace(/carbohy[\s\r\n]+drate/gi, 'Carbohydrate')
     .replace(/carbohy[\s\r\n]*-[\s\r\n]*drate/gi, 'Carbohydrate')
-    .replace(/<(\d)/g, '$1');
+    .replace(/<(\d)/g, '$1')
+    .replace(/(\d+[.,]\d+)¢/g, '$1g')
+    .replace(/(\d+[.,]\d+)9(\s|$)/gm, '$1g$2');
 
   const full = normalized.replace(/\r/g, '\n');
   const lines = full.split('\n').map(l => l.trim()).filter(Boolean);
 
+  // [g9¢]? — accept g, or OCR misreads of g, or no unit (value still present)
+  // (?!\s*%) — don't match RI percentage columns
   const patterns = [
     { key: 'kcal',    regex: /(?:energy|calories)[^\d]*(\d+(?:[.,]\d+)?)\s*kcal/i },
     { key: 'kcal',    regex: /(\d+(?:[.,]\d+)?)\s*kcal/i },
-    { key: 'protein', regex: /protein[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'carbs',   regex: /carbohydrate[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'carbs',   regex: /carbs?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'fat',     regex: /(?:^|\b)fat[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'fibre',   regex: /(?:dietary\s+)?fib(?:re|er)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'sugar',   regex: /(?:of which\s+)?(?:total\s+)?sugars?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'sodium',  regex: /(?:salt|sodium)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'protein', regex: /protein[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
+    { key: 'carbs',   regex: /carbohy(?:drate)?[^%\n]*?(\d+[.,]\d+)\s*[g9¢]?(?!\s*[%kK])/i },
+    { key: 'carbs',   regex: /carbs?[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
+    { key: 'fat',     regex: /\bfat[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
+    { key: 'fibre',   regex: /fib(?:re|er)[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
+    { key: 'sugar',   regex: /sugars?[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
+    { key: 'sodium',  regex: /(?:salt|sodium)[^\d]*(\d+(?:[.,]\d+)?)\s*[g9¢]?(?!\s*%)/i },
   ];
 
   // Full-text pass
