@@ -272,6 +272,10 @@
       </div>
       <div id="ocr-status"></div>
       <div id="ocr-progress-bar"><div id="ocr-progress-fill"></div></div>
+      <div id="ocr-raw-output" style="display:none;margin-top:8px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Raw OCR text (tap to copy):</div>
+        <textarea id="ocr-raw-text" readonly onclick="this.select();document.execCommand('copy');showToast('Copied')" style="width:100%;box-sizing:border-box;height:110px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:11px;font-family:monospace;resize:vertical;"></textarea>
+      </div>
       <div style="margin-top:12px;">
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Or paste nutrition text:</div>
         <textarea id="ocr-paste-input" placeholder="Paste nutrition table text here…" style="width:100%;box-sizing:border-box;height:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;resize:vertical;"></textarea>
@@ -382,7 +386,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.4</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.5</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1885,8 +1889,11 @@ async function runOcr(file) {
     const result = await worker.recognize(file);
     await worker.terminate();
     setOcrProgress(null);
-    console.log('[OCR raw text]\n', result.data.text);
-    const nutrition = parseNutritionTable(result.data.text);
+    const rawText = result.data.text;
+    console.log('[OCR raw text]\n', rawText);
+    document.getElementById('ocr-raw-text').value = rawText;
+    document.getElementById('ocr-raw-output').style.display = 'block';
+    const nutrition = parseNutritionTable(rawText);
     prefillManualForm(nutrition);
   } catch(e) {
     setOcrProgress(null);
