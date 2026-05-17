@@ -377,7 +377,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1908,23 +1908,44 @@ function pickImageFile(useCamera) {
 
 function parseNutritionTable(text) {
   const nutrition = { kcal: null, protein: null, carbs: null, fat: null, fibre: null, sugar: null, sodium: null };
-  const full = text.replace(/\r/g, '\n');
+
+  // Normalize: rejoin split words (e.g. "Carbohy\ndrate" → "Carbohydrate")
+  // and strip < prefix from values like "<0.5g" → "0.5g"
+  let normalized = text
+    .replace(/carbohy[\s\r\n]+drate/gi, 'Carbohydrate')
+    .replace(/carbohy[\s\r\n]*-[\s\r\n]*drate/gi, 'Carbohydrate')
+    .replace(/<(\d)/g, '$1');
+
+  const full = normalized.replace(/\r/g, '\n');
+  const lines = full.split('\n').map(l => l.trim()).filter(Boolean);
 
   const patterns = [
     { key: 'kcal',    regex: /(?:energy|calories)[^\d]*(\d+(?:[.,]\d+)?)\s*kcal/i },
     { key: 'kcal',    regex: /(\d+(?:[.,]\d+)?)\s*kcal/i },
     { key: 'protein', regex: /protein[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'carbs',   regex: /(?:total\s+)?carbohydrate[s]?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
-    { key: 'fat',     regex: /(?:^|[\n\s])(?:total\s+)?fat[^\d]*(\d+(?:[.,]\d+)?)\s*g/im },
+    { key: 'carbs',   regex: /carbohydrate[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'carbs',   regex: /carbs?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'fat',     regex: /(?:^|\b)fat[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
     { key: 'fibre',   regex: /(?:dietary\s+)?fib(?:re|er)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
     { key: 'sugar',   regex: /(?:of which\s+)?(?:total\s+)?sugars?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
     { key: 'sodium',  regex: /(?:salt|sodium)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
   ];
 
+  // Full-text pass
   for (const { key, regex } of patterns) {
     if (nutrition[key] === null) {
       const m = full.match(regex);
       if (m) nutrition[key] = parseFloat(m[1].replace(',', '.'));
+    }
+  }
+
+  // Line-by-line pass — catches labels and their first value on same line
+  for (const line of lines) {
+    for (const { key, regex } of patterns) {
+      if (nutrition[key] === null) {
+        const m = line.match(regex);
+        if (m) nutrition[key] = parseFloat(m[1].replace(',', '.'));
+      }
     }
   }
 
