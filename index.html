@@ -272,6 +272,11 @@
       </div>
       <div id="ocr-status"></div>
       <div id="ocr-progress-bar"><div id="ocr-progress-fill"></div></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Or paste nutrition text:</div>
+        <textarea id="ocr-paste-input" placeholder="Paste nutrition table text here…" style="width:100%;box-sizing:border-box;height:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;resize:vertical;"></textarea>
+        <button class="btn btn-secondary" onclick="parseFromPaste()" style="width:100%;margin-top:6px;">Parse Text</button>
+      </div>
     </div>
 
     <!-- Search -->
@@ -377,7 +382,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.3</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.4</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1898,6 +1903,14 @@ async function ocrFromCamera() {
 async function ocrFromFile() {
   const file = await pickImageFile(false);
   if (file) await runOcr(file);
+}
+
+function parseFromPaste() {
+  const text = document.getElementById('ocr-paste-input').value.trim();
+  if (!text) return;
+  const nutrition = parseNutritionTable(text);
+  prefillManualForm(nutrition);
+  document.getElementById('ocr-paste-input').value = '';
 }
 
 function pickImageFile(useCamera) {
