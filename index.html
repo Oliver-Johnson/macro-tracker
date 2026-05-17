@@ -381,12 +381,20 @@
       <button class="btn btn-primary" onclick="saveSettings()">Save Targets</button>
     </div>
     <div class="card" style="margin-top:8px;">
+      <div class="card-title">Sync Server</div>
+      <div class="field">
+        <label>Sync Server URL</label>
+        <input type="url" id="set-sync-url" placeholder="https://your-tunnel.trycloudflare.com">
+      </div>
+      <button class="btn btn-primary" onclick="saveSyncUrl()">Save Sync URL</button>
+    </div>
+    <div class="card" style="margin-top:8px;">
       <div class="card-title">Saved Foods</div>
       <div id="custom-foods-list"></div>
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.9</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.10</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1582,6 +1590,7 @@ function renderSettings() {
   document.getElementById('set-protein').value = s.protein;
   document.getElementById('set-carbs').value = s.carbs;
   document.getElementById('set-fat').value = s.fat;
+  document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
 
   const customs = getCustomFoods();
   const el = document.getElementById('custom-foods-list');
@@ -1625,14 +1634,24 @@ function exportData() {
   a.click();
 }
 
-const SYNC_URL = 'https://macro-sync.ojohnson.co.uk';
+function getSyncUrl() {
+  return localStorage.getItem('syncServerUrl') || '';
+}
+
+function saveSyncUrl() {
+  const url = document.getElementById('set-sync-url').value.trim();
+  if (url) { localStorage.setItem('syncServerUrl', url); } else { localStorage.removeItem('syncServerUrl'); }
+  toast(url ? 'Sync URL saved!' : 'Sync URL cleared — sync disabled');
+}
 
 function syncFoodLog() {
+  const syncUrl = getSyncUrl();
+  if (!syncUrl) return;
   const data = {
     logs: getLogs(), recipes: getRecipes(),
     customFoods: getCustomFoods(), settings: getSettings()
   };
-  fetch(SYNC_URL + '/sync/food-log', {
+  fetch(syncUrl + '/sync/food-log', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -1642,7 +1661,9 @@ function syncFoodLog() {
 }
 
 function fetchSyncTargets() {
-  fetch(SYNC_URL + '/sync/targets')
+  const syncUrl = getSyncUrl();
+  if (!syncUrl) return;
+  fetch(syncUrl + '/sync/targets')
     .then(r => r.json())
     .then(t => {
       if (t && t.date === todayKey()) {
