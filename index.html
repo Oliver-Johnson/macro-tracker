@@ -386,9 +386,10 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.8</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.9</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
     </div>
   </div>
@@ -1624,6 +1625,40 @@ function exportData() {
   a.click();
 }
 
+const SYNC_URL = 'https://macro-sync.ojohnson.co.uk';
+
+function syncFoodLog() {
+  const data = {
+    logs: getLogs(), recipes: getRecipes(),
+    customFoods: getCustomFoods(), settings: getSettings()
+  };
+  fetch(SYNC_URL + '/sync/food-log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(r => r.json())
+    .then(() => toast('Synced to server'))
+    .catch(() => toast('Sync failed — server offline?'));
+}
+
+function fetchSyncTargets() {
+  fetch(SYNC_URL + '/sync/targets')
+    .then(r => r.json())
+    .then(t => {
+      if (t && t.date === todayKey()) {
+        const s = getSettings();
+        s.kcal = t.kcal || s.kcal;
+        s.protein = t.protein || s.protein;
+        s.carbs = t.carbs || s.carbs;
+        s.fat = t.fat || s.fat;
+        localStorage.setItem('mt_settings', JSON.stringify(s));
+        renderToday();
+        renderSettings();
+      }
+    })
+    .catch(() => {}); // silent fail — use local targets
+}
+
 function clearData() {
   if (!confirm('Delete ALL data? This cannot be undone.')) return;
   ['mt_logs','mt_recipes','mt_custom_foods','mt_barcode_cache'].forEach(k => localStorage.removeItem(k));
@@ -1839,6 +1874,7 @@ fixAppHeight();
 window.addEventListener('resize', fixAppHeight);
 
 renderToday();
+fetchSyncTargets();
 
 // Auto-start scan if on scan tab and view-log is navigated to
 document.querySelector('[onclick*="view-log"] , [onclick*=\'log\']');
