@@ -1193,13 +1193,12 @@ function confirmLogFood() {
 
   if (pendingFood) pendingFood._keepScanning = false; // prevent closeModal from double-starting
   closeModal('weight-modal');
-  viewingDate = todayKey();
   toast(`Added ${f.name}`);
   if (keepScanning) startScan();
 }
 
 function addEntryToLog(entry) {
-  const day = getDayLog(todayKey());
+  const day = getDayLog(viewingDate);
   day.entries.push(entry);
   saveDayLog(todayKey(), day);
 }
