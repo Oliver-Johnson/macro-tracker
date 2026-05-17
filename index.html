@@ -386,7 +386,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.6</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.7</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
@@ -1220,7 +1220,7 @@ function confirmLogFood() {
 function addEntryToLog(entry) {
   const day = getDayLog(viewingDate);
   day.entries.push(entry);
-  saveDayLog(todayKey(), day);
+  saveDayLog(viewingDate, day);
 }
 
 // ═══════════════════════════════════════════════════
@@ -1274,7 +1274,6 @@ function confirmLogRecipe() {
   const n = recipeNutritionForWeight(r, w);
   addEntryToLog({ id: uid(), name: r.name, weight: w, ...n });
   closeModal('recipe-log-modal');
-  viewingDate = todayKey();
   toast(`Added ${r.name}`);
 }
 
@@ -1780,7 +1779,6 @@ function confirmQuickAdd() {
   const name = document.getElementById('qa-name').value.trim() || 'Quick Add';
   addEntryToLog({ id: uid(), name, meal: selectedQAMeal, kcal, protein, carbs, fat, weight: null, barcode: null });
   ['qa-name','qa-kcal','qa-protein','qa-carbs','qa-fat'].forEach(id => document.getElementById(id).value = '');
-  viewingDate = todayKey();
   toast(`Added ${name}`);
 }
 
