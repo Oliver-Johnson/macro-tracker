@@ -130,6 +130,11 @@
   #toast { position: fixed; bottom: calc(70px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 1px solid var(--border); padding: 10px 18px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ─── OCR ─── */
+  #ocr-status { text-align:center; color:var(--muted); font-size:13px; margin-top:8px; min-height:20px; }
+  #ocr-progress-bar { height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; margin-top:6px; display:none; }
+  #ocr-progress-fill { height:100%; background:var(--accent); border-radius:2px; width:0; transition:width 0.2s; }
+
   /* ─── Misc ─── */
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .section-title { font-size: 18px; font-weight: 700; }
@@ -261,6 +266,12 @@
         <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1">Stop Camera</button>
         <button class="btn btn-secondary" onclick="flipCamera()" style="flex:0 0 auto; padding:10px 16px;" title="Flip camera">⟳</button>
       </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1">📷 Scan Label</button>
+        <button class="btn btn-secondary" onclick="ocrFromFile()" style="flex:1">🖼️ Upload Label</button>
+      </div>
+      <div id="ocr-status"></div>
+      <div id="ocr-progress-bar"><div id="ocr-progress-fill"></div></div>
     </div>
 
     <!-- Search -->
@@ -1813,6 +1824,137 @@ renderToday();
 
 // Auto-start scan if on scan tab and view-log is navigated to
 document.querySelector('[onclick*="view-log"] , [onclick*=\'log\']');
+
+// ═══════════════════════════════════════════════════
+//  OCR NUTRITION LABEL SCANNER
+// ═══════════════════════════════════════════════════
+
+let tesseractLoaded = false;
+
+async function ensureTesseract() {
+  if (tesseractLoaded) return;
+  if (window.Tesseract) { tesseractLoaded = true; return; }
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = () => { tesseractLoaded = true; resolve(); };
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function setOcrStatus(msg) {
+  document.getElementById('ocr-status').textContent = msg;
+}
+
+function setOcrProgress(ratio) {
+  const bar = document.getElementById('ocr-progress-bar');
+  const fill = document.getElementById('ocr-progress-fill');
+  if (ratio === null) {
+    bar.style.display = 'none';
+    fill.style.width = '0';
+  } else {
+    bar.style.display = 'block';
+    fill.style.width = Math.round(ratio * 100) + '%';
+  }
+}
+
+async function runOcr(file) {
+  setOcrStatus('Loading OCR engine…');
+  setOcrProgress(0);
+  try {
+    await ensureTesseract();
+    const result = await Tesseract.recognize(file, 'eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          setOcrStatus('Scanning… ' + Math.round(m.progress * 100) + '%');
+          setOcrProgress(m.progress);
+        } else if (m.status === 'loading tesseract core' || m.status === 'initializing tesseract') {
+          setOcrStatus('Loading…');
+        }
+      }
+    });
+    setOcrProgress(null);
+    const nutrition = parseNutritionTable(result.data.text);
+    prefillManualForm(nutrition);
+  } catch(e) {
+    setOcrProgress(null);
+    setOcrStatus('OCR failed: ' + e.message);
+    console.error('OCR error', e);
+  }
+}
+
+async function ocrFromCamera() {
+  const file = await pickImageFile(true);
+  if (file) await runOcr(file);
+}
+
+async function ocrFromFile() {
+  const file = await pickImageFile(false);
+  if (file) await runOcr(file);
+}
+
+function pickImageFile(useCamera) {
+  return new Promise(resolve => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (useCamera) input.capture = 'environment';
+    input.onchange = e => resolve(e.target.files[0] || null);
+    input.oncancel = () => resolve(null);
+    input.click();
+  });
+}
+
+function parseNutritionTable(text) {
+  const nutrition = { kcal: null, protein: null, carbs: null, fat: null, fibre: null, sugar: null, sodium: null };
+  const full = text.replace(/\r/g, '\n');
+
+  const patterns = [
+    { key: 'kcal',    regex: /(?:energy|calories)[^\d]*(\d+(?:[.,]\d+)?)\s*kcal/i },
+    { key: 'kcal',    regex: /(\d+(?:[.,]\d+)?)\s*kcal/i },
+    { key: 'protein', regex: /protein[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'carbs',   regex: /(?:total\s+)?carbohydrate[s]?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'fat',     regex: /(?:^|[\n\s])(?:total\s+)?fat[^\d]*(\d+(?:[.,]\d+)?)\s*g/im },
+    { key: 'fibre',   regex: /(?:dietary\s+)?fib(?:re|er)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'sugar',   regex: /(?:of which\s+)?(?:total\s+)?sugars?[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+    { key: 'sodium',  regex: /(?:salt|sodium)[^\d]*(\d+(?:[.,]\d+)?)\s*g/i },
+  ];
+
+  for (const { key, regex } of patterns) {
+    if (nutrition[key] === null) {
+      const m = full.match(regex);
+      if (m) nutrition[key] = parseFloat(m[1].replace(',', '.'));
+    }
+  }
+
+  // kJ → kcal fallback
+  if (nutrition.kcal === null) {
+    const kj = full.match(/(\d+(?:[.,]\d+)?)\s*kj/i);
+    if (kj) nutrition.kcal = Math.round(parseFloat(kj[1].replace(',', '.')) / 4.184);
+  }
+
+  return nutrition;
+}
+
+function prefillManualForm(nutrition) {
+  // Switch to manual tab
+  const manualBtn = document.querySelector('[onclick*="manual"]');
+  if (manualBtn) switchLogTab('manual', manualBtn);
+
+  const setField = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val !== null) el.value = val;
+  };
+
+  setField('manual-kcal', nutrition.kcal);
+  setField('manual-protein', nutrition.protein);
+  setField('manual-carbs', nutrition.carbs);
+  setField('manual-fat', nutrition.fat);
+
+  const missing = Object.values(nutrition).some(v => v === null);
+  setOcrStatus(missing ? 'Review extracted values — some fields not detected' : 'Values extracted — review before logging');
+}
 </script>
 </body>
 </html>
