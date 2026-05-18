@@ -143,6 +143,7 @@
   .tag-protein { background: rgba(74,222,128,0.15); color: var(--protein); }
   .tag-carbs { background: rgba(250,204,21,0.15); color: var(--carbs); }
   .tag-fat { background: rgba(249,115,22,0.15); color: var(--fat); }
+  .tag-generic { background: rgba(108,99,255,0.15); color: var(--accent2); }
 
   .spinner { width: 24px; height: 24px; border: 3px solid var(--bg3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 20px auto; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -394,7 +395,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.13</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.14</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -538,6 +539,148 @@
 
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <script>
+// ═══════════════════════════════════════════════════
+//  GENERIC FOODS DATABASE (~150 whole foods, per 100g)
+// ═══════════════════════════════════════════════════
+const GENERIC_FOODS = [
+  // Vegetables
+  { name: 'Onion', kcal: 40, protein: 1.1, carbs: 9.3, fat: 0.1 },
+  { name: 'Red Onion', kcal: 42, protein: 1.2, carbs: 9.5, fat: 0.1 },
+  { name: 'Garlic', kcal: 149, protein: 6.4, carbs: 33.1, fat: 0.5 },
+  { name: 'Tomato', kcal: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+  { name: 'Cherry Tomatoes', kcal: 18, protein: 0.9, carbs: 3.6, fat: 0.2 },
+  { name: 'Broccoli', kcal: 34, protein: 2.8, carbs: 6.6, fat: 0.4 },
+  { name: 'Spinach', kcal: 23, protein: 2.9, carbs: 3.6, fat: 0.4 },
+  { name: 'Kale', kcal: 49, protein: 4.3, carbs: 8.8, fat: 0.9 },
+  { name: 'Lettuce', kcal: 14, protein: 0.9, carbs: 2.9, fat: 0.1 },
+  { name: 'Cucumber', kcal: 16, protein: 0.7, carbs: 3.6, fat: 0.1 },
+  { name: 'Courgette', kcal: 17, protein: 1.2, carbs: 3.1, fat: 0.3 },
+  { name: 'Zucchini', kcal: 17, protein: 1.2, carbs: 3.1, fat: 0.3 },
+  { name: 'Bell Pepper (Red)', kcal: 31, protein: 1.0, carbs: 7.0, fat: 0.3 },
+  { name: 'Bell Pepper (Green)', kcal: 20, protein: 0.9, carbs: 4.6, fat: 0.2 },
+  { name: 'Bell Pepper (Yellow)', kcal: 27, protein: 1.0, carbs: 6.3, fat: 0.2 },
+  { name: 'Carrot', kcal: 41, protein: 0.9, carbs: 9.6, fat: 0.2 },
+  { name: 'Sweet Potato', kcal: 86, protein: 1.6, carbs: 20.1, fat: 0.1 },
+  { name: 'Potato', kcal: 77, protein: 2.0, carbs: 17.5, fat: 0.1 },
+  { name: 'Butternut Squash', kcal: 45, protein: 1.0, carbs: 11.7, fat: 0.1 },
+  { name: 'Cauliflower', kcal: 25, protein: 1.9, carbs: 5.0, fat: 0.3 },
+  { name: 'Mushroom', kcal: 22, protein: 3.1, carbs: 3.3, fat: 0.3 },
+  { name: 'Asparagus', kcal: 20, protein: 2.2, carbs: 3.7, fat: 0.1 },
+  { name: 'Green Beans', kcal: 31, protein: 1.8, carbs: 7.1, fat: 0.1 },
+  { name: 'Peas', kcal: 81, protein: 5.4, carbs: 14.5, fat: 0.4 },
+  { name: 'Sweetcorn', kcal: 86, protein: 3.2, carbs: 18.7, fat: 1.2 },
+  { name: 'Celery', kcal: 16, protein: 0.7, carbs: 3.0, fat: 0.2 },
+  { name: 'Leek', kcal: 61, protein: 1.5, carbs: 14.2, fat: 0.3 },
+  { name: 'Cabbage', kcal: 25, protein: 1.3, carbs: 5.8, fat: 0.1 },
+  { name: 'Aubergine', kcal: 25, protein: 1.0, carbs: 5.9, fat: 0.2 },
+  { name: 'Eggplant', kcal: 25, protein: 1.0, carbs: 5.9, fat: 0.2 },
+  { name: 'Avocado', kcal: 160, protein: 2.0, carbs: 8.5, fat: 14.7 },
+  { name: 'Spring Onion', kcal: 32, protein: 1.8, carbs: 7.3, fat: 0.2 },
+  { name: 'Radish', kcal: 16, protein: 0.7, carbs: 3.4, fat: 0.1 },
+  { name: 'Beetroot', kcal: 43, protein: 1.6, carbs: 9.6, fat: 0.1 },
+  { name: 'Pumpkin', kcal: 26, protein: 1.0, carbs: 6.5, fat: 0.1 },
+  // Fruits
+  { name: 'Apple', kcal: 52, protein: 0.3, carbs: 13.8, fat: 0.2 },
+  { name: 'Banana', kcal: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
+  { name: 'Orange', kcal: 47, protein: 0.9, carbs: 11.8, fat: 0.1 },
+  { name: 'Strawberry', kcal: 32, protein: 0.7, carbs: 7.7, fat: 0.3 },
+  { name: 'Blueberry', kcal: 57, protein: 0.7, carbs: 14.5, fat: 0.3 },
+  { name: 'Raspberry', kcal: 52, protein: 1.2, carbs: 11.9, fat: 0.7 },
+  { name: 'Grapes', kcal: 69, protein: 0.7, carbs: 18.1, fat: 0.2 },
+  { name: 'Mango', kcal: 60, protein: 0.8, carbs: 15.0, fat: 0.4 },
+  { name: 'Pineapple', kcal: 50, protein: 0.5, carbs: 13.1, fat: 0.1 },
+  { name: 'Watermelon', kcal: 30, protein: 0.6, carbs: 7.6, fat: 0.2 },
+  { name: 'Lemon', kcal: 29, protein: 1.1, carbs: 9.3, fat: 0.3 },
+  { name: 'Lime', kcal: 30, protein: 0.7, carbs: 10.5, fat: 0.2 },
+  { name: 'Peach', kcal: 39, protein: 0.9, carbs: 9.5, fat: 0.3 },
+  { name: 'Pear', kcal: 57, protein: 0.4, carbs: 15.2, fat: 0.1 },
+  { name: 'Kiwi', kcal: 61, protein: 1.1, carbs: 14.7, fat: 0.5 },
+  { name: 'Melon', kcal: 34, protein: 0.8, carbs: 8.2, fat: 0.2 },
+  { name: 'Plum', kcal: 46, protein: 0.7, carbs: 11.4, fat: 0.3 },
+  { name: 'Cherries', kcal: 63, protein: 1.1, carbs: 16.0, fat: 0.2 },
+  // Raw Meats & Fish
+  { name: 'Chicken Breast (raw)', kcal: 120, protein: 22.5, carbs: 0.0, fat: 2.6 },
+  { name: 'Chicken Thigh (raw)', kcal: 177, protein: 17.6, carbs: 0.0, fat: 11.5 },
+  { name: 'Turkey Breast (raw)', kcal: 104, protein: 24.0, carbs: 0.0, fat: 1.0 },
+  { name: 'Beef Mince (5% fat)', kcal: 137, protein: 21.8, carbs: 0.0, fat: 5.5 },
+  { name: 'Beef Mince (20% fat)', kcal: 243, protein: 17.4, carbs: 0.0, fat: 19.2 },
+  { name: 'Beef Steak (Sirloin)', kcal: 207, protein: 26.4, carbs: 0.0, fat: 11.1 },
+  { name: 'Pork Loin', kcal: 182, protein: 20.7, carbs: 0.0, fat: 10.7 },
+  { name: 'Bacon (back, raw)', kcal: 215, protein: 16.5, carbs: 0.0, fat: 16.5 },
+  { name: 'Salmon Fillet', kcal: 208, protein: 20.4, carbs: 0.0, fat: 13.6 },
+  { name: 'Tuna Steak', kcal: 136, protein: 30.0, carbs: 0.0, fat: 1.0 },
+  { name: 'Cod Fillet', kcal: 82, protein: 18.0, carbs: 0.0, fat: 0.7 },
+  { name: 'Prawns (raw)', kcal: 99, protein: 20.3, carbs: 0.0, fat: 1.4 },
+  { name: 'Eggs (whole)', kcal: 147, protein: 12.6, carbs: 0.6, fat: 10.3 },
+  { name: 'Lamb Mince', kcal: 282, protein: 18.5, carbs: 0.0, fat: 23.0 },
+  { name: 'Mackerel Fillet', kcal: 305, protein: 18.7, carbs: 0.0, fat: 25.1 },
+  { name: 'Sea Bass Fillet', kcal: 97, protein: 18.4, carbs: 0.0, fat: 2.5 },
+  { name: 'Haddock Fillet', kcal: 82, protein: 19.0, carbs: 0.0, fat: 0.6 },
+  // Dairy
+  { name: 'Milk (whole)', kcal: 61, protein: 3.2, carbs: 4.7, fat: 3.6 },
+  { name: 'Milk (semi-skimmed)', kcal: 46, protein: 3.4, carbs: 4.7, fat: 1.6 },
+  { name: 'Milk (skimmed)', kcal: 34, protein: 3.4, carbs: 4.9, fat: 0.1 },
+  { name: 'Greek Yogurt', kcal: 97, protein: 9.0, carbs: 3.6, fat: 5.0 },
+  { name: 'Natural Yogurt', kcal: 61, protein: 3.5, carbs: 4.7, fat: 3.0 },
+  { name: 'Cheddar Cheese', kcal: 403, protein: 25.0, carbs: 0.1, fat: 33.1 },
+  { name: 'Mozzarella', kcal: 280, protein: 18.0, carbs: 2.2, fat: 22.0 },
+  { name: 'Cottage Cheese', kcal: 98, protein: 11.1, carbs: 3.4, fat: 4.3 },
+  { name: 'Butter', kcal: 717, protein: 0.9, carbs: 0.1, fat: 81.1 },
+  { name: 'Double Cream', kcal: 449, protein: 1.7, carbs: 2.7, fat: 48.0 },
+  { name: 'Parmesan', kcal: 431, protein: 38.5, carbs: 0.0, fat: 29.0 },
+  { name: 'Feta Cheese', kcal: 264, protein: 14.2, carbs: 4.1, fat: 21.3 },
+  // Grains & Legumes
+  { name: 'White Rice (cooked)', kcal: 130, protein: 2.7, carbs: 28.2, fat: 0.3 },
+  { name: 'Brown Rice (cooked)', kcal: 123, protein: 2.7, carbs: 25.6, fat: 1.0 },
+  { name: 'Oats (dry)', kcal: 389, protein: 16.9, carbs: 66.3, fat: 6.9 },
+  { name: 'Pasta (cooked)', kcal: 158, protein: 5.8, carbs: 31.0, fat: 0.9 },
+  { name: 'Bread (white)', kcal: 265, protein: 9.0, carbs: 49.0, fat: 3.2 },
+  { name: 'Bread (wholemeal)', kcal: 247, protein: 9.0, carbs: 47.0, fat: 3.0 },
+  { name: 'Lentils (cooked)', kcal: 116, protein: 9.0, carbs: 20.1, fat: 0.4 },
+  { name: 'Chickpeas (cooked)', kcal: 164, protein: 8.9, carbs: 27.4, fat: 2.6 },
+  { name: 'Black Beans (cooked)', kcal: 132, protein: 8.9, carbs: 23.7, fat: 0.5 },
+  { name: 'Kidney Beans (cooked)', kcal: 127, protein: 8.7, carbs: 22.8, fat: 0.5 },
+  { name: 'Quinoa (cooked)', kcal: 120, protein: 4.4, carbs: 21.3, fat: 1.9 },
+  { name: 'Couscous (cooked)', kcal: 112, protein: 3.8, carbs: 23.2, fat: 0.2 },
+  { name: 'Basmati Rice (cooked)', kcal: 121, protein: 2.5, carbs: 26.3, fat: 0.2 },
+  { name: 'Tortilla Wrap', kcal: 299, protein: 7.9, carbs: 50.1, fat: 7.1 },
+  { name: 'Edamame (cooked)', kcal: 121, protein: 11.9, carbs: 8.9, fat: 5.2 },
+  // Nuts & Seeds
+  { name: 'Almonds', kcal: 579, protein: 21.2, carbs: 21.6, fat: 49.9 },
+  { name: 'Cashews', kcal: 553, protein: 18.2, carbs: 30.2, fat: 43.9 },
+  { name: 'Walnuts', kcal: 654, protein: 15.2, carbs: 13.7, fat: 65.2 },
+  { name: 'Peanuts', kcal: 567, protein: 25.8, carbs: 16.1, fat: 49.2 },
+  { name: 'Peanut Butter', kcal: 589, protein: 25.0, carbs: 20.0, fat: 50.0 },
+  { name: 'Chia Seeds', kcal: 486, protein: 16.5, carbs: 42.1, fat: 30.7 },
+  { name: 'Flaxseeds', kcal: 534, protein: 18.3, carbs: 28.9, fat: 42.2 },
+  { name: 'Sunflower Seeds', kcal: 584, protein: 20.8, carbs: 20.0, fat: 51.5 },
+  { name: 'Pumpkin Seeds', kcal: 559, protein: 30.2, carbs: 10.7, fat: 49.1 },
+  { name: 'Hazelnuts', kcal: 628, protein: 15.0, carbs: 17.0, fat: 60.8 },
+  { name: 'Pistachios', kcal: 562, protein: 20.6, carbs: 27.7, fat: 45.4 },
+  // Oils & Fats
+  { name: 'Olive Oil', kcal: 884, protein: 0.0, carbs: 0.0, fat: 100.0 },
+  { name: 'Coconut Oil', kcal: 862, protein: 0.0, carbs: 0.0, fat: 100.0 },
+  { name: 'Rapeseed Oil', kcal: 884, protein: 0.0, carbs: 0.0, fat: 100.0 },
+  { name: 'Sesame Oil', kcal: 884, protein: 0.0, carbs: 0.0, fat: 100.0 },
+  // Condiments & Other
+  { name: 'Honey', kcal: 304, protein: 0.3, carbs: 82.4, fat: 0.0 },
+  { name: 'Sugar', kcal: 387, protein: 0.0, carbs: 99.9, fat: 0.0 },
+  { name: 'Tomato Passata', kcal: 32, protein: 1.6, carbs: 6.1, fat: 0.3 },
+  { name: 'Soy Sauce', kcal: 53, protein: 8.1, carbs: 4.9, fat: 0.1 },
+  { name: 'Worcestershire Sauce', kcal: 78, protein: 1.0, carbs: 19.5, fat: 0.1 },
+  { name: 'Mayonnaise', kcal: 680, protein: 1.1, carbs: 0.6, fat: 74.8 },
+  { name: 'Ketchup', kcal: 101, protein: 1.3, carbs: 25.8, fat: 0.1 },
+  { name: 'Mustard (Dijon)', kcal: 185, protein: 7.1, carbs: 20.6, fat: 10.9 },
+  { name: 'Balsamic Vinegar', kcal: 88, protein: 0.5, carbs: 17.0, fat: 0.0 },
+  { name: 'Tomato Puree', kcal: 82, protein: 3.5, carbs: 17.6, fat: 0.4 },
+  { name: 'Coconut Milk', kcal: 197, protein: 2.0, carbs: 5.6, fat: 21.3 },
+  { name: 'Dark Chocolate (85%)', kcal: 598, protein: 8.0, carbs: 22.0, fat: 52.0 },
+  { name: 'Dark Chocolate (70%)', kcal: 578, protein: 7.8, carbs: 32.0, fat: 42.6 },
+  // Protein Supplements
+  { name: 'Whey Protein Powder', kcal: 370, protein: 75.0, carbs: 10.0, fat: 5.0 },
+  { name: 'Creatine', kcal: 0, protein: 0.0, carbs: 0.0, fat: 0.0 },
+];
+
 // ═══════════════════════════════════════════════════
 //  STORAGE HELPERS
 // ═══════════════════════════════════════════════════
@@ -1126,31 +1269,32 @@ async function doSearch() {
   const el = document.getElementById('search-results');
   el.innerHTML = '<div class="spinner"></div>';
 
-  // Also search custom foods
-  const customs = getCustomFoods().filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
+  const ql = q.toLowerCase().trim();
+  const scoreOf = name => {
+    const n = name.toLowerCase();
+    if (n === ql) return 0;
+    if (n.startsWith(ql)) return 1;
+    return 2;
+  };
+
+  // Generic foods: searched locally, sorted by relevance, shown first
+  const generics = GENERIC_FOODS
+    .filter(f => f.name.toLowerCase().includes(ql))
+    .map(f => ({ ...f, _generic: true }))
+    .sort((a, b) => scoreOf(a.name) - scoreOf(b.name));
+
+  // Custom saved foods
+  const customs = getCustomFoods()
+    .filter(f => f.name.toLowerCase().includes(ql))
+    .map(f => ({ ...f, _saved: true }));
 
   const results = await searchOFF(q);
-  const all = [
-    ...customs.map(f => ({ ...f, _saved: true })),
-    ...results
-  ];
-
-  // Sort: exact match first, then prefix, then contains
-  const ql = q.toLowerCase().trim();
-  all.sort((a, b) => {
-    const score = (name) => {
-      const n = name.toLowerCase();
-      if (n === ql) return 0;
-      if (n.startsWith(ql)) return 1;
-      return 2;
-    };
-    return score(a.name) - score(b.name);
-  });
+  const all = [...generics, ...customs, ...results];
 
   if (!all.length) { el.innerHTML = '<div class="empty-state">No results found.<br><br><span style="color:var(--accent2);cursor:pointer;" onclick="switchLogTab(\'manual\',document.querySelector(\'.tab:nth-child(3)\'))">+ Add it manually</span></div>'; return; }
   el.innerHTML = all.slice(0, 25).map((r, i) => `
     <div class="result-item" onclick="pickSearchResult(${i})">
-      <div class="result-name">${esc(r.name)}${r._saved ? ' <span class="tag tag-protein">saved</span>' : ''}</div>
+      <div class="result-name">${esc(r.name)}${r._saved ? ' <span class="tag tag-protein">saved</span>' : ''}${r._generic ? ' <span class="tag tag-generic">Generic</span>' : ''}</div>
       <div class="result-macros">${r.kcal} kcal · P ${r.protein}g · C ${r.carbs}g · F ${r.fat}g (per 100g)</div>
     </div>`).join('');
   window._searchResults = all;
@@ -1556,12 +1700,16 @@ async function doIngSearch() {
   if (!q) return;
   const el = document.getElementById('ing-search-results');
   el.innerHTML = '<div class="spinner"></div>';
+  const ql = q.toLowerCase().trim();
+  const generics = GENERIC_FOODS
+    .filter(f => f.name.toLowerCase().includes(ql))
+    .map(f => ({ ...f, _generic: true }));
   const results = await searchOFF(q);
-  const customs = getCustomFoods().filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
-  const all = [...customs.map(f => ({...f, _saved:true})), ...results];
+  const customs = getCustomFoods().filter(f => f.name.toLowerCase().includes(ql));
+  const all = [...generics, ...customs.map(f => ({...f, _saved:true})), ...results];
   el.innerHTML = all.slice(0, 20).map((r, i) => `
     <div class="result-item" onclick="pickIngredientFood(${i}, 'search')">
-      <div class="result-name">${esc(r.name)}</div>
+      <div class="result-name">${esc(r.name)}${r._generic ? ' <span class="tag tag-generic">Generic</span>' : ''}</div>
       <div class="result-macros">${r.kcal} kcal · P ${r.protein}g per 100g</div>
     </div>`).join('');
   window._ingFoods = all;
