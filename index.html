@@ -394,7 +394,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.12</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.13</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1135,7 +1135,19 @@ async function doSearch() {
     ...results
   ];
 
-  if (!all.length) { el.innerHTML = '<div class="empty-state">No results found</div>'; return; }
+  // Sort: exact match first, then prefix, then contains
+  const ql = q.toLowerCase().trim();
+  all.sort((a, b) => {
+    const score = (name) => {
+      const n = name.toLowerCase();
+      if (n === ql) return 0;
+      if (n.startsWith(ql)) return 1;
+      return 2;
+    };
+    return score(a.name) - score(b.name);
+  });
+
+  if (!all.length) { el.innerHTML = '<div class="empty-state">No results found.<br><br><span style="color:var(--accent2);cursor:pointer;" onclick="switchLogTab(\'manual\',document.querySelector(\'.tab:nth-child(3)\'))">+ Add it manually</span></div>'; return; }
   el.innerHTML = all.slice(0, 25).map((r, i) => `
     <div class="result-item" onclick="pickSearchResult(${i})">
       <div class="result-name">${esc(r.name)}${r._saved ? ' <span class="tag tag-protein">saved</span>' : ''}</div>
@@ -1281,8 +1293,13 @@ function renderRecipes() {
   el.innerHTML = recipes.map((r, i) => {
     const n = r.totalNutrition;
     return `<div class="recipe-card" onclick="showRecipeOptions(${i})">
-      <div class="recipe-name">${esc(r.name)}</div>
-      <div class="recipe-meta">${Math.round(r.totalWeight)}g total · ${Math.round(n.kcal)} kcal · P ${r1(n.protein)}g · C ${r1(n.carbs)}g · F ${r1(n.fat)}g</div>
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <div class="recipe-name">${esc(r.name)}</div>
+          <div class="recipe-meta">${Math.round(r.totalWeight)}g total · ${Math.round(n.kcal)} kcal · P ${r1(n.protein)}g · C ${r1(n.carbs)}g · F ${r1(n.fat)}g</div>
+        </div>
+        <button class="btn-icon" onclick="event.stopPropagation();openEditRecipe(${i})" style="color:var(--accent2);font-size:12px;padding:4px 8px;">Edit</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1339,6 +1356,19 @@ function openCreateRecipe() {
   openModal('recipe-edit-modal');
 }
 
+function openEditRecipe(i) {
+  const recipes = JSON.parse(localStorage.getItem('recipes') || '[]');
+  const r = recipes[i];
+  if (!r) return;
+  editingRecipe = r;
+  editingRecipeIngredients = (r.ingredients || []).map(ing => ({ ...ing }));
+  document.getElementById('recipe-edit-title').textContent = 'Edit Recipe';
+  document.getElementById('recipe-name-input').value = r.name;
+  document.getElementById('recipe-total-weight').value = r.totalWeight || '';
+  renderRecipeIngredients();
+  openModal('recipe-edit-modal');
+}
+
 function renderRecipeIngredients() {
   const el = document.getElementById('recipe-ingredients-list');
   if (!editingRecipeIngredients.length) {
@@ -1348,7 +1378,7 @@ function renderRecipeIngredients() {
   el.innerHTML = editingRecipeIngredients.map((ing, i) => `
     <div class="ingredient-row">
       <div style="flex:1;">
-        <div style="font-size:13px;">${esc(ing.name)} — ${ing.weight}g</div>
+        <div style="font-size:13px;">${esc(ing.name)} — <input type="number" value="${ing.weight}" min="0" step="1" style="width:56px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:2px 6px;font-size:13px;" onchange="updateIngredientWeight(${i},this.value)" onclick="event.stopPropagation()">g</div>
         <div style="font-size:11px;color:var(--muted);">${Math.round(ing.kcal * ing.weight / 100)} kcal · P ${r1(ing.protein * ing.weight / 100)}g</div>
       </div>
       <button class="btn-icon" onclick="removeIngredient(${i})">✕</button>
@@ -1358,6 +1388,13 @@ function renderRecipeIngredients() {
 
 function removeIngredient(i) {
   editingRecipeIngredients.splice(i, 1);
+  renderRecipeIngredients();
+}
+
+function updateIngredientWeight(i, val) {
+  const w = parseFloat(val);
+  if (isNaN(w) || w < 0) return;
+  editingRecipeIngredients[i].weight = w;
   renderRecipeIngredients();
 }
 
