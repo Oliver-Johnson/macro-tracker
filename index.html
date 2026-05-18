@@ -395,7 +395,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.15</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.16</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1399,6 +1399,10 @@ function confirmLogFood() {
     fibre: r1((f.fibre||0) * factor),
     sugar: r1((f.sugar||0) * factor),
     sodium: r1((f.sodium||0) * factor),
+    per100kcal: f.kcal,
+    per100protein: f.protein,
+    per100carbs: f.carbs,
+    per100fat: f.fat,
     barcode: f.barcode || null
   });
   // Auto-save to custom foods (upsert)
@@ -2037,14 +2041,23 @@ function renderFrequentFoods() {
   el.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Frequent</div>` +
     foods.map((f,i) => `<div class="result-item" onclick="pickFrequentFood(${i})">
       <div class="result-name">${esc(f.name)}</div>
-      <div class="result-macros">${f.kcal} kcal · P ${f.protein}g per 100g</div>
+      <div class="result-macros">${f.per100kcal ?? (f.weight ? r1(f.kcal * 100 / f.weight) : f.kcal)} kcal · P ${f.per100protein ?? (f.weight ? r1(f.protein * 100 / f.weight) : f.protein)}g per 100g</div>
     </div>`).join('');
   window._freqFoods = foods;
 }
 
 function pickFrequentFood(i) {
   const f = window._freqFoods[i];
-  showWeightModal({ ...f, defaultWeight: f.weight || f.defaultWeight || 100 });
+  const per100kcal = f.per100kcal ?? (f.weight ? r1(f.kcal * 100 / f.weight) : f.kcal);
+  const per100protein = f.per100protein ?? (f.weight ? r1(f.protein * 100 / f.weight) : f.protein);
+  const per100carbs = f.per100carbs ?? (f.weight ? r1(f.carbs * 100 / f.weight) : f.carbs);
+  const per100fat = f.per100fat ?? (f.weight ? r1(f.fat * 100 / f.weight) : f.fat);
+  showWeightModal({
+    name: f.name, barcode: f.barcode,
+    kcal: per100kcal, protein: per100protein, carbs: per100carbs, fat: per100fat,
+    fibre: f.fibre, sugar: f.sugar, sodium: f.sodium,
+    defaultWeight: f.weight || f.defaultWeight || 100
+  });
 }
 
 // ═══════════════════════════════════════════════════
