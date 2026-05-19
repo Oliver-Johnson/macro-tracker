@@ -182,7 +182,10 @@
   <div id="view-today" class="view active">
     <div class="section-header">
       <span class="section-title" id="today-date-label">Today</span>
-      <button class="btn btn-secondary btn-sm" onclick="showDatePicker()">📅 History</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-secondary btn-sm" onclick="syncFromMain()" title="Sync to server">⇅ Sync</button>
+        <button class="btn btn-secondary btn-sm" onclick="showDatePicker()">📅 History</button>
+      </div>
     </div>
 
     <!-- Kcal ring -->
@@ -390,12 +393,15 @@
       <button class="btn btn-primary" onclick="saveSyncUrl()">Save Sync URL</button>
     </div>
     <div class="card" style="margin-top:8px;">
-      <div class="card-title">Saved Foods</div>
-      <div id="custom-foods-list"></div>
+      <div class="card-title" onclick="toggleSavedFoods()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+        <span id="saved-foods-header">Saved Foods</span>
+        <span id="saved-foods-chevron" style="font-size:12px;">▶</span>
+      </div>
+      <div id="custom-foods-list" style="display:none;"></div>
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.16</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-17.17</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -439,6 +445,23 @@
     <div class="field">
       <label>Weight (grams)</label>
       <input type="number" id="weight-input" placeholder="100" min="1">
+    </div>
+    <div style="margin-bottom:12px;">
+      <button type="button" onclick="togglePanCalc()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
+        <span id="pan-calc-chevron">▶</span> Use pan weight calculator
+      </button>
+      <div id="pan-calc" style="display:none;margin-top:10px;background:var(--bg3);border-radius:8px;padding:10px;">
+        <div class="field-row" style="margin-bottom:0;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Empty pan (g)</label>
+            <input type="number" id="pan-empty" placeholder="0" min="0" oninput="calcPanWeight()">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Pan + food (g)</label>
+            <input type="number" id="pan-full" placeholder="0" min="0" oninput="calcPanWeight()">
+          </div>
+        </div>
+      </div>
     </div>
     <button class="btn btn-primary" onclick="confirmLogFood()">Add to Log</button>
   </div>
@@ -495,7 +518,7 @@
     <div class="modal-title" id="recipe-edit-title">New Recipe</div>
     <div class="field">
       <label>Recipe name</label>
-      <input type="text" id="recipe-name-input" placeholder="e.g. My Chilli">
+      <input type="text" id="recipe-name-input" placeholder="e.g. My Chilli" oninput="saveRecipeDraft()">
     </div>
     <div class="card-title">Ingredients</div>
     <div id="recipe-ingredients-list" style="margin-bottom:10px;"></div>
@@ -507,10 +530,11 @@
     </div>
     <div class="field">
       <label>Total cooked weight (grams)</label>
-      <input type="number" id="recipe-total-weight" placeholder="e.g. 800">
+      <input type="number" id="recipe-total-weight" placeholder="e.g. 800" oninput="saveRecipeDraft()">
     </div>
     <div id="recipe-nutrition-preview" style="font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
     <button class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    <button id="recipe-clear-draft-btn" class="btn btn-secondary" style="margin-top:8px;display:none;" onclick="clearRecipeDraft()">Clear draft</button>
   </div>
 </div>
 
@@ -1496,10 +1520,27 @@ function recipeNutritionForWeight(recipe, weightEaten) {
 // ─── Create/Edit recipe ───
 function openCreateRecipe() {
   editingRecipe = null;
-  editingRecipeIngredients = [];
   document.getElementById('recipe-edit-title').textContent = 'New Recipe';
-  document.getElementById('recipe-name-input').value = '';
-  document.getElementById('recipe-total-weight').value = '';
+  const draftRaw = localStorage.getItem('mt_recipe_draft');
+  if (draftRaw) {
+    try {
+      const draft = JSON.parse(draftRaw);
+      editingRecipeIngredients = draft.ingredients || [];
+      document.getElementById('recipe-name-input').value = draft.name || '';
+      document.getElementById('recipe-total-weight').value = draft.totalWeight || '';
+      document.getElementById('recipe-clear-draft-btn').style.display = '';
+    } catch(e) {
+      editingRecipeIngredients = [];
+      document.getElementById('recipe-name-input').value = '';
+      document.getElementById('recipe-total-weight').value = '';
+      document.getElementById('recipe-clear-draft-btn').style.display = 'none';
+    }
+  } else {
+    editingRecipeIngredients = [];
+    document.getElementById('recipe-name-input').value = '';
+    document.getElementById('recipe-total-weight').value = '';
+    document.getElementById('recipe-clear-draft-btn').style.display = 'none';
+  }
   renderRecipeIngredients();
   openModal('recipe-edit-modal');
 }
@@ -1537,6 +1578,7 @@ function renderRecipeIngredients() {
 function removeIngredient(i) {
   editingRecipeIngredients.splice(i, 1);
   renderRecipeIngredients();
+  saveRecipeDraft();
 }
 
 function updateIngredientWeight(i, val) {
@@ -1544,6 +1586,7 @@ function updateIngredientWeight(i, val) {
   if (isNaN(w) || w < 0) return;
   editingRecipeIngredients[i].weight = w;
   renderRecipeIngredients();
+  saveRecipeDraft();
 }
 
 function updateRecipePreview() {
@@ -1742,6 +1785,7 @@ function confirmIngredient() {
   stopIngredientScan();
   closeModal('ingredient-modal');
   renderRecipeIngredients();
+  saveRecipeDraft();
 }
 
 function addManualIngredient() {
@@ -1757,6 +1801,7 @@ function addManualIngredient() {
   });
   closeModal('ingredient-modal');
   renderRecipeIngredients();
+  saveRecipeDraft();
 }
 
 function saveRecipe() {
@@ -1786,6 +1831,8 @@ function saveRecipe() {
     recipes.push(recipe);
   }
   LS.set('mt_recipes', recipes);
+  localStorage.removeItem('mt_recipe_draft');
+  document.getElementById('recipe-clear-draft-btn').style.display = 'none';
   closeModal('recipe-edit-modal');
   renderRecipes();
   toast('Recipe saved!');
@@ -1811,6 +1858,8 @@ function renderSettings() {
 
   const customs = getCustomFoods();
   const el = document.getElementById('custom-foods-list');
+  const hdr = document.getElementById('saved-foods-header');
+  if (hdr) hdr.textContent = `Saved Foods (${customs.length})`;
   if (!customs.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;">No saved foods</div>'; return; }
   el.innerHTML = customs.map((f, i) => `
     <div class="log-entry">
@@ -2301,6 +2350,63 @@ function prefillManualForm(nutrition) {
 
   const missing = Object.values(nutrition).some(v => v === null);
   setOcrStatus(missing ? 'Review extracted values — some fields not detected' : 'Values extracted — review before logging');
+}
+
+// ─── Recipe draft autosave ───
+function saveRecipeDraft() {
+  if (editingRecipe) return; // Only save for new recipes
+  const draft = {
+    name: document.getElementById('recipe-name-input').value,
+    totalWeight: document.getElementById('recipe-total-weight').value,
+    ingredients: editingRecipeIngredients.slice()
+  };
+  localStorage.setItem('mt_recipe_draft', JSON.stringify(draft));
+  document.getElementById('recipe-clear-draft-btn').style.display = '';
+}
+
+function clearRecipeDraft() {
+  localStorage.removeItem('mt_recipe_draft');
+  editingRecipeIngredients = [];
+  document.getElementById('recipe-name-input').value = '';
+  document.getElementById('recipe-total-weight').value = '';
+  document.getElementById('recipe-clear-draft-btn').style.display = 'none';
+  renderRecipeIngredients();
+  toast('Draft cleared');
+}
+
+// ─── Pan weight calculator ───
+function togglePanCalc() {
+  const el = document.getElementById('pan-calc');
+  const chevron = document.getElementById('pan-calc-chevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  chevron.textContent = open ? '▶' : '▼';
+  if (!open) {
+    document.getElementById('pan-empty').value = '';
+    document.getElementById('pan-full').value = '';
+  }
+}
+
+function calcPanWeight() {
+  const empty = parseFloat(document.getElementById('pan-empty').value) || 0;
+  const full = parseFloat(document.getElementById('pan-full').value) || 0;
+  const net = full - empty;
+  if (net > 0) document.getElementById('weight-input').value = net;
+}
+
+// ─── Saved foods toggle ───
+function toggleSavedFoods() {
+  const el = document.getElementById('custom-foods-list');
+  const chevron = document.getElementById('saved-foods-chevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  chevron.textContent = open ? '▶' : '▼';
+}
+
+// ─── Sync from main page ───
+function syncFromMain() {
+  if (!getSyncUrl()) { toast('Set sync URL in Settings first'); return; }
+  syncFoodLog();
 }
 </script>
 </body>
