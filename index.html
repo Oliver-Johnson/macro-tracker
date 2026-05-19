@@ -401,7 +401,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-19.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-19.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -436,6 +436,7 @@
     <button class="modal-close" onclick="closeModal('weight-modal')">✕</button>
     <div class="modal-title" id="weight-modal-title">Log Food</div>
     <div id="weight-modal-macros" style="font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
+    <div id="weight-modal-warning" style="display:none;background:#3d1f1f;border:1px solid #7a2e2e;border-radius:8px;padding:10px 12px;font-size:12px;color:#f87171;margin-bottom:12px;">⚠️ Nutritional data missing for this product — edit before logging</div>
     <div class="meal-pills" id="meal-pills">
       <button class="meal-pill" onclick="selectMeal('Breakfast',this)">Breakfast</button>
       <button class="meal-pill" onclick="selectMeal('Lunch',this)">Lunch</button>
@@ -531,6 +532,23 @@
     <div class="field">
       <label>Total cooked weight (grams)</label>
       <input type="number" id="recipe-total-weight" placeholder="e.g. 800" oninput="saveRecipeDraft()">
+    </div>
+    <div style="margin-bottom:12px;">
+      <button type="button" onclick="toggleRecipePanCalc()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">
+        <span id="recipe-pan-calc-chevron">▶</span> Use pan weight
+      </button>
+      <div id="recipe-pan-calc" style="display:none;margin-top:10px;background:var(--bg3);border-radius:8px;padding:10px;">
+        <div class="field-row" style="margin-bottom:0;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Empty pan (g)</label>
+            <input type="number" id="recipe-pan-empty" placeholder="0" min="0" oninput="calcRecipePanWeight()">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Pan + food (g)</label>
+            <input type="number" id="recipe-pan-full" placeholder="0" min="0" oninput="calcRecipePanWeight()">
+          </div>
+        </div>
+      </div>
     </div>
     <div id="recipe-nutrition-preview" style="font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
     <button class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
@@ -1399,6 +1417,8 @@ function showWeightModal(food, keepScanning) {
   if (food.sodium) extras.push(`Na ${r1(food.sodium*1000)}mg`);
   if (extras.length) macroText += ' · ' + extras.join(' · ');
   document.getElementById('weight-modal-macros').textContent = macroText;
+  const missingData = (!food.kcal || food.kcal === 0) && (!food.protein || food.protein === 0);
+  document.getElementById('weight-modal-warning').style.display = missingData ? '' : 'none';
   document.getElementById('weight-input').value = food.defaultWeight || 100;
   // Set default meal based on time
   selectedMeal = defaultMeal();
@@ -2384,6 +2404,28 @@ function togglePanCalc() {
   if (!open) {
     document.getElementById('pan-empty').value = '';
     document.getElementById('pan-full').value = '';
+  }
+}
+
+function toggleRecipePanCalc() {
+  const el = document.getElementById('recipe-pan-calc');
+  const chevron = document.getElementById('recipe-pan-calc-chevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  chevron.textContent = open ? '▶' : '▼';
+  if (!open) {
+    document.getElementById('recipe-pan-empty').value = '';
+    document.getElementById('recipe-pan-full').value = '';
+  }
+}
+
+function calcRecipePanWeight() {
+  const empty = parseFloat(document.getElementById('recipe-pan-empty').value) || 0;
+  const full = parseFloat(document.getElementById('recipe-pan-full').value) || 0;
+  const net = full - empty;
+  if (net > 0) {
+    document.getElementById('recipe-total-weight').value = net;
+    saveRecipeDraft();
   }
 }
 
