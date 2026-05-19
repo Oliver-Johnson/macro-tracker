@@ -401,7 +401,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-19.2</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-19.3</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1548,17 +1548,24 @@ function openCreateRecipe() {
       editingRecipeIngredients = draft.ingredients || [];
       document.getElementById('recipe-name-input').value = draft.name || '';
       document.getElementById('recipe-total-weight').value = draft.totalWeight || '';
+      document.getElementById('recipe-pan-empty').value = draft.panEmpty || '';
+      document.getElementById('recipe-pan-full').value = draft.panPlusFood || '';
+      calcRecipePanWeight();
       document.getElementById('recipe-clear-draft-btn').style.display = '';
     } catch(e) {
       editingRecipeIngredients = [];
       document.getElementById('recipe-name-input').value = '';
       document.getElementById('recipe-total-weight').value = '';
+      document.getElementById('recipe-pan-empty').value = '';
+      document.getElementById('recipe-pan-full').value = '';
       document.getElementById('recipe-clear-draft-btn').style.display = 'none';
     }
   } else {
     editingRecipeIngredients = [];
     document.getElementById('recipe-name-input').value = '';
     document.getElementById('recipe-total-weight').value = '';
+    document.getElementById('recipe-pan-empty').value = '';
+    document.getElementById('recipe-pan-full').value = '';
     document.getElementById('recipe-clear-draft-btn').style.display = 'none';
   }
   renderRecipeIngredients();
@@ -2157,7 +2164,18 @@ function debounceSearch() {
 //  PWA / SERVICE WORKER
 // ═══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(e => console.warn('SW reg failed', e));
+  navigator.serviceWorker.register('./sw.js', { scope: './' }).then(registration => {
+    // Listen for a new SW installing — when it activates, reload to get fresh cache
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // New version available — reload to activate
+          window.location.reload();
+        }
+      });
+    });
+  }).catch(e => console.warn('SW reg failed', e));
 
   // Auto-reload when a new SW takes control
   navigator.serviceWorker.addEventListener('controllerchange', () => { window.location.href = window.location.href; });
@@ -2378,7 +2396,9 @@ function saveRecipeDraft() {
   const draft = {
     name: document.getElementById('recipe-name-input').value,
     totalWeight: document.getElementById('recipe-total-weight').value,
-    ingredients: editingRecipeIngredients.slice()
+    ingredients: editingRecipeIngredients.slice(),
+    panEmpty: document.getElementById('recipe-pan-empty').value,
+    panPlusFood: document.getElementById('recipe-pan-full').value
   };
   localStorage.setItem('mt_recipe_draft', JSON.stringify(draft));
   document.getElementById('recipe-clear-draft-btn').style.display = '';

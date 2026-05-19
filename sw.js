@@ -1,5 +1,5 @@
-const CACHE_NAME = 'macro-tracker-v4';
-const APP_VERSION = '2026-04-25.2';
+const CACHE_NAME = 'macro-tracker-2026-05-19';
+const APP_VERSION = '2026-05-19.3';
 const STATIC_ASSETS = [
   '/macro-tracker/',
   '/macro-tracker/index.html',
@@ -12,16 +12,15 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // activate immediately, don't wait for tabs to close
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    ).then(() => self.clients.claim()) // take control of all open pages
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
