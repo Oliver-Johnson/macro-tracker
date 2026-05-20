@@ -174,6 +174,88 @@
   /* ─── Notes ─── */
   textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 14px; outline: none; resize: none; font-family: inherit; }
   textarea:focus { border-color: var(--accent); }
+
+  /* ─── Macro History Screen ─── */
+  #view-history {
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--bg); display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+  }
+  #view-history.open { transform: translateX(0); pointer-events: auto; }
+  .history-header {
+    display: flex; align-items: center; padding: 16px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg);
+  }
+  .history-back {
+    background: none; border: none; color: var(--accent2); font-size: 15px;
+    cursor: pointer; padding: 4px 8px; margin-right: 8px;
+    min-width: 44px; min-height: 44px; display: flex; align-items: center;
+  }
+  .history-title { font-size: 17px; font-weight: 700; flex: 1; }
+  .history-body {
+    flex: 1; overflow-y: auto;
+    padding: 16px 16px calc(16px + var(--safe-bottom));
+  }
+  .hist-pill-toggle {
+    display: flex; background: var(--bg3); border-radius: 20px;
+    padding: 2px; margin-bottom: 12px;
+  }
+  .hist-pill-toggle button {
+    flex: 1; background: none; border: none; color: var(--muted);
+    padding: 7px 12px; font-size: 13px; font-weight: 600;
+    border-radius: 18px; cursor: pointer; transition: all 0.15s;
+    min-height: 44px;
+  }
+  .hist-pill-toggle button.active { background: var(--accent); color: #fff; }
+  .hist-toggle-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .hist-toggle-row .hist-pill-toggle { margin-bottom: 0; flex: 1; }
+  .hist-chart-wrap {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 8px 4px; margin-bottom: 12px; overflow: hidden;
+  }
+  #hist-chart-svg { width: 100%; display: block; }
+  .hist-legend {
+    display: flex; gap: 12px; justify-content: center; padding: 6px 0 4px; flex-wrap: wrap;
+  }
+  .hist-legend-item {
+    display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted);
+  }
+  .hist-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .hist-tooltip {
+    display: none; position: fixed; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    font-size: 12px; z-index: 200; max-width: 230px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  }
+  .hist-tooltip-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  .hist-tooltip-row {
+    display: flex; justify-content: space-between; gap: 10px; margin-bottom: 3px;
+  }
+  .hist-tooltip-lbl { color: var(--muted); }
+  .hist-tooltip-val { font-weight: 600; text-align: right; }
+  .hist-section-divider {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    display: flex; align-items: center; gap: 8px; margin: 16px 0 10px;
+  }
+  .hist-section-divider::before, .hist-section-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .hist-mini-row {
+    display: flex; align-items: flex-end; gap: 8px; margin-bottom: 10px;
+  }
+  .hist-mini-label {
+    font-size: 11px; color: var(--muted); width: 66px; flex-shrink: 0;
+    padding-bottom: 2px;
+  }
+  .hist-mini-bars {
+    flex: 1; display: flex; gap: 2px; align-items: flex-end; height: 28px;
+  }
+  .hist-mini-bar-col { flex: 1; display: flex; align-items: flex-end; height: 28px; }
+  .hist-mini-bar { width: 100%; border-radius: 2px 2px 0 0; }
 </style>
 </head>
 <body>
@@ -189,7 +271,7 @@
     </div>
 
     <!-- Kcal ring -->
-    <div class="card" id="dashboard-card">
+    <div class="card" id="dashboard-card" onclick="openHistoryScreen()" style="cursor:pointer;">
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <div style="position:relative; width:90px; height:90px; flex-shrink:0;">
           <svg viewBox="0 0 90 90" width="90" height="90">
@@ -402,7 +484,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.3</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.4</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -430,6 +512,38 @@
     </button>
   </nav>
 </div>
+
+<!-- ═══ MACRO HISTORY SCREEN ═══ -->
+<div id="view-history" ontouchstart="histTouchStart(event)" ontouchend="histTouchEnd(event)">
+  <div class="history-header">
+    <button class="history-back" onclick="closeHistoryScreen()">← Back</button>
+    <div class="history-title">Macro History</div>
+  </div>
+  <div class="history-body" id="history-body">
+    <div class="hist-pill-toggle" id="hist-range-toggle">
+      <button class="active" onclick="setHistRange(7,this)">7 days</button>
+      <button onclick="setHistRange(30,this)">30 days</button>
+    </div>
+    <div class="hist-toggle-row">
+      <div class="hist-pill-toggle" id="hist-view-toggle">
+        <button class="active" onclick="setHistView('abs',this)">Absolute</button>
+        <button onclick="setHistView('pct',this)">% of Target</button>
+      </div>
+    </div>
+    <div id="hist-unit-row" class="hist-toggle-row">
+      <div class="hist-pill-toggle" id="hist-unit-toggle">
+        <button class="active" onclick="setHistUnit('g',this)">Grams</button>
+        <button onclick="setHistUnit('kcal',this)">kcal</button>
+      </div>
+    </div>
+    <div class="hist-chart-wrap">
+      <svg id="hist-chart-svg" viewBox="0 0 400 210" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="hist-legend" id="hist-legend"></div>
+    </div>
+    <div id="hist-secondary"></div>
+  </div>
+</div>
+<div class="hist-tooltip" id="hist-tooltip"></div>
 
 <!-- ─── Weight entry modal ─── -->
 <div class="modal-backdrop" id="weight-modal">
@@ -2562,6 +2676,334 @@ function toggleSavedFoods() {
 function syncFromMain() {
   if (!getSyncUrl()) { toast('Set sync URL in Settings first'); return; }
   syncFoodLog();
+}
+
+// ═══════════════════════════════════════════════════
+//  MACRO HISTORY SCREEN
+// ═══════════════════════════════════════════════════
+let histRange = 7;
+let histView = 'abs';  // 'abs' | 'pct'
+let histUnit = 'g';    // 'g' | 'kcal'
+let histTouchStartX = 0;
+
+const HIST_P = '#4A90D9';
+const HIST_C = '#F5A623';
+const HIST_F = '#E74C3C';
+const HIST_GREEN = '#27AE60';
+const HIST_AMBER = '#F39C12';
+
+function openHistoryScreen() {
+  document.getElementById('view-history').classList.add('open');
+  renderHistoryScreen();
+}
+
+function closeHistoryScreen() {
+  document.getElementById('view-history').classList.remove('open');
+  document.getElementById('hist-tooltip').style.display = 'none';
+}
+
+function histTouchStart(e) {
+  histTouchStartX = e.touches[0].clientX;
+}
+
+function histTouchEnd(e) {
+  const dx = e.changedTouches[0].clientX - histTouchStartX;
+  if (dx > 60) closeHistoryScreen();
+}
+
+function setHistRange(days, btn) {
+  histRange = days;
+  document.querySelectorAll('#hist-range-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistoryScreen();
+}
+
+function setHistView(view, btn) {
+  histView = view;
+  document.querySelectorAll('#hist-view-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('hist-unit-row').style.display = view === 'abs' ? '' : 'none';
+  renderHistoryScreen();
+}
+
+function setHistUnit(unit, btn) {
+  histUnit = unit;
+  document.querySelectorAll('#hist-unit-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistoryScreen();
+}
+
+function getHistDates() {
+  const dates = [];
+  const today = new Date();
+  for (let i = histRange - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+function getHistData() {
+  const dates = getHistDates();
+  const logs = getLogs();
+  return dates.map(dateKey => {
+    const dayLog = logs.find(d => d.date === dateKey);
+    const entries = dayLog ? (dayLog.entries || []) : [];
+    const totals = entries.reduce((acc, e) => ({
+      protein: acc.protein + (parseFloat(e.protein) || 0),
+      carbs:   acc.carbs   + (parseFloat(e.carbs)   || 0),
+      fat:     acc.fat     + (parseFloat(e.fat)      || 0),
+      kcal:    acc.kcal    + (parseFloat(e.kcal)     || 0),
+      fibre:   acc.fibre   + (parseFloat(e.fibre)    || 0),
+      sugar:   acc.sugar   + (parseFloat(e.sugar)    || 0),
+      sodium:  acc.sodium  + (parseFloat(e.sodium)   || 0),
+    }), { protein:0, carbs:0, fat:0, kcal:0, fibre:0, sugar:0, sodium:0 });
+    const targets = getTargetsForDate(dateKey);
+    return { dateKey, totals, targets, hasData: entries.length > 0 };
+  });
+}
+
+function histFmtDate(dateKey) {
+  const d = new Date(dateKey + 'T00:00:00');
+  const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  return `${d.getDate()} ${mon}`;
+}
+
+function renderHistoryScreen() {
+  renderHistChart();
+  renderHistSecondary();
+}
+
+function renderHistChart() {
+  const data = getHistData();
+  const svg = document.getElementById('hist-chart-svg');
+  const legend = document.getElementById('hist-legend');
+  const n = data.length;
+
+  const W = 400, H = 210;
+  const PL = 38, PR = 6, PT = 10, PB = 48;
+  const chartW = W - PL - PR;
+  const chartH = H - PT - PB;
+  const barGap = chartW / n;
+  const barW = Math.max(Math.floor(barGap * 0.68), 2);
+
+  // Compute max value
+  let maxVal = 0;
+  if (histView === 'abs') {
+    if (histUnit === 'g') {
+      data.forEach(d => {
+        maxVal = Math.max(maxVal,
+          d.totals.protein + d.totals.carbs + d.totals.fat,
+          d.targets.protein + d.targets.carbs + d.targets.fat);
+      });
+    } else {
+      data.forEach(d => {
+        maxVal = Math.max(maxVal, d.totals.kcal, d.targets.kcal);
+      });
+    }
+  } else {
+    data.forEach(d => {
+      if (d.targets.kcal > 0)
+        maxVal = Math.max(maxVal, (d.totals.kcal / d.targets.kcal) * 100);
+    });
+    maxVal = Math.max(maxVal, 100);
+    maxVal = Math.ceil(maxVal / 25) * 25;
+  }
+  if (maxVal === 0) maxVal = 100;
+
+  const bh = v => (v / maxVal) * chartH;
+  const by = v => PT + chartH - bh(v);
+
+  let out = '';
+
+  // Gridlines + Y labels
+  const yTicks = 4;
+  for (let i = 0; i <= yTicks; i++) {
+    const v = (maxVal / yTicks) * i;
+    const y = PT + chartH - (v / maxVal) * chartH;
+    let lbl;
+    if (histView === 'pct') lbl = Math.round(v) + '%';
+    else if (histUnit === 'kcal') lbl = Math.round(v);
+    else lbl = Math.round(v) + 'g';
+    out += `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="#2e2e3e" stroke-width="1"/>`;
+    out += `<text x="${PL-3}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="8.5" fill="#7070a0">${lbl}</text>`;
+  }
+
+  // Bars + date labels
+  data.forEach((d, i) => {
+    const cx = PL + i * barGap + barGap / 2;
+    const x  = cx - barW / 2;
+    const baseY = PT + chartH;
+    const labelColor = d.hasData ? '#7070a0' : '#3a3a55';
+
+    // Date label (rotated)
+    const lbl = histFmtDate(d.dateKey);
+    const labelY = H - 2;
+    out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 15 ? 7.5 : 9}" fill="${labelColor}" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+
+    if (!d.hasData) {
+      out += `<rect x="${x.toFixed(1)}" y="${(baseY - 2).toFixed(1)}" width="${barW}" height="2" rx="1" fill="#2e2e3e"/>`;
+      return;
+    }
+
+    if (histView === 'abs') {
+      let vals;
+      if (histUnit === 'g') {
+        vals = [d.totals.protein, d.totals.carbs, d.totals.fat];
+      } else {
+        vals = [d.totals.protein * 4, d.totals.carbs * 4, d.totals.fat * 9];
+      }
+      const colors = [HIST_P, HIST_C, HIST_F];
+      let stackY = baseY;
+      [0, 1, 2].forEach(j => {
+        const h = Math.max(bh(vals[j]), vals[j] > 0 ? 1 : 0);
+        stackY -= h;
+        if (h > 0) {
+          const rx = j === 2 ? 2 : 0;
+          out += `<rect data-idx="${i}" class="hist-bar" x="${x.toFixed(1)}" y="${stackY.toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" rx="${rx}" fill="${colors[j]}" style="cursor:pointer;"/>`;
+        }
+      });
+    } else {
+      const pct = d.targets.kcal > 0 ? (d.totals.kcal / d.targets.kcal) * 100 : 0;
+      const color = pct > 100 ? HIST_F : (pct >= 75 ? HIST_AMBER : HIST_GREEN);
+      const h = Math.max(bh(pct), pct > 0 ? 1 : 0);
+      if (h > 0) {
+        out += `<rect data-idx="${i}" class="hist-bar" x="${x.toFixed(1)}" y="${(baseY-h).toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" rx="2" fill="${color}" style="cursor:pointer;"/>`;
+      }
+    }
+  });
+
+  // Target / reference line
+  if (histView === 'abs') {
+    const tVals = data.map(d => histUnit === 'g'
+      ? (d.targets.protein + d.targets.carbs + d.targets.fat)
+      : d.targets.kcal);
+    const tAvg = tVals.reduce((a, b) => a + b, 0) / (tVals.length || 1);
+    if (tAvg > 0) {
+      const ty = by(tAvg).toFixed(1);
+      out += `<line x1="${PL}" y1="${ty}" x2="${W-PR}" y2="${ty}" stroke="#6c63ff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.75"/>`;
+      out += `<text x="${W-PR-2}" y="${(parseFloat(ty)-3).toFixed(1)}" text-anchor="end" font-size="8" fill="#6c63ff" opacity="0.85">target</text>`;
+    }
+  } else {
+    const ty = by(100).toFixed(1);
+    out += `<line x1="${PL}" y1="${ty}" x2="${W-PR}" y2="${ty}" stroke="#6c63ff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.75"/>`;
+    out += `<text x="${W-PR-2}" y="${(parseFloat(ty)-3).toFixed(1)}" text-anchor="end" font-size="8" fill="#6c63ff" opacity="0.85">100%</text>`;
+  }
+
+  svg.innerHTML = out;
+
+  // Legend
+  if (histView === 'abs') {
+    legend.innerHTML = `
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_P}"></div>Protein</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_C}"></div>Carbs</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_F}"></div>Fat</div>
+      <div class="hist-legend-item" style="opacity:0.6"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>Target</div>`;
+  } else {
+    legend.innerHTML = `
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_GREEN}"></div>≤75%</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_AMBER}"></div>75–100%</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_F}"></div>>100%</div>
+      <div class="hist-legend-item" style="opacity:0.6"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>100%</div>`;
+  }
+
+  // Bar click handlers
+  svg.querySelectorAll('.hist-bar').forEach(rect => {
+    rect.addEventListener('click', e => {
+      e.stopPropagation();
+      const idx = parseInt(rect.dataset.idx);
+      showHistTooltip(data[idx], e);
+    });
+  });
+
+  // Dismiss tooltip on click outside bars
+  svg.addEventListener('click', e => {
+    if (!e.target.classList.contains('hist-bar')) {
+      document.getElementById('hist-tooltip').style.display = 'none';
+    }
+  });
+}
+
+function showHistTooltip(d, e) {
+  const tip = document.getElementById('hist-tooltip');
+  const t = d.targets;
+  const rd = v => Math.round(v * 10) / 10;
+  const pct = (a, b) => b > 0 ? Math.round(a / b * 100) + '%' : '—';
+
+  let html = `<div class="hist-tooltip-title">${histFmtDate(d.dateKey)}</div>`;
+  if (!d.hasData) {
+    html += `<div style="color:var(--muted);font-size:12px;">No data logged</div>`;
+  } else {
+    html += `
+      <div class="hist-tooltip-row">
+        <span class="hist-tooltip-lbl" style="color:${HIST_P}">Protein</span>
+        <span class="hist-tooltip-val">${rd(d.totals.protein)}g / ${t.protein}g (${pct(d.totals.protein,t.protein)})</span>
+      </div>
+      <div class="hist-tooltip-row">
+        <span class="hist-tooltip-lbl" style="color:${HIST_C}">Carbs</span>
+        <span class="hist-tooltip-val">${rd(d.totals.carbs)}g / ${t.carbs}g (${pct(d.totals.carbs,t.carbs)})</span>
+      </div>
+      <div class="hist-tooltip-row">
+        <span class="hist-tooltip-lbl" style="color:${HIST_F}">Fat</span>
+        <span class="hist-tooltip-val">${rd(d.totals.fat)}g / ${t.fat}g (${pct(d.totals.fat,t.fat)})</span>
+      </div>
+      <div class="hist-tooltip-row" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
+        <span class="hist-tooltip-lbl" style="color:var(--kcal)">kcal</span>
+        <span class="hist-tooltip-val">${Math.round(d.totals.kcal)} / ${t.kcal} (${pct(d.totals.kcal,t.kcal)})</span>
+      </div>`;
+  }
+  tip.innerHTML = html;
+  tip.style.display = 'block';
+
+  // Position near tap, avoiding screen edges
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let tx = e.clientX + 14, ty = e.clientY - 60;
+  if (tx + 240 > vw) tx = e.clientX - 240;
+  if (tx < 8) tx = 8;
+  if (ty < 8) ty = e.clientY + 24;
+  if (ty + 220 > vh) ty = vh - 224;
+  tip.style.left = tx + 'px';
+  tip.style.top = ty + 'px';
+
+  setTimeout(() => {
+    document.addEventListener('click', () => {
+      tip.style.display = 'none';
+    }, { once: true });
+  }, 0);
+}
+
+function renderHistSecondary() {
+  const data = getHistData();
+  const el = document.getElementById('hist-secondary');
+  const nutrients = [
+    { key: 'fibre',  label: 'Fibre (g)' },
+    { key: 'sugar',  label: 'Sugar (g)' },
+    { key: 'sodium', label: 'Sodium (g)' },
+  ];
+
+  let html = '';
+  let anyShown = false;
+
+  for (const { key, label } of nutrients) {
+    const vals = data.map(d => d.totals[key]);
+    if (!vals.some(v => v > 0)) continue;
+    anyShown = true;
+    const maxV = Math.max(...vals, 0.01);
+
+    const bars = data.map((d, i) => {
+      const h = Math.round((vals[i] / maxV) * 28);
+      const color = d.hasData && vals[i] > 0 ? '#5aa8a0' : '#2e2e3e';
+      const minH = d.hasData && vals[i] > 0 ? 2 : 0;
+      return `<div class="hist-mini-bar-col"><div class="hist-mini-bar" style="height:${Math.max(h,minH)}px;background:${color};"></div></div>`;
+    }).join('');
+
+    html += `<div class="hist-mini-row"><div class="hist-mini-label">${label}</div><div class="hist-mini-bars">${bars}</div></div>`;
+  }
+
+  el.innerHTML = anyShown
+    ? `<div class="hist-section-divider">Other Nutrients</div>${html}`
+    : '';
 }
 </script>
 </body>
