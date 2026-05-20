@@ -484,7 +484,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.4</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.5</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -2866,7 +2866,7 @@ function renderHistChart() {
       });
     } else {
       const pct = d.targets.kcal > 0 ? (d.totals.kcal / d.targets.kcal) * 100 : 0;
-      const color = pct > 100 ? HIST_F : (pct >= 75 ? HIST_AMBER : HIST_GREEN);
+      const color = pct >= 100 ? HIST_GREEN : (pct >= 75 ? HIST_AMBER : HIST_F);
       const h = Math.max(bh(pct), pct > 0 ? 1 : 0);
       if (h > 0) {
         out += `<rect data-idx="${i}" class="hist-bar" x="${x.toFixed(1)}" y="${(baseY-h).toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" rx="2" fill="${color}" style="cursor:pointer;"/>`;
@@ -2902,9 +2902,9 @@ function renderHistChart() {
       <div class="hist-legend-item" style="opacity:0.6"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>Target</div>`;
   } else {
     legend.innerHTML = `
-      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_GREEN}"></div>≤75%</div>
-      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_AMBER}"></div>75–100%</div>
-      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_F}"></div>>100%</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_GREEN}"></div>≥100%</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_AMBER}"></div>75–99%</div>
+      <div class="hist-legend-item"><div class="hist-legend-dot" style="background:${HIST_F}"></div><75%</div>
       <div class="hist-legend-item" style="opacity:0.6"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>100%</div>`;
   }
 
