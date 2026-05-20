@@ -401,7 +401,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -738,6 +738,22 @@ function getLogs() { return LS.get('mt_logs', []); }
 function getRecipes() { return LS.get('mt_recipes', []); }
 function getCustomFoods() { return LS.get('mt_custom_foods', []); }
 function getBarcodeCache() { return LS.get('mt_barcode_cache', {}); }
+function getDailyTargets() { return LS.get('mt_daily_targets', {}); }
+
+function getTargetsForDate(dateKey) {
+  const daily = getDailyTargets();
+  return daily[dateKey] || getSettings();
+}
+
+function recordTodayTargets() {
+  const today = todayKey();
+  const daily = getDailyTargets();
+  if (!daily[today]) {
+    const s = getSettings();
+    daily[today] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat };
+    LS.set('mt_daily_targets', daily);
+  }
+}
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
 
@@ -798,7 +814,7 @@ function switchView(name, btn) {
 //  TODAY / DASHBOARD
 // ═══════════════════════════════════════════════════
 function renderToday() {
-  const s = getSettings();
+  const s = getTargetsForDate(viewingDate);
   const day = getDayLog(viewingDate);
   const isToday = viewingDate === todayKey();
   document.getElementById('today-date-label').textContent = isToday ? 'Today' : formatDate(viewingDate);
@@ -1899,12 +1915,16 @@ function renderSettings() {
 }
 
 function saveSettings() {
-  LS.set('mt_settings', {
+  const s = {
     kcal: parseFloat(document.getElementById('set-kcal').value) || 2350,
     protein: parseFloat(document.getElementById('set-protein').value) || 140,
     carbs: parseFloat(document.getElementById('set-carbs').value) || 240,
     fat: parseFloat(document.getElementById('set-fat').value) || 65
-  });
+  };
+  LS.set('mt_settings', s);
+  const daily = getDailyTargets();
+  daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat };
+  LS.set('mt_daily_targets', daily);
   toast('Targets saved!');
 }
 
@@ -2208,6 +2228,7 @@ fixAppHeight();
 window.addEventListener('resize', fixAppHeight);
 
 deduplicateLogs();
+recordTodayTargets();
 renderToday();
 fetchSyncTargets();
 
