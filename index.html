@@ -206,6 +206,7 @@
             <span id="kcal-remaining" style="font-weight:700; color:var(--text);">0</span> remaining
           </div>
           <div class="macro-bars" id="macro-bars"></div>
+          <button class="btn btn-secondary btn-sm" onclick="openEditTargets()" style="margin-top:8px; font-size:11px; padding:5px 10px; color:var(--muted);">✎ Targets</button>
         </div>
       </div>
     </div>
@@ -401,7 +402,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.2</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-20.3</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -577,6 +578,31 @@
   </div>
 </div>
 
+<!-- ─── Edit targets modal ─── -->
+<div class="modal-backdrop" id="edit-targets-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('edit-targets-modal')">✕</button>
+    <div class="modal-title">Edit Targets</div>
+    <div class="field">
+      <label class="field-label">Protein (g)</label>
+      <input type="number" id="tgt-protein" class="field-input" min="0">
+    </div>
+    <div class="field">
+      <label class="field-label">Carbs (g)</label>
+      <input type="number" id="tgt-carbs" class="field-input" min="0">
+    </div>
+    <div class="field">
+      <label class="field-label">Fat (g)</label>
+      <input type="number" id="tgt-fat" class="field-input" min="0">
+    </div>
+    <div class="field">
+      <label class="field-label">Calories (kcal)</label>
+      <input type="number" id="tgt-kcal" class="field-input" min="0">
+    </div>
+    <button class="btn btn-primary" onclick="saveEditTargets()">Save</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
@@ -743,6 +769,51 @@ function getDailyTargets() { return LS.get('mt_daily_targets', {}); }
 function getTargetsForDate(dateKey) {
   const daily = getDailyTargets();
   return daily[dateKey] || getSettings();
+}
+
+const HISTORICAL_TARGETS = {
+  "2026-04-23": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-04-24": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-04-25": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-04-26": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-04-29": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-04": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-06": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-12": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-16": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-17": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-18": {protein:160,carbs:300,fat:65,kcal:2750},
+  "2026-05-19": {protein:180,carbs:330,fat:70,kcal:2900}
+};
+
+function migrateHistoricalTargets() {
+  const daily = getDailyTargets();
+  let changed = false;
+  for (const [date, tgt] of Object.entries(HISTORICAL_TARGETS)) {
+    if (!daily[date]) { daily[date] = tgt; changed = true; }
+  }
+  if (changed) LS.set('mt_daily_targets', daily);
+}
+
+function openEditTargets() {
+  const t = getTargetsForDate(viewingDate);
+  document.getElementById('tgt-protein').value = t.protein;
+  document.getElementById('tgt-carbs').value = t.carbs;
+  document.getElementById('tgt-fat').value = t.fat;
+  document.getElementById('tgt-kcal').value = t.kcal;
+  openModal('edit-targets-modal');
+}
+
+function saveEditTargets() {
+  const protein = parseInt(document.getElementById('tgt-protein').value) || 0;
+  const carbs   = parseInt(document.getElementById('tgt-carbs').value)   || 0;
+  const fat     = parseInt(document.getElementById('tgt-fat').value)     || 0;
+  const kcal    = parseInt(document.getElementById('tgt-kcal').value)    || 0;
+  const daily = getDailyTargets();
+  daily[viewingDate] = { protein, carbs, fat, kcal };
+  LS.set('mt_daily_targets', daily);
+  closeModal('edit-targets-modal');
+  renderToday();
 }
 
 function recordTodayTargets() {
@@ -2228,6 +2299,7 @@ fixAppHeight();
 window.addEventListener('resize', fixAppHeight);
 
 deduplicateLogs();
+migrateHistoricalTargets();
 recordTodayTargets();
 renderToday();
 fetchSyncTargets();
