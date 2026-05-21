@@ -25,8 +25,8 @@
 |-----|------|---------|---------|
 | Tue | May 19 | Easy Run + Push (done) | 11.3km easy w/ walk breaks, Z2 + limited push |
 | Wed | May 21 | Rest | Full rest day (wrist, leg DOMS) |
-| Thu | May 22 | Intervals | 2km warm-up + 6×400m @ 4:05-4:10/km (90s jog recovery) + 2km cool-down |
-| Fri | May 23 | Legs A | Squats 4x6, RDLs 3x8, Leg press 3x10, Leg curl 3x10, Calf raises 3x15 |
+| Thu | May 22 | Intervals | 2km warm-up + 6×400m @ 4:05-4:10/km (90s jog recovery) + 2km cool-down + **Legs A (evening)**: Squats 4x6 @ 80%, RDLs 3x8, Leg press 3x10, Leg curl 3x10, Calf raises 3x15 |
+| Fri | May 23 | Rest | Full rest — double session day Thursday |
 | Sat | May 24 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
 | Sun | May 25 | Long Run | 10km @ 5:40-6:00/km, Z2 |
 | Mon | May 26 | Rest | Recovery day |
