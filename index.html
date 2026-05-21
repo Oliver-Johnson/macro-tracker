@@ -24,6 +24,8 @@
     --text: #e8e8f0;
     --muted: #7070a0;
     --danger: #f87171;
+    --fibre: #1ABC9C;
+    --sugar-warn: #f59e0b;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -288,6 +290,7 @@
             <span id="kcal-remaining" style="font-weight:700; color:var(--text);">0</span> remaining
           </div>
           <div class="macro-bars" id="macro-bars"></div>
+          <div id="sugar-warning" style="display:none; margin-top:6px; font-size:11px; border-radius:6px; padding:6px 8px;"></div>
           <button class="btn btn-secondary btn-sm" onclick="openEditTargets()" style="margin-top:8px; font-size:11px; padding:5px 10px; color:var(--muted);">✎ Targets</button>
         </div>
       </div>
@@ -484,7 +487,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-21.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-21.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -872,7 +875,7 @@ const LS = {
 };
 
 function getSettings() {
-  return LS.get('mt_settings', { kcal: 2350, protein: 140, fat: 65, carbs: 240 });
+  return LS.get('mt_settings', { kcal: 2350, protein: 140, fat: 65, carbs: 240, fibre: 30 });
 }
 function getLogs() { return LS.get('mt_logs', []); }
 function getRecipes() { return LS.get('mt_recipes', []); }
@@ -882,7 +885,9 @@ function getDailyTargets() { return LS.get('mt_daily_targets', {}); }
 
 function getTargetsForDate(dateKey) {
   const daily = getDailyTargets();
-  return daily[dateKey] || getSettings();
+  const t = daily[dateKey] || getSettings();
+  if (!t.fibre) t.fibre = 30;
+  return t;
 }
 
 const HISTORICAL_TARGETS = {
@@ -924,7 +929,7 @@ function saveEditTargets() {
   const fat     = parseInt(document.getElementById('tgt-fat').value)     || 0;
   const kcal    = parseInt(document.getElementById('tgt-kcal').value)    || 0;
   const daily = getDailyTargets();
-  daily[viewingDate] = { protein, carbs, fat, kcal };
+  daily[viewingDate] = { protein, carbs, fat, kcal, fibre: getTargetsForDate(viewingDate).fibre || 30 };
   LS.set('mt_daily_targets', daily);
   closeModal('edit-targets-modal');
   renderToday();
@@ -935,7 +940,7 @@ function recordTodayTargets() {
   const daily = getDailyTargets();
   if (!daily[today]) {
     const s = getSettings();
-    daily[today] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat };
+    daily[today] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre || 30 };
     LS.set('mt_daily_targets', daily);
   }
 }
@@ -1028,6 +1033,33 @@ function renderToday() {
     </div>`;
   }).join('');
 
+  // Fibre bar
+  const fibreTarget = s.fibre || 30;
+  const fibreVal = totals.fibre;
+  const fibrePct = Math.min(fibreVal / fibreTarget * 100, 100);
+  bars.innerHTML += `<div class="bar-row">
+    <span class="bar-label" style="color:var(--fibre);">Fibre</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${fibrePct}%;background:var(--fibre);"></div></div>
+    <span class="bar-text">${r1(fibreVal)}/${fibreTarget}g</span>
+  </div>`;
+
+  // Sugar warning
+  const sugarEl = document.getElementById('sugar-warning');
+  const sugarVal = totals.sugar;
+  if (sugarVal >= 60) {
+    sugarEl.style.display = 'block';
+    sugarEl.style.background = 'rgba(245,158,11,0.15)';
+    sugarEl.style.color = 'var(--sugar-warn)';
+    sugarEl.textContent = `⚠ Sugar: ${r1(sugarVal)}g (limit 60g) — consider swapping some carbs for complex sources`;
+  } else if (sugarVal >= 45) {
+    sugarEl.style.display = 'block';
+    sugarEl.style.background = 'rgba(112,112,160,0.1)';
+    sugarEl.style.color = 'var(--muted)';
+    sugarEl.textContent = `Sugar: ${r1(sugarVal)}g — approaching daily limit`;
+  } else {
+    sugarEl.style.display = 'none';
+  }
+
   // Food log
   const list = document.getElementById('food-log-list');
   if (!day.entries.length) {
@@ -1108,8 +1140,10 @@ function sumEntries(entries) {
     kcal: acc.kcal + (e.kcal||0),
     protein: acc.protein + (e.protein||0),
     carbs: acc.carbs + (e.carbs||0),
-    fat: acc.fat + (e.fat||0)
-  }), { kcal:0, protein:0, carbs:0, fat:0 });
+    fat: acc.fat + (e.fat||0),
+    fibre: acc.fibre + (e.fibre||0),
+    sugar: acc.sugar + (e.sugar||0)
+  }), { kcal:0, protein:0, carbs:0, fat:0, fibre:0, sugar:0 });
 }
 
 let editEntryRef = null; // { dateKey, idx }
@@ -2104,11 +2138,12 @@ function saveSettings() {
     kcal: parseFloat(document.getElementById('set-kcal').value) || 2350,
     protein: parseFloat(document.getElementById('set-protein').value) || 140,
     carbs: parseFloat(document.getElementById('set-carbs').value) || 240,
-    fat: parseFloat(document.getElementById('set-fat').value) || 65
+    fat: parseFloat(document.getElementById('set-fat').value) || 65,
+    fibre: 30
   };
   LS.set('mt_settings', s);
   const daily = getDailyTargets();
-  daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat };
+  daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre };
   LS.set('mt_daily_targets', daily);
   toast('Targets saved!');
 }
@@ -2172,7 +2207,7 @@ function fetchSyncTargets() {
         s.fat = t.fat || s.fat;
         localStorage.setItem('mt_settings', JSON.stringify(s));
         const daily = getDailyTargets();
-        daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat };
+        daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre || 30 };
         LS.set('mt_daily_targets', daily);
         renderToday();
         renderSettings();
