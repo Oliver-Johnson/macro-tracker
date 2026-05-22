@@ -487,7 +487,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-21.6</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-21.7</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1675,7 +1675,7 @@ function confirmLogFood() {
     protein: r1(f.protein * factor),
     carbs: r1(f.carbs * factor),
     fat: r1(f.fat * factor),
-    fibre: r1((f.fibre||0) * factor),
+    fibre: r1(((f.fibre||0) || FIBRE_LOOKUP[(f.name||'').toLowerCase()] || 0) * factor),
     sugar: r1((f.sugar||0) * factor),
     sodium: r1((f.sodium||0) * factor),
     per100kcal: f.kcal,
@@ -2194,16 +2194,34 @@ function syncFoodLog() {
 }
 
 const SEED_FOODS = [
-  { name: 'Brown Basmati Rice (raw)', kcal: 356, protein: 7.9, carbs: 72.8, fat: 2.7, fibre: 3.5, sugar: 0.7, sodium: 0, defaultWeight: 75 },
-  { name: 'Brown Basmati Rice (cooked)', kcal: 137, protein: 2.9, carbs: 27.5, fat: 1.0, fibre: 1.4, sugar: 0.3, sodium: 0, defaultWeight: 150 },
+  { name: 'Brown Basmati Rice (raw)',    kcal: 356, protein: 7.9,  carbs: 72.8, fat: 2.7,  fibre: 3.5,  sugar: 0.7, sodium: 0,    defaultWeight: 75  },
+  { name: 'Brown Basmati Rice (cooked)', kcal: 137, protein: 2.9,  carbs: 27.5, fat: 1.0,  fibre: 1.4,  sugar: 0.3, sodium: 0,    defaultWeight: 150 },
+  { name: 'Chia Seeds',                  kcal: 486, protein: 16.5, carbs: 42.1, fat: 30.7, fibre: 34.4, sugar: 0,   sodium: 0.02, defaultWeight: 15  },
+  { name: 'Special K The Original',      kcal: 392, protein: 8.0,  carbs: 78.0, fat: 1.3,  fibre: 6.0,  sugar: 17,  sodium: 0.7,  defaultWeight: 40  },
+  { name: 'FRUITY MUESLI',               kcal: 342, protein: 8.0,  carbs: 67.2, fat: 2.6,  fibre: 6.0,  sugar: 20,  sodium: 0.1,  defaultWeight: 50  },
+  { name: 'Bread (wholemeal)',            kcal: 218, protein: 8.9,  carbs: 40.5, fat: 2.5,  fibre: 6.8,  sugar: 3.3, sodium: 0.5,  defaultWeight: 80  },
+  { name: 'Oats',                        kcal: 389, protein: 16.9, carbs: 66.3, fat: 6.9,  fibre: 10.6, sugar: 1.0, sodium: 0.01, defaultWeight: 60  },
+  { name: 'Banana',                      kcal: 89,  protein: 1.1,  carbs: 23.0, fat: 0.3,  fibre: 2.6,  sugar: 12,  sodium: 0.01, defaultWeight: 120 },
+  { name: 'Eggs (whole)',                kcal: 143, protein: 13.0, carbs: 0.7,  fat: 9.5,  fibre: 0,    sugar: 0.7, sodium: 0.14, defaultWeight: 60  },
+  { name: 'Olive Oil',                   kcal: 884, protein: 0,    carbs: 0,    fat: 100,  fibre: 0,    sugar: 0,   sodium: 0,    defaultWeight: 15  },
+  { name: 'Alpro® Almond Milk, 1 L, FRESH', kcal: 13, protein: 0.4, carbs: 0.3, fat: 1.1, fibre: 0.4,  sugar: 0.3, sodium: 0.07, defaultWeight: 200 },
 ];
+
+// Lookup table by normalised name for patching fibre at log time
+const FIBRE_LOOKUP = {};
+for (const s of SEED_FOODS) FIBRE_LOOKUP[s.name.toLowerCase()] = s.fibre;
 
 function seedCustomFoods() {
   const customs = getCustomFoods();
   let changed = false;
   for (const seed of SEED_FOODS) {
-    if (!customs.find(f => f.name === seed.name)) {
+    const idx = customs.findIndex(f => f.name === seed.name);
+    if (idx === -1) {
       customs.push({ id: uid(), ...seed, barcode: null });
+      changed = true;
+    } else if (!customs[idx].fibre && seed.fibre) {
+      // Update existing entry that has fibre=0 with correct value
+      customs[idx] = { ...customs[idx], fibre: seed.fibre, sugar: seed.sugar ?? customs[idx].sugar, sodium: seed.sodium ?? customs[idx].sodium };
       changed = true;
     }
   }
