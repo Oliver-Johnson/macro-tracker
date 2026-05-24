@@ -386,87 +386,115 @@
     </div>
 
     <!-- Manual -->
-    <div id="log-manual" class="log-tab" style="display:none;">
-      <div class="field">
-        <label>Food name</label>
-        <input type="text" id="manual-name" placeholder="e.g. Chicken breast">
+    <div id="log-manual" class="log-tab" style="display:none; max-height:70vh; overflow-y:auto;">
+      <div style="padding:0 4px;">
+        <div class="flex items-center justify-between py-3 border-b border-gray-100" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Food Name</label>
+          <input type="text" id="manual-name" placeholder="Required" style="width:160px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text);">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Calories (kcal)</label>
+          <input type="number" id="manual-kcal" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Protein (g)</label>
+          <input type="number" id="manual-protein" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Total Carbohydrates (g)</label>
+          <input type="number" id="manual-carbs" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Total Fat (g)</label>
+          <input type="number" id="manual-fat" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+
+        <div style="padding:8px 0; text-align:center; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">Additional Nutrients</div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
+          <input type="number" id="manual-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Sugars (g)</label>
+          <input type="number" id="manual-sugar" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Saturated Fat (g)</label>
+          <input type="number" id="manual-satfat" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Sodium (mg)</label>
+          <input type="number" id="manual-sodium" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Potassium (mg)</label>
+          <input type="number" id="manual-potassium" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Cholesterol (mg)</label>
+          <input type="number" id="manual-cholesterol" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
       </div>
-      <div class="card-title" style="margin: 4px 0 8px;">Per 100g</div>
-      <div class="field-row-4">
-        <div class="field">
-          <label>Kcal</label>
-          <input type="number" id="manual-kcal" placeholder="0">
-        </div>
-        <div class="field">
-          <label>Protein</label>
-          <input type="number" id="manual-protein" placeholder="0">
-        </div>
-        <div class="field">
-          <label>Carbs</label>
-          <input type="number" id="manual-carbs" placeholder="0">
-        </div>
-        <div class="field">
-          <label>Fat</label>
-          <input type="number" id="manual-fat" placeholder="0">
-        </div>
-      </div>
-      <div class="mt-2" style="margin-bottom:8px;">
-        <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '+ Extra nutrients' : '- Extra nutrients'"
-          style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--muted); padding:0;">
-          + Extra nutrients
-        </button>
-        <div class="hidden" style="margin-top:8px;">
-          <div class="field-row-4">
-            <div class="field">
-              <label>Fibre (g)</label>
-              <input type="number" id="manual-fibre" min="0" step="0.1" placeholder="0">
-            </div>
-            <div class="field">
-              <label>Sugar (g)</label>
-              <input type="number" id="manual-sugar" min="0" step="0.1" placeholder="0">
-            </div>
-            <div class="field">
-              <label>Sat. fat (g)</label>
-              <input type="number" id="manual-satfat" min="0" step="0.1" placeholder="0">
-            </div>
-            <div class="field">
-              <label>Sodium (mg)</label>
-              <input type="number" id="manual-sodium" min="0" step="1" placeholder="0">
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom: 12px;">
+      <div style="display:flex; gap:8px; margin-top:16px; margin-bottom: 12px;">
         <button class="btn btn-secondary" style="flex:1;" onclick="logManualFood()">Log Only</button>
         <button class="btn btn-primary" style="flex:1;" onclick="saveAndLogManual()">Save to DB &amp; Log</button>
       </div>
     </div>
 
     <!-- Quick Add -->
-    <div id="log-quickadd" class="log-tab" style="display:none;">
+    <div id="log-quickadd" class="log-tab" style="display:none; max-height:70vh; overflow-y:auto;">
       <div class="card-title" style="margin-bottom:12px;">Quick Add Macros</div>
-      <div class="field"><label>Name (optional)</label><input type="text" id="qa-name" placeholder="e.g. Misc snack"></div>
-      <div class="field-row-4">
-        <div class="field"><label>Kcal</label><input type="number" id="qa-kcal" placeholder="0"></div>
-        <div class="field"><label>Protein (g)</label><input type="number" id="qa-protein" placeholder="0"></div>
-        <div class="field"><label>Carbs (g)</label><input type="number" id="qa-carbs" placeholder="0"></div>
-        <div class="field"><label>Fat (g)</label><input type="number" id="qa-fat" placeholder="0"></div>
-      </div>
-      <div style="margin-bottom:8px;">
-        <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '+ Extra nutrients' : '- Extra nutrients'"
-          style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--muted); padding:0;">
-          + Extra nutrients
-        </button>
-        <div class="hidden" style="margin-top:8px;">
-          <div class="field-row-4">
-            <div class="field"><label>Fibre (g)</label><input type="number" id="qa-fibre" min="0" step="0.1" placeholder="0"></div>
-            <div class="field"><label>Sugar (g)</label><input type="number" id="qa-sugar" min="0" step="0.1" placeholder="0"></div>
-            <div class="field"><label>Sat. fat (g)</label><input type="number" id="qa-satfat" min="0" step="0.1" placeholder="0"></div>
-            <div class="field"><label>Sodium (mg)</label><input type="number" id="qa-sodium" min="0" step="1" placeholder="0"></div>
-          </div>
+      <div style="padding:0 4px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Name (optional)</label>
+          <input type="text" id="qa-name" placeholder="e.g. Misc snack" style="width:160px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text);">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Calories (kcal)</label>
+          <input type="number" id="qa-kcal" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Protein (g)</label>
+          <input type="number" id="qa-protein" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Total Carbohydrates (g)</label>
+          <input type="number" id="qa-carbs" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; font-weight:600; color:var(--text);">Total Fat (g)</label>
+          <input type="number" id="qa-fat" placeholder="Required" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+
+        <div style="padding:8px 0; text-align:center; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">Additional Nutrients</div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
+          <input type="number" id="qa-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Sugars (g)</label>
+          <input type="number" id="qa-sugar" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Saturated Fat (g)</label>
+          <input type="number" id="qa-satfat" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Sodium (mg)</label>
+          <input type="number" id="qa-sodium" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Potassium (mg)</label>
+          <input type="number" id="qa-potassium" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
+          <label style="font-size:14px; color:var(--muted);">Cholesterol (mg)</label>
+          <input type="number" id="qa-cholesterol" min="0" step="1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
         </div>
       </div>
-      <div class="meal-pills" id="qa-meal-pills">
+      <div class="meal-pills" id="qa-meal-pills" style="margin-top:16px;">
         <button class="meal-pill" onclick="selectQAMeal('Breakfast',this)">Breakfast</button>
         <button class="meal-pill" onclick="selectQAMeal('Lunch',this)">Lunch</button>
         <button class="meal-pill" onclick="selectQAMeal('Dinner',this)">Dinner</button>
@@ -527,7 +555,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-24.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-24.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1672,7 +1700,9 @@ function getManualFood() {
     fibre: parseFloat(document.getElementById('manual-fibre').value) || 0,
     sugar: parseFloat(document.getElementById('manual-sugar').value) || 0,
     satFat: parseFloat(document.getElementById('manual-satfat').value) || 0,
-    sodium: parseFloat(document.getElementById('manual-sodium').value) || 0
+    sodium: parseFloat(document.getElementById('manual-sodium').value) || 0,
+    potassium: parseFloat(document.getElementById('manual-potassium').value) || 0,
+    cholesterol: parseFloat(document.getElementById('manual-cholesterol').value) || 0
   };
 }
 
@@ -2547,8 +2577,10 @@ function confirmQuickAdd() {
   const sugar = parseFloat(document.getElementById('qa-sugar').value) || 0;
   const satFat = parseFloat(document.getElementById('qa-satfat').value) || 0;
   const sodium = parseFloat(document.getElementById('qa-sodium').value) || 0;
-  addEntryToLog({ id: uid(), name, meal: selectedQAMeal, kcal, protein, carbs, fat, fibre, sugar, satFat, sodium, weight: null, barcode: null });
-  ['qa-name','qa-kcal','qa-protein','qa-carbs','qa-fat','qa-fibre','qa-sugar','qa-satfat','qa-sodium'].forEach(id => document.getElementById(id).value = '');
+  const potassium = parseFloat(document.getElementById('qa-potassium').value) || 0;
+  const cholesterol = parseFloat(document.getElementById('qa-cholesterol').value) || 0;
+  addEntryToLog({ id: uid(), name, meal: selectedQAMeal, kcal, protein, carbs, fat, fibre, sugar, satFat, sodium, potassium, cholesterol, weight: null, barcode: null });
+  ['qa-name','qa-kcal','qa-protein','qa-carbs','qa-fat','qa-fibre','qa-sugar','qa-satfat','qa-sodium','qa-potassium','qa-cholesterol'].forEach(id => document.getElementById(id).value = '');
   toast(`Added ${name}`);
 }
 
@@ -2794,6 +2826,8 @@ function prefillManualForm(nutrition) {
   setField('manual-sugar', nutrition.sugar);
   setField('manual-satfat', nutrition.satFat);
   setField('manual-sodium', nutrition.sodium);
+  setField('manual-potassium', nutrition.potassium);
+  setField('manual-cholesterol', nutrition.cholesterol);
 
   const missing = Object.values(nutrition).some(v => v === null);
   setOcrStatus(missing ? 'Review extracted values — some fields not detected' : 'Values extracted — review before logging');
