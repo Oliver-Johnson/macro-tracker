@@ -410,6 +410,32 @@
           <input type="number" id="manual-fat" placeholder="0">
         </div>
       </div>
+      <div class="mt-2" style="margin-bottom:8px;">
+        <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '+ Extra nutrients' : '- Extra nutrients'"
+          style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--muted); padding:0;">
+          + Extra nutrients
+        </button>
+        <div class="hidden" style="margin-top:8px;">
+          <div class="field-row-4">
+            <div class="field">
+              <label>Fibre (g)</label>
+              <input type="number" id="manual-fibre" min="0" step="0.1" placeholder="0">
+            </div>
+            <div class="field">
+              <label>Sugar (g)</label>
+              <input type="number" id="manual-sugar" min="0" step="0.1" placeholder="0">
+            </div>
+            <div class="field">
+              <label>Sat. fat (g)</label>
+              <input type="number" id="manual-satfat" min="0" step="0.1" placeholder="0">
+            </div>
+            <div class="field">
+              <label>Sodium (mg)</label>
+              <input type="number" id="manual-sodium" min="0" step="1" placeholder="0">
+            </div>
+          </div>
+        </div>
+      </div>
       <div style="display:flex; gap:8px; margin-bottom: 12px;">
         <button class="btn btn-secondary" style="flex:1;" onclick="logManualFood()">Log Only</button>
         <button class="btn btn-primary" style="flex:1;" onclick="saveAndLogManual()">Save to DB &amp; Log</button>
@@ -425,6 +451,20 @@
         <div class="field"><label>Protein (g)</label><input type="number" id="qa-protein" placeholder="0"></div>
         <div class="field"><label>Carbs (g)</label><input type="number" id="qa-carbs" placeholder="0"></div>
         <div class="field"><label>Fat (g)</label><input type="number" id="qa-fat" placeholder="0"></div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '+ Extra nutrients' : '- Extra nutrients'"
+          style="background:none; border:none; cursor:pointer; font-size:12px; color:var(--muted); padding:0;">
+          + Extra nutrients
+        </button>
+        <div class="hidden" style="margin-top:8px;">
+          <div class="field-row-4">
+            <div class="field"><label>Fibre (g)</label><input type="number" id="qa-fibre" min="0" step="0.1" placeholder="0"></div>
+            <div class="field"><label>Sugar (g)</label><input type="number" id="qa-sugar" min="0" step="0.1" placeholder="0"></div>
+            <div class="field"><label>Sat. fat (g)</label><input type="number" id="qa-satfat" min="0" step="0.1" placeholder="0"></div>
+            <div class="field"><label>Sodium (mg)</label><input type="number" id="qa-sodium" min="0" step="1" placeholder="0"></div>
+          </div>
+        </div>
       </div>
       <div class="meal-pills" id="qa-meal-pills">
         <button class="meal-pill" onclick="selectQAMeal('Breakfast',this)">Breakfast</button>
@@ -487,7 +527,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-22.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-24.1</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1628,7 +1668,11 @@ function getManualFood() {
     kcal: parseFloat(document.getElementById('manual-kcal').value) || 0,
     protein: parseFloat(document.getElementById('manual-protein').value) || 0,
     carbs: parseFloat(document.getElementById('manual-carbs').value) || 0,
-    fat: parseFloat(document.getElementById('manual-fat').value) || 0
+    fat: parseFloat(document.getElementById('manual-fat').value) || 0,
+    fibre: parseFloat(document.getElementById('manual-fibre').value) || 0,
+    sugar: parseFloat(document.getElementById('manual-sugar').value) || 0,
+    satFat: parseFloat(document.getElementById('manual-satfat').value) || 0,
+    sodium: parseFloat(document.getElementById('manual-sodium').value) || 0
   };
 }
 
@@ -2499,8 +2543,12 @@ function confirmQuickAdd() {
   const fat = parseFloat(document.getElementById('qa-fat').value) || 0;
   if (!kcal && !protein && !carbs && !fat) { toast('Enter at least one value'); return; }
   const name = document.getElementById('qa-name').value.trim() || 'Quick Add';
-  addEntryToLog({ id: uid(), name, meal: selectedQAMeal, kcal, protein, carbs, fat, weight: null, barcode: null });
-  ['qa-name','qa-kcal','qa-protein','qa-carbs','qa-fat'].forEach(id => document.getElementById(id).value = '');
+  const fibre = parseFloat(document.getElementById('qa-fibre').value) || 0;
+  const sugar = parseFloat(document.getElementById('qa-sugar').value) || 0;
+  const satFat = parseFloat(document.getElementById('qa-satfat').value) || 0;
+  const sodium = parseFloat(document.getElementById('qa-sodium').value) || 0;
+  addEntryToLog({ id: uid(), name, meal: selectedQAMeal, kcal, protein, carbs, fat, fibre, sugar, satFat, sodium, weight: null, barcode: null });
+  ['qa-name','qa-kcal','qa-protein','qa-carbs','qa-fat','qa-fibre','qa-sugar','qa-satfat','qa-sodium'].forEach(id => document.getElementById(id).value = '');
   toast(`Added ${name}`);
 }
 
@@ -2742,6 +2790,10 @@ function prefillManualForm(nutrition) {
   setField('manual-protein', nutrition.protein);
   setField('manual-carbs', nutrition.carbs);
   setField('manual-fat', nutrition.fat);
+  setField('manual-fibre', nutrition.fibre);
+  setField('manual-sugar', nutrition.sugar);
+  setField('manual-satfat', nutrition.satFat);
+  setField('manual-sodium', nutrition.sodium);
 
   const missing = Object.values(nutrition).some(v => v === null);
   setOcrStatus(missing ? 'Review extracted values — some fields not detected' : 'Values extracted — review before logging');
