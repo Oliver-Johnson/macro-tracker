@@ -275,7 +275,7 @@
     <!-- Kcal ring -->
     <div class="card" id="dashboard-card" onclick="openHistoryScreen()" style="cursor:pointer;">
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
-        <div style="position:relative; width:90px; height:90px; flex-shrink:0;">
+        <div style="position:relative; width:90px; height:90px; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation();showMacroBreakdown('kcal','Calories','kcal')">
           <svg viewBox="0 0 90 90" width="90" height="90">
             <circle class="ring-track" cx="45" cy="45" r="38" style="stroke:var(--bg3); stroke-width:8; fill:none;"/>
             <circle id="kcal-ring" cx="45" cy="45" r="38" style="fill:none; stroke:var(--kcal); stroke-width:8; stroke-linecap:round; stroke-dasharray:239; stroke-dashoffset:239; transform:rotate(-90deg); transform-origin:45px 45px; transition: stroke-dashoffset 0.5s ease;"/>
@@ -563,7 +563,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-24.3</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-26.1</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -1102,7 +1102,7 @@ function renderToday() {
     const val = totals[m], target = s[m], pctM = Math.min(val/target*100, 100);
     const color = m === 'protein' ? 'var(--protein)' : m === 'carbs' ? 'var(--carbs)' : 'var(--fat)';
     const label = m === 'protein' ? 'P' : m === 'carbs' ? 'C' : 'F';
-    return `<div class="bar-row">
+    return `<div class="bar-row" onclick="event.stopPropagation();showMacroBreakdown('${m}','${label === 'P' ? 'Protein' : label === 'C' ? 'Carbs' : 'Fat'}','g')" style="cursor:pointer;">
       <span class="bar-label">${label}</span>
       <div class="bar-track"><div class="bar-fill" style="width:${pctM}%;background:${color};"></div></div>
       <span class="bar-text">${r1(val)}/${s[m]}g</span>
@@ -1113,7 +1113,7 @@ function renderToday() {
   const fibreTarget = s.fibre || 30;
   const fibreVal = totals.fibre;
   const fibrePct = Math.min(fibreVal / fibreTarget * 100, 100);
-  bars.innerHTML += `<div class="bar-row">
+  bars.innerHTML += `<div class="bar-row" onclick="event.stopPropagation();showMacroBreakdown('fibre','Fibre','g')" style="cursor:pointer;">
     <span class="bar-label" style="color:var(--fibre);">Fibre</span>
     <div class="bar-track"><div class="bar-fill" style="width:${fibrePct}%;background:var(--fibre);"></div></div>
     <span class="bar-text">${r1(fibreVal)}/${fibreTarget}g</span>
@@ -1127,6 +1127,8 @@ function renderToday() {
     sugarEl.style.background = 'rgba(245,158,11,0.15)';
     sugarEl.style.color = 'var(--sugar-warn)';
     sugarEl.textContent = `⚠ Sugar: ${r1(sugarVal)}g (limit 60g) — consider swapping some carbs for complex sources`;
+    sugarEl.style.cursor = 'pointer';
+    sugarEl.onclick = function(e) { e.stopPropagation(); showMacroBreakdown('sugar','Sugar','g'); };
   } else if (sugarVal >= 45) {
     sugarEl.style.display = 'block';
     sugarEl.style.background = 'rgba(112,112,160,0.1)';
@@ -3248,6 +3250,75 @@ function renderHistSecondary() {
   el.innerHTML = anyShown
     ? `<div class="hist-section-divider">Other Nutrients</div>${html}`
     : '';
+}
+
+/* ── Macro Drill-Down Breakdown ── */
+function showMacroBreakdown(macroKey, displayName, unit) {
+  const day = getDayLog(viewingDate);
+  const entries = day.entries || [];
+  const items = entries
+    .map(e => ({
+      name: e.name || 'Unknown',
+      meal: e.meal || '',
+      value: parseFloat(e[macroKey]) || 0
+    }))
+    .filter(e => e.value > 0)
+    .sort((a, b) => b.value - a.value);
+  const total = items.reduce((sum, e) => sum + e.value, 0);
+  showBreakdownModal(displayName, unit, items, total);
+}
+
+function showBreakdownModal(displayName, unit, items, total) {
+  let modal = document.getElementById('macro-breakdown-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'macro-breakdown-modal';
+    document.body.appendChild(modal);
+  }
+  const isKcal = unit === 'kcal';
+  const isMg = displayName === 'Sodium';
+  const fmt = v => isMg ? r1(v * 1000) : r1(v);
+  const dispUnit = isMg ? 'mg' : unit;
+
+  const rows = items.map(e => {
+    const pct = total > 0 ? (e.value / total * 100) : 0;
+    const displayed = fmt(e.value);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid var(--bg3);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${e.meal}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
+        <div style="width:60px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:var(--accent);border-radius:3px;width:${pct}%;"></div>
+        </div>
+        <span style="font-size:13px;font-weight:600;width:52px;text-align:right;">${displayed}${dispUnit}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const noItems = items.length === 0 ? '<div style="padding:24px;text-align:center;color:var(--muted);font-size:14px;">No entries for this nutrient today</div>' : '';
+
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);padding:16px;" onclick="if(event.target===this)closeMacroBreakdown()">
+      <div style="background:var(--card);border-radius:16px;width:100%;max-width:380px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--bg3);">
+          <h3 style="margin:0;font-size:17px;font-weight:600;">${displayName} Breakdown</h3>
+          <button onclick="closeMacroBreakdown()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;">✕</button>
+        </div>
+        <div style="overflow-y:auto;flex:1;padding:4px 0;">${noItems || rows}</div>
+        <div style="padding:12px 16px;border-top:1px solid var(--bg3);font-size:14px;font-weight:600;display:flex;justify-content:space-between;">
+          <span>Total</span>
+          <span>${isMg ? r1(total * 1000) : r1(total)}${isMg ? 'mg' : unit}</span>
+        </div>
+      </div>
+    </div>`;
+  modal.style.display = 'block';
+}
+
+function closeMacroBreakdown() {
+  const modal = document.getElementById('macro-breakdown-modal');
+  if (modal) modal.style.display = 'none';
 }
 </script>
 </body>
