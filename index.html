@@ -164,6 +164,40 @@
   /* ─── Streak ─── */
   .streak-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(249,115,22,0.15); color: var(--fat); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
 
+  /* ─── Stat chips (Feature 5) ─── */
+  .stat-chips { display: flex; gap: 8px; margin-bottom: 12px; }
+  .stat-chip { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; text-align: center; }
+  .stat-chip-val { font-size: 15px; font-weight: 700; color: var(--accent2); }
+  .stat-chip-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ─── Water card (Feature 2) ─── */
+  .water-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .water-progress-track { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .water-progress-fill { height: 100%; background: #38bdf8; border-radius: 4px; transition: width 0.4s ease; }
+  .water-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .water-btn { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: #38bdf8; border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+  .water-btn:active { opacity: 0.7; }
+  .water-custom-row { display: none; margin-top: 8px; gap: 8px; align-items: center; }
+  .water-custom-row.open { display: flex; }
+
+  /* ─── Onboarding wizard (Feature 1) ─── */
+  #onboarding-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  #onboarding-backdrop.open { display: flex; }
+  .onboarding-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 28px 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .onboarding-step { display: none; }
+  .onboarding-step.active { display: block; }
+  .onboarding-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .onboarding-sub { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+  .onboarding-progress { display: flex; gap: 6px; margin-bottom: 24px; }
+  .onboarding-dot { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; }
+  .onboarding-dot.done { background: var(--accent); }
+  .goal-option { display: flex; align-items: center; gap: 10px; background: var(--bg3); border: 2px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
+  .goal-option.selected { border-color: var(--accent); background: rgba(108,99,255,0.12); color: var(--accent2); }
+  .activity-option { display: flex; align-items: center; justify-content: space-between; background: var(--bg3); border: 2px solid var(--border); border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; cursor: pointer; font-size: 13px; }
+  .activity-option.selected { border-color: var(--accent); background: rgba(108,99,255,0.12); }
+  .activity-option .act-label { font-weight: 600; }
+  .activity-option .act-sub { font-size: 11px; color: var(--muted); }
+
   /* ─── Weight chart ─── */
   .weight-chart { width: 100%; overflow: hidden; margin-top: 8px; }
 
@@ -272,6 +306,9 @@
       </div>
     </div>
 
+    <!-- Stat chips (Feature 5) -->
+    <div class="stat-chips" id="stat-chips"></div>
+
     <!-- Kcal ring -->
     <div class="card" id="dashboard-card" onclick="openHistoryScreen()" style="cursor:pointer;">
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
@@ -312,6 +349,25 @@
     <div class="card">
       <div class="card-title">Food Log</div>
       <div id="food-log-list"></div>
+    </div>
+
+    <!-- Water card (Feature 2) -->
+    <div class="water-card" id="water-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:14px;font-weight:700;">Water</div>
+        <div style="font-size:13px;font-weight:600;color:#38bdf8;" id="water-display">0 / 2000 ml</div>
+      </div>
+      <div class="water-progress-track"><div class="water-progress-fill" id="water-fill" style="width:0%;"></div></div>
+      <div class="water-btns">
+        <button class="water-btn" onclick="addWater(250)">+250ml</button>
+        <button class="water-btn" onclick="addWater(500)">+500ml</button>
+        <button class="water-btn" onclick="addWater(750)">+750ml</button>
+        <button class="water-btn" onclick="toggleWaterCustom()" style="color:var(--muted);flex:0 0 auto;padding:7px 10px;">+ml</button>
+      </div>
+      <div class="water-custom-row" id="water-custom-row">
+        <input type="number" id="water-custom-input" placeholder="ml" min="1" max="2000" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 10px;font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')addWaterCustom()">
+        <button class="btn btn-primary btn-sm" onclick="addWaterCustom()">Add</button>
+      </div>
     </div>
 
     <!-- Diary notes -->
@@ -540,11 +596,22 @@
           <input type="number" id="set-carbs" placeholder="240" oninput="recalcKcal()">
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Fat (g)</label>
+          <input type="number" id="set-fat" placeholder="65" oninput="recalcKcal()">
+        </div>
+        <div class="field">
+          <label>Fibre (g)</label>
+          <input type="number" id="set-fibre" placeholder="30">
+        </div>
+      </div>
       <div class="field" style="max-width:50%;">
-        <label>Fat (g)</label>
-        <input type="number" id="set-fat" placeholder="65" oninput="recalcKcal()">
+        <label>Water target (ml)</label>
+        <input type="number" id="set-water" placeholder="2000" min="500" max="5000" step="250">
       </div>
       <button class="btn btn-primary" onclick="saveSettings()">Save Targets</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="openTDEEWizard()">Recalculate targets (TDEE)</button>
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Sync Server</div>
@@ -563,9 +630,11 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
     </div>
@@ -607,6 +676,9 @@
       </div>
     </div>
   </div>
+
+  <!-- ─── TDEE Onboarding Wizard (Feature 1) ─── -->
+  <!-- (rendered outside #app so it overlays everything, placed here for proximity) -->
 
   <!-- ─── Bottom nav ─── -->
   <nav>
@@ -663,6 +735,80 @@
     <div id="hist-secondary"></div>
   </div>
 </div>
+<!-- ─── TDEE Onboarding Wizard modal (Feature 1) ─── -->
+<div id="onboarding-backdrop">
+  <div class="onboarding-modal">
+    <div class="onboarding-progress">
+      <div class="onboarding-dot done" id="ob-dot-1"></div>
+      <div class="onboarding-dot" id="ob-dot-2"></div>
+      <div class="onboarding-dot" id="ob-dot-3"></div>
+    </div>
+
+    <!-- Step 1: body stats -->
+    <div class="onboarding-step active" id="ob-step-1">
+      <div class="onboarding-title">Welcome!</div>
+      <div class="onboarding-sub">Let's calculate your daily targets. First, a few body stats.</div>
+      <div class="field"><label>Weight (kg)</label><input type="number" id="ob-weight" placeholder="e.g. 80" min="30" max="300" step="0.1"></div>
+      <div class="field"><label>Height (cm)</label><input type="number" id="ob-height" placeholder="e.g. 178" min="100" max="250" step="1"></div>
+      <div class="field"><label>Age</label><input type="number" id="ob-age" placeholder="e.g. 25" min="10" max="100" step="1"></div>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="obNext(1)">Next</button>
+    </div>
+
+    <!-- Step 2: activity level -->
+    <div class="onboarding-step" id="ob-step-2">
+      <div class="onboarding-title">Activity Level</div>
+      <div class="onboarding-sub">How active are you on a typical week?</div>
+      <div class="activity-option selected" data-mult="1.2" onclick="obSelectActivity(this)">
+        <div><div class="act-label">Sedentary</div><div class="act-sub">Little or no exercise, desk job</div></div>
+        <div style="font-size:11px;color:var(--muted);">x1.2</div>
+      </div>
+      <div class="activity-option" data-mult="1.375" onclick="obSelectActivity(this)">
+        <div><div class="act-label">Lightly active</div><div class="act-sub">Light exercise 1–3 days/week</div></div>
+        <div style="font-size:11px;color:var(--muted);">x1.375</div>
+      </div>
+      <div class="activity-option" data-mult="1.55" onclick="obSelectActivity(this)">
+        <div><div class="act-label">Moderately active</div><div class="act-sub">Moderate exercise 3–5 days/week</div></div>
+        <div style="font-size:11px;color:var(--muted);">x1.55</div>
+      </div>
+      <div class="activity-option" data-mult="1.725" onclick="obSelectActivity(this)">
+        <div><div class="act-label">Very active</div><div class="act-sub">Hard exercise 6–7 days/week</div></div>
+        <div style="font-size:11px;color:var(--muted);">x1.725</div>
+      </div>
+      <div class="activity-option" data-mult="1.9" onclick="obSelectActivity(this)">
+        <div><div class="act-label">Extra active</div><div class="act-sub">Very hard exercise or physical job</div></div>
+        <div style="font-size:11px;color:var(--muted);">x1.9</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn btn-secondary" onclick="obPrev(2)">Back</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="obNext(2)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: goal -->
+    <div class="onboarding-step" id="ob-step-3">
+      <div class="onboarding-title">Your Goal</div>
+      <div class="onboarding-sub">What do you want to achieve?</div>
+      <div class="goal-option selected" data-adj="-300" onclick="obSelectGoal(this)">
+        <span style="font-size:20px;">-</span>
+        <div><div style="font-weight:700;">Lose weight</div><div style="font-size:11px;color:var(--muted);">300 kcal deficit per day</div></div>
+      </div>
+      <div class="goal-option" data-adj="0" onclick="obSelectGoal(this)">
+        <span style="font-size:20px;">=</span>
+        <div><div style="font-weight:700;">Maintain</div><div style="font-size:11px;color:var(--muted);">Eat at your TDEE</div></div>
+      </div>
+      <div class="goal-option" data-adj="300" onclick="obSelectGoal(this)">
+        <span style="font-size:20px;">+</span>
+        <div><div style="font-weight:700;">Gain muscle</div><div style="font-size:11px;color:var(--muted);">300 kcal surplus per day</div></div>
+      </div>
+      <div id="ob-preview" style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;color:var(--muted);display:none;"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-secondary" onclick="obPrev(3)">Back</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="obFinish()">Set Targets</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="hist-tooltip" id="hist-tooltip"></div>
 
 <!-- ─── Weight entry modal ─── -->
@@ -1253,6 +1399,10 @@ function renderToday() {
       <div class="week-cell"><div class="week-val" style="color:var(--fat);">${ws.fat}g</div><div class="week-lbl">fat</div></div>
     </div>`;
   } else if (wsBody) wsBody.innerHTML = '<div style="color:var(--muted);font-size:13px;">Log at least one day to see averages</div>';
+
+  // Feature 2 & 5
+  renderWaterCard();
+  renderStatChips();
 }
 
 function sumEntries(entries) {
@@ -2279,6 +2429,8 @@ function renderSettings() {
   document.getElementById('set-protein').value = s.protein;
   document.getElementById('set-carbs').value = s.carbs;
   document.getElementById('set-fat').value = s.fat;
+  document.getElementById('set-fibre').value = s.fibre || 30;
+  document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
 
   const customs = getCustomFoods();
@@ -2297,12 +2449,14 @@ function renderSettings() {
 }
 
 function saveSettings() {
+  const existing = getSettings();
   const s = {
     kcal: parseFloat(document.getElementById('set-kcal').value) || 2350,
     protein: parseFloat(document.getElementById('set-protein').value) || 140,
     carbs: parseFloat(document.getElementById('set-carbs').value) || 240,
     fat: parseFloat(document.getElementById('set-fat').value) || 65,
-    fibre: 30
+    fibre: parseFloat(document.getElementById('set-fibre').value) || 30,
+    waterTarget: parseFloat(document.getElementById('set-water').value) || 2000
   };
   LS.set('mt_settings', s);
   const daily = getDailyTargets();
@@ -2699,6 +2853,7 @@ seedCustomFoods();
 renderToday();
 fetchSyncTargets();
 fetchSyncFoodLog();
+checkOnboarding();
 
 // Auto-start scan if on scan tab and view-log is navigated to
 document.querySelector('[onclick*="view-log"] , [onclick*=\'log\']');
@@ -3670,6 +3825,254 @@ function renderTrendsSummary(data) {
   }
 
   el.innerHTML = summaryHTML;
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 1: TDEE ONBOARDING WIZARD
+// ═══════════════════════════════════════════════════
+let obActivityMult = 1.2;
+let obGoalAdj = -300;
+
+function checkOnboarding() {
+  const daily = getDailyTargets();
+  const hasTargets = Object.keys(daily).length > 0;
+  if (!hasTargets) openTDEEWizard();
+}
+
+function openTDEEWizard() {
+  // Reset to step 1
+  document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('ob-step-1').classList.add('active');
+  ['ob-dot-1','ob-dot-2','ob-dot-3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('done', i === 0);
+  });
+  document.getElementById('ob-preview').style.display = 'none';
+  // Reset selections
+  document.querySelectorAll('.activity-option').forEach((el,i) => el.classList.toggle('selected', i===0));
+  document.querySelectorAll('.goal-option').forEach((el,i) => el.classList.toggle('selected', i===0));
+  obActivityMult = 1.2;
+  obGoalAdj = -300;
+  document.getElementById('onboarding-backdrop').classList.add('open');
+}
+
+function obNext(step) {
+  if (step === 1) {
+    const w = parseFloat(document.getElementById('ob-weight').value);
+    const h = parseFloat(document.getElementById('ob-height').value);
+    const a = parseFloat(document.getElementById('ob-age').value);
+    if (!w || !h || !a || w < 30 || h < 100 || a < 10) { toast('Fill in all body stats'); return; }
+  }
+  document.getElementById('ob-step-' + step).classList.remove('active');
+  document.getElementById('ob-step-' + (step + 1)).classList.add('active');
+  // Update progress dots
+  document.getElementById('ob-dot-' + (step + 1)).classList.add('done');
+  if (step === 2) obUpdatePreview();
+}
+
+function obPrev(step) {
+  document.getElementById('ob-step-' + step).classList.remove('active');
+  document.getElementById('ob-step-' + (step - 1)).classList.add('active');
+}
+
+function obSelectActivity(el) {
+  document.querySelectorAll('.activity-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  obActivityMult = parseFloat(el.dataset.mult);
+}
+
+function obSelectGoal(el) {
+  document.querySelectorAll('.goal-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  obGoalAdj = parseInt(el.dataset.adj);
+  obUpdatePreview();
+}
+
+function obCalc() {
+  const w = parseFloat(document.getElementById('ob-weight').value) || 80;
+  const h = parseFloat(document.getElementById('ob-height').value) || 175;
+  const a = parseFloat(document.getElementById('ob-age').value) || 25;
+  const bmr = 10 * w + 6.25 * h - 5 * a + 5;
+  const tdee = bmr * obActivityMult;
+  const kcal = Math.round(tdee + obGoalAdj);
+  const protein = Math.round(1.8 * w);
+  const fat = Math.round(0.8 * w);
+  const carbsKcal = kcal - protein * 4 - fat * 9;
+  const carbs = Math.max(0, Math.round(carbsKcal / 4));
+  const fibre = 30;
+  return { kcal, protein, carbs, fat, fibre, weight: w, bmr: Math.round(bmr), tdee: Math.round(tdee) };
+}
+
+function obUpdatePreview() {
+  const c = obCalc();
+  const prev = document.getElementById('ob-preview');
+  prev.style.display = '';
+  prev.innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Calculated targets</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+      <div><span style="color:var(--muted);">TDEE</span> <b>${c.tdee} kcal</b></div>
+      <div><span style="color:var(--kcal);">Target</span> <b>${c.kcal} kcal</b></div>
+      <div><span style="color:var(--protein);">Protein</span> <b>${c.protein}g</b></div>
+      <div><span style="color:var(--carbs);">Carbs</span> <b>${c.carbs}g</b></div>
+      <div><span style="color:var(--fat);">Fat</span> <b>${c.fat}g</b></div>
+      <div><span style="color:var(--fibre);">Fibre</span> <b>${c.fibre}g</b></div>
+    </div>`;
+}
+
+function obFinish() {
+  const c = obCalc();
+  // Save settings
+  const s = { kcal: c.kcal, protein: c.protein, carbs: c.carbs, fat: c.fat, fibre: c.fibre };
+  LS.set('mt_settings', s);
+  // Save today's targets
+  const daily = getDailyTargets();
+  daily[todayKey()] = { ...s };
+  LS.set('mt_daily_targets', daily);
+  // Save first weight entry
+  const wLog = getWeightLog();
+  if (!wLog.find(e => e.date === todayKey())) {
+    wLog.push({ date: todayKey(), weight: c.weight });
+    wLog.sort((a,b) => a.date.localeCompare(b.date));
+    LS.set('mt_weight_log', wLog);
+  }
+  document.getElementById('onboarding-backdrop').classList.remove('open');
+  renderToday();
+  renderSettings();
+  toast('Targets set! Welcome.');
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 2: WATER TRACKING
+// ═══════════════════════════════════════════════════
+function getWaterLog() { return LS.get('mt_water_log', {}); }
+
+function getTodayWater() {
+  return getWaterLog()[todayKey()] || 0;
+}
+
+function getWaterTarget() {
+  const s = getSettings();
+  return s.waterTarget || 2000;
+}
+
+function addWater(ml) {
+  const log = getWaterLog();
+  const key = todayKey();
+  log[key] = (log[key] || 0) + ml;
+  LS.set('mt_water_log', log);
+  renderWaterCard();
+  toast('+' + ml + 'ml water');
+}
+
+function addWaterCustom() {
+  const val = parseInt(document.getElementById('water-custom-input').value);
+  if (!val || val <= 0) { toast('Enter a valid amount'); return; }
+  addWater(val);
+  document.getElementById('water-custom-input').value = '';
+  document.getElementById('water-custom-row').classList.remove('open');
+}
+
+function toggleWaterCustom() {
+  document.getElementById('water-custom-row').classList.toggle('open');
+  if (document.getElementById('water-custom-row').classList.contains('open')) {
+    document.getElementById('water-custom-input').focus();
+  }
+}
+
+function renderWaterCard() {
+  const ml = getTodayWater();
+  const target = getWaterTarget();
+  const pct = Math.min(ml / target * 100, 100);
+  const display = document.getElementById('water-display');
+  const fill = document.getElementById('water-fill');
+  if (display) display.textContent = ml + ' / ' + target + ' ml';
+  if (fill) fill.style.width = pct + '%';
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 4: CSV DATA EXPORT
+// ═══════════════════════════════════════════════════
+function exportFoodLogCSV() {
+  const logs = getLogs();
+  const rows = [['date','meal','food_name','kcal','protein_g','carbs_g','fat_g','fibre_g','quantity_g']];
+  for (const day of logs) {
+    for (const e of (day.entries || [])) {
+      rows.push([
+        day.date,
+        e.meal || 'Breakfast',
+        '"' + (e.name || '').replace(/"/g, '""') + '"',
+        r1(e.kcal || 0),
+        r1(e.protein || 0),
+        r1(e.carbs || 0),
+        r1(e.fat || 0),
+        r1(e.fibre || 0),
+        e.weight || ''
+      ]);
+    }
+  }
+  const csv = rows.map(r => r.join(',')).join('\n');
+  downloadCSV(csv, 'food-log-' + todayKey() + '.csv');
+}
+
+function exportWeightLogCSV() {
+  const log = getWeightLog();
+  const rows = [['date','weight_kg']];
+  for (const e of log) rows.push([e.date, e.weight]);
+  const csv = rows.map(r => r.join(',')).join('\n');
+  downloadCSV(csv, 'weight-log-' + todayKey() + '.csv');
+}
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 5: STREAK & GOAL SUMMARY
+// ═══════════════════════════════════════════════════
+function renderStatChips() {
+  const el = document.getElementById('stat-chips');
+  if (!el) return;
+
+  // Logging streak
+  const streak = getStreak();
+
+  // Month stats
+  const today = new Date(todayKey() + 'T00:00:00');
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysPassed = today.getDate();
+
+  const logs = getLogs();
+  let proteinHit = 0, kcalHit = 0;
+
+  for (let d = 1; d <= daysPassed; d++) {
+    const key = year + '-' + String(month + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const dayLog = logs.find(l => l.date === key);
+    if (!dayLog || !dayLog.entries.length) continue;
+    const totals = sumEntries(dayLog.entries);
+    const targets = getTargetsForDate(key);
+    if (targets.protein > 0 && totals.protein >= targets.protein) proteinHit++;
+    if (targets.kcal > 0 && Math.abs(totals.kcal - targets.kcal) / targets.kcal <= 0.1) kcalHit++;
+  }
+
+  el.innerHTML = `
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--fat);">${streak}</div>
+      <div class="stat-chip-lbl">Day streak</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--protein);">${proteinHit}/${daysPassed}</div>
+      <div class="stat-chip-lbl">Protein days</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-val" style="color:var(--kcal);">${kcalHit}/${daysPassed}</div>
+      <div class="stat-chip-lbl">Kcal on target</div>
+    </div>`;
 }
 </script>
 </body>
