@@ -211,6 +211,44 @@
   textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 14px; outline: none; resize: none; font-family: inherit; }
   textarea:focus { border-color: var(--accent); }
 
+  /* ─── Meal breakdown card (Feature 6) ─── */
+  .meal-breakdown-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .meal-breakdown-table th { color: var(--muted); font-weight: 600; text-align: left; padding: 4px 6px 6px; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; }
+  .meal-breakdown-table td { padding: 5px 6px; border-top: 1px solid var(--border); }
+  .meal-breakdown-table tr:first-child td { border-top: none; }
+  .meal-subtotal { font-size: 11px; color: var(--muted); padding: 3px 0 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .meal-subtotal span { white-space: nowrap; }
+
+  /* ─── Exercise card (Feature 7) ─── */
+  .exercise-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .exercise-entry { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .exercise-entry:last-child { border-bottom: none; }
+  .exercise-info { flex: 1; min-width: 0; }
+  .exercise-name { font-size: 13px; font-weight: 500; }
+  .exercise-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .exercise-kcal { font-size: 13px; font-weight: 700; color: var(--fat); }
+  .net-kcal-row { font-size: 12px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+  /* ─── Fasting view (Feature 8) ─── */
+  #view-fasting { }
+  .if-status-display { text-align: center; padding: 24px 16px 20px; }
+  .if-status-icon { font-size: 36px; margin-bottom: 8px; }
+  .if-status-label { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .if-status-countdown { font-size: 36px; font-weight: 800; letter-spacing: 0.04em; color: var(--accent2); margin: 8px 0; font-variant-numeric: tabular-nums; }
+  .if-status-sub { font-size: 13px; color: var(--muted); }
+  .if-preset-pills { display: flex; gap: 6px; margin-bottom: 14px; }
+  .if-preset-pill { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); padding: 8px 4px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; }
+  .if-preset-pill.active { border-color: var(--accent); color: var(--accent2); background: rgba(108,99,255,0.1); }
+  .if-day-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; width: 36px; }
+  .if-day-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .if-day-dot.completed { background: rgba(74,222,128,0.2); color: var(--protein); border: 1px solid var(--protein); }
+  .if-day-dot.broken { background: rgba(248,113,113,0.2); color: var(--danger); border: 1px solid var(--danger); }
+  .if-day-dot.none { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+  .if-day-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; }
+  .if-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .if-chip-eating { background: rgba(74,222,128,0.15); color: var(--protein); }
+  .if-chip-fasting { background: rgba(248,113,113,0.15); color: var(--danger); }
+
   /* ─── Macro History Screen ─── */
   #view-history {
     position: fixed; inset: 0; z-index: 50;
@@ -323,14 +361,21 @@
           </div>
         </div>
         <div style="flex:1;">
-          <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">
+          <div style="font-size:13px; color:var(--muted); margin-bottom:4px;">
             <span id="kcal-remaining" style="font-weight:700; color:var(--text);">0</span> remaining
           </div>
+          <div id="net-kcal-display" style="display:none; font-size:11px; margin-bottom:6px;"></div>
           <div class="macro-bars" id="macro-bars"></div>
           <div id="sugar-warning" style="display:none; margin-top:6px; font-size:11px; border-radius:6px; padding:6px 8px;"></div>
           <button class="btn btn-secondary btn-sm" onclick="openEditTargets()" style="margin-top:8px; font-size:11px; padding:5px 10px; color:var(--muted);">✎ Targets</button>
         </div>
       </div>
+    </div>
+
+    <!-- Meal breakdown card (Feature 6) -->
+    <div class="card" id="meal-breakdown-card" style="display:none;">
+      <div class="card-title">Meal Breakdown</div>
+      <table class="meal-breakdown-table" id="meal-breakdown-table"></table>
     </div>
 
     <!-- Streak + weight row -->
@@ -368,6 +413,17 @@
         <input type="number" id="water-custom-input" placeholder="ml" min="1" max="2000" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 10px;font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')addWaterCustom()">
         <button class="btn btn-primary btn-sm" onclick="addWaterCustom()">Add</button>
       </div>
+    </div>
+
+    <!-- Exercise card (Feature 7) -->
+    <div class="exercise-card" id="exercise-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:14px;font-weight:700;">Exercise</div>
+        <button class="btn btn-secondary btn-sm" onclick="openExerciseModal()">+ Add</button>
+      </div>
+      <div id="exercise-list"></div>
+      <div id="net-kcal-row" class="net-kcal-row" style="display:none;"></div>
+      <div style="font-size:10px; color:var(--muted); margin-top:6px;">Wearable sync (Garmin/Apple Health) coming soon</div>
     </div>
 
     <!-- Diary notes -->
@@ -630,7 +686,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.2</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.3</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
@@ -677,6 +733,75 @@
     </div>
   </div>
 
+  <!-- ═══ FASTING VIEW ═══ -->
+  <div id="view-fasting" class="view">
+    <div class="section-title" style="margin-bottom:14px;">Intermittent Fasting</div>
+
+    <!-- Protocol selector -->
+    <div class="card">
+      <div class="card-title">Protocol</div>
+      <div class="if-preset-pills" id="if-preset-pills">
+        <button class="if-preset-pill" onclick="ifSelectPreset(16,this)">16:8</button>
+        <button class="if-preset-pill" onclick="ifSelectPreset(18,this)">18:6</button>
+        <button class="if-preset-pill" onclick="ifSelectPreset(20,this)">20:4</button>
+        <button class="if-preset-pill" onclick="ifSelectPreset(0,this)">Custom</button>
+      </div>
+      <div id="if-custom-hours-row" style="display:none; margin-bottom:10px;">
+        <div class="field-row">
+          <div class="field">
+            <label>Fast hours</label>
+            <input type="number" id="if-custom-hours" min="1" max="23" placeholder="16" oninput="ifCustomChanged()">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Eating window start</label>
+        <select id="if-start-hour" onchange="ifSaveSettings()">
+          <option value="6">06:00</option>
+          <option value="7">07:00</option>
+          <option value="8">08:00</option>
+          <option value="9">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12" selected>12:00</option>
+          <option value="13">13:00</option>
+          <option value="14">14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <label style="margin-bottom:0; font-size:13px; color:var(--text);">Enable IF Tracker</label>
+        <input type="checkbox" id="if-enabled-toggle" onchange="ifToggleEnabled(this.checked)" style="width:auto; margin-left:auto; accent-color:var(--accent); width:18px; height:18px;">
+      </div>
+    </div>
+
+    <!-- Current status display -->
+    <div class="card" id="if-status-card">
+      <div class="if-status-display" id="if-status-display">
+        <div class="if-status-icon" id="if-status-icon">⏸</div>
+        <div class="if-status-label" id="if-status-label">Enable IF to begin</div>
+        <div class="if-status-countdown" id="if-status-countdown" style="display:none;"></div>
+        <div class="if-status-sub" id="if-status-sub"></div>
+      </div>
+      <div id="if-window-display" style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:14px;"></div>
+      <button class="btn btn-primary" id="if-log-btn" onclick="ifToggleFast()" style="display:none;"></button>
+    </div>
+
+    <!-- 7-day history -->
+    <div class="card">
+      <div class="card-title">Last 7 Days</div>
+      <div id="if-history-chips" style="display:flex; gap:6px; justify-content:space-between;"></div>
+      <div style="display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--muted);">
+        <span><span style="color:var(--protein);">●</span> Completed</span>
+        <span><span style="color:var(--danger);">●</span> Broken/skipped</span>
+        <span><span style="color:var(--border);">●</span> No data</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ─── TDEE Onboarding Wizard (Feature 1) ─── -->
   <!-- (rendered outside #app so it overlays everything, placed here for proximity) -->
 
@@ -701,6 +826,10 @@
     <button onclick="switchView('trends', this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Trends
+    </button>
+    <button onclick="switchView('fasting', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Fasting
     </button>
   </nav>
 </div>
@@ -983,6 +1112,29 @@
   </div>
 </div>
 
+<!-- ─── Exercise modal ─── -->
+<div class="modal-backdrop" id="exercise-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('exercise-modal')">✕</button>
+    <div class="modal-title">Log Exercise</div>
+    <div class="field">
+      <label>Activity name</label>
+      <input type="text" id="ex-name" placeholder="e.g. Running, Cycling…">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Duration (min)</label>
+        <input type="number" id="ex-duration" placeholder="30" min="1" max="600">
+      </div>
+      <div class="field">
+        <label>Calories burned</label>
+        <input type="number" id="ex-kcal" placeholder="250" min="0" max="5000">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="confirmAddExercise()">Add Exercise</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
@@ -1261,6 +1413,7 @@ function switchView(name, btn) {
   if (name === 'recipes') renderRecipes();
   if (name === 'settings') renderSettings();
   if (name === 'trends') renderTrends();
+  if (name === 'fasting') renderFastingView();
   if (name === 'log') { /* keep current tab */ }
 }
 
@@ -1283,6 +1436,19 @@ function renderToday() {
   document.getElementById('kcal-ring').style.strokeDasharray = circ;
   document.getElementById('kcal-val').textContent = Math.round(totals.kcal);
   document.getElementById('kcal-remaining').textContent = Math.max(0, Math.round(s.kcal - totals.kcal));
+
+  // Net kcal (exercise burn)
+  const burned = getTodayBurned();
+  const netEl = document.getElementById('net-kcal-display');
+  if (netEl) {
+    if (burned > 0) {
+      const net = Math.round(totals.kcal - burned);
+      netEl.style.display = '';
+      netEl.innerHTML = `<span style="color:var(--muted);">Net:</span> <b style="color:var(--kcal);">${net} kcal</b> <span style="color:var(--muted);font-size:11px;">(consumed ${Math.round(totals.kcal)} − burned ${burned})</span>`;
+    } else {
+      netEl.style.display = 'none';
+    }
+  }
 
   // Macro bars
   const bars = document.getElementById('macro-bars');
@@ -1336,7 +1502,14 @@ function renderToday() {
     MEALS.forEach(meal => {
       const entries = day.entries.map((e,i) => ({...e, _idx:i})).filter(e => (e.meal || 'Breakfast') === meal);
       if (!entries.length) return;
+      const mSub = sumEntries(entries);
       html += `<div class="meal-header">${meal}</div>`;
+      html += `<div class="meal-subtotal">
+        <span style="color:var(--kcal);">Kcal: ${Math.round(mSub.kcal)}</span>
+        <span style="color:var(--protein);">P: ${r1(mSub.protein)}g</span>
+        <span style="color:var(--carbs);">C: ${r1(mSub.carbs)}g</span>
+        <span style="color:var(--fat);">F: ${r1(mSub.fat)}g</span>
+      </div>`;
       html += entries.map(e => `
         <div class="log-entry">
           <div class="log-info">
@@ -1354,6 +1527,9 @@ function renderToday() {
     });
     list.innerHTML = html;
   }
+
+  // Meal breakdown card
+  renderMealBreakdownCard(day.entries);
 
   // Streak
   const streak = getStreak();
@@ -1400,9 +1576,10 @@ function renderToday() {
     </div>`;
   } else if (wsBody) wsBody.innerHTML = '<div style="color:var(--muted);font-size:13px;">Log at least one day to see averages</div>';
 
-  // Feature 2 & 5
+  // Feature 2, 5, exercise, fasting
   renderWaterCard();
   renderStatChips();
+  renderExerciseCard();
 }
 
 function sumEntries(entries) {
@@ -4060,6 +4237,17 @@ function renderStatChips() {
     if (targets.kcal > 0 && Math.abs(totals.kcal - targets.kcal) / targets.kcal <= 0.1) kcalHit++;
   }
 
+  // IF chip
+  const ifSettings = getIFSettings();
+  let ifChipHTML = '';
+  if (ifSettings.enabled) {
+    const { inWindow, timeLabel, subLabel } = getIFStatus();
+    ifChipHTML = `<div class="stat-chip" onclick="switchView('fasting', document.querySelector('nav button:last-child'))" style="cursor:pointer;">
+      <div class="stat-chip-val" style="color:${inWindow ? 'var(--protein)' : 'var(--danger)'}; font-size:12px;">${inWindow ? '🟢 Eating' : '🔴 Fasting'}</div>
+      <div class="stat-chip-lbl">${timeLabel}</div>
+    </div>`;
+  }
+
   el.innerHTML = `
     <div class="stat-chip">
       <div class="stat-chip-val" style="color:var(--fat);">${streak}</div>
@@ -4072,8 +4260,338 @@ function renderStatChips() {
     <div class="stat-chip">
       <div class="stat-chip-val" style="color:var(--kcal);">${kcalHit}/${daysPassed}</div>
       <div class="stat-chip-lbl">Kcal on target</div>
-    </div>`;
+    </div>${ifChipHTML}`;
 }
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 6: MEAL BREAKDOWN CARD
+// ═══════════════════════════════════════════════════
+function renderMealBreakdownCard(entries) {
+  const card = document.getElementById('meal-breakdown-card');
+  const table = document.getElementById('meal-breakdown-table');
+  if (!card || !table) return;
+
+  const MEALS = ['Breakfast','Lunch','Dinner','Snacks'];
+  const rows = [];
+  MEALS.forEach(meal => {
+    const mEntries = entries.filter(e => (e.meal || 'Breakfast') === meal);
+    if (!mEntries.length) return;
+    const sub = sumEntries(mEntries);
+    rows.push({ meal, ...sub });
+  });
+
+  if (!rows.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  table.innerHTML = `<thead><tr>
+    <th>Meal</th>
+    <th style="color:var(--kcal);">Kcal</th>
+    <th style="color:var(--protein);">Protein</th>
+    <th style="color:var(--carbs);">Carbs</th>
+    <th style="color:var(--fat);">Fat</th>
+  </tr></thead><tbody>` + rows.map(r => `<tr>
+    <td style="font-weight:600;">${r.meal}</td>
+    <td style="color:var(--kcal);">${Math.round(r.kcal)}</td>
+    <td style="color:var(--protein);">${r1(r.protein)}g</td>
+    <td style="color:var(--carbs);">${r1(r.carbs)}g</td>
+    <td style="color:var(--fat);">${r1(r.fat)}g</td>
+  </tr>`).join('') + '</tbody>';
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 7: EXERCISE / CALORIE BURN LOGGING
+// ═══════════════════════════════════════════════════
+function getExerciseLog() { return LS.get('mt_exercise_log', []); }
+
+function getTodayBurned() {
+  const today = todayKey();
+  return getExerciseLog()
+    .filter(e => e.date === today)
+    .reduce((s, e) => s + (e.kcal_burned || 0), 0);
+}
+
+function openExerciseModal() {
+  document.getElementById('ex-name').value = '';
+  document.getElementById('ex-duration').value = '';
+  document.getElementById('ex-kcal').value = '';
+  openModal('exercise-modal');
+}
+
+function confirmAddExercise() {
+  const name = document.getElementById('ex-name').value.trim();
+  const duration = parseInt(document.getElementById('ex-duration').value) || 0;
+  const kcal_burned = parseInt(document.getElementById('ex-kcal').value) || 0;
+  if (!name) { toast('Enter an activity name'); return; }
+  if (!kcal_burned) { toast('Enter calories burned'); return; }
+  const log = getExerciseLog();
+  log.push({ id: uid(), date: todayKey(), name, duration_min: duration, kcal_burned });
+  LS.set('mt_exercise_log', log);
+  closeModal('exercise-modal');
+  renderToday();
+  toast('Exercise logged');
+}
+
+function deleteExercise(id) {
+  const log = getExerciseLog().filter(e => e.id !== id);
+  LS.set('mt_exercise_log', log);
+  renderToday();
+}
+
+function renderExerciseCard() {
+  const listEl = document.getElementById('exercise-list');
+  const netEl = document.getElementById('net-kcal-row');
+  if (!listEl) return;
+
+  const today = todayKey();
+  const entries = getExerciseLog().filter(e => e.date === today);
+  const totalBurned = entries.reduce((s, e) => s + (e.kcal_burned || 0), 0);
+
+  if (!entries.length) {
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:6px 0;">No exercise logged yet.</div>';
+    if (netEl) netEl.style.display = 'none';
+  } else {
+    listEl.innerHTML = entries.map(e => `
+      <div class="exercise-entry">
+        <div class="exercise-info">
+          <div class="exercise-name">${esc(e.name)}</div>
+          <div class="exercise-meta">${e.duration_min ? e.duration_min + ' min' : 'Duration not set'}</div>
+        </div>
+        <span class="exercise-kcal">-${e.kcal_burned} kcal</span>
+        <button class="btn-icon" onclick="deleteExercise('${e.id}')" title="Delete">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>`).join('');
+    if (netEl) {
+      netEl.style.display = '';
+      netEl.innerHTML = `<span style="color:var(--muted);">Total burned today:</span> <b style="color:var(--fat);">${totalBurned} kcal</b>`;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  FEATURE 8: INTERMITTENT FASTING TRACKER
+// ═══════════════════════════════════════════════════
+function getIFSettings() {
+  return LS.get('mt_if_settings', { enabled: false, windowHours: 8, startHour: 12 });
+}
+
+function saveIFSettings(s) {
+  LS.set('mt_if_settings', s);
+}
+
+function getIFLog() { return LS.get('mt_if_log', []); }
+
+function getIFStatus() {
+  const s = getIFSettings();
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const windowStart = s.startHour * 60;
+  const windowEnd = (s.startHour + s.windowHours) * 60;
+
+  let inWindow = false;
+  let minsUntilChange = 0;
+
+  if (windowEnd <= 24 * 60) {
+    // Window doesn't cross midnight
+    inWindow = nowMins >= windowStart && nowMins < windowEnd;
+    if (inWindow) minsUntilChange = windowEnd - nowMins;
+    else if (nowMins < windowStart) minsUntilChange = windowStart - nowMins;
+    else minsUntilChange = 24 * 60 - nowMins + windowStart;
+  } else {
+    // Window crosses midnight
+    const adjustedEnd = windowEnd - 24 * 60;
+    inWindow = nowMins >= windowStart || nowMins < adjustedEnd;
+    if (inWindow) {
+      minsUntilChange = nowMins >= windowStart ? 24 * 60 - nowMins + adjustedEnd : adjustedEnd - nowMins;
+    } else {
+      minsUntilChange = windowStart - nowMins;
+    }
+  }
+
+  const h = Math.floor(minsUntilChange / 60);
+  const m = minsUntilChange % 60;
+  const timeLabel = `${h}h ${String(m).padStart(2,'0')}m`;
+
+  return { inWindow, minsUntilChange, timeLabel, subLabel: inWindow ? 'until window closes' : 'until window opens' };
+}
+
+function formatHour(h) {
+  const hh = h % 24;
+  return String(hh).padStart(2,'0') + ':00';
+}
+
+function ifSelectPreset(hours, btn) {
+  document.querySelectorAll('.if-preset-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const customRow = document.getElementById('if-custom-hours-row');
+  if (hours === 0) {
+    customRow.style.display = '';
+  } else {
+    customRow.style.display = 'none';
+    const s = getIFSettings();
+    s.windowHours = 24 - hours;
+    saveIFSettings(s);
+    renderFastingView();
+  }
+}
+
+function ifCustomChanged() {
+  const val = parseInt(document.getElementById('if-custom-hours').value) || 0;
+  if (val > 0 && val < 24) {
+    const s = getIFSettings();
+    s.windowHours = 24 - val;
+    saveIFSettings(s);
+    renderFastingView();
+  }
+}
+
+function ifSaveSettings() {
+  const s = getIFSettings();
+  s.startHour = parseInt(document.getElementById('if-start-hour').value);
+  saveIFSettings(s);
+  renderFastingView();
+}
+
+function ifToggleEnabled(checked) {
+  const s = getIFSettings();
+  s.enabled = checked;
+  saveIFSettings(s);
+  renderFastingView();
+  renderStatChips(); // update today chip
+}
+
+function ifToggleFast() {
+  const log = getIFLog();
+  const today = todayKey();
+  const existing = log.find(e => e.date === today);
+  if (!existing || !existing.fastStart) {
+    // Start fast
+    const entry = { date: today, fastStart: new Date().toISOString(), fastEnd: null, completed: false };
+    const idx = log.findIndex(e => e.date === today);
+    if (idx >= 0) log[idx] = entry; else log.push(entry);
+    LS.set('mt_if_log', log);
+    toast('Fast started');
+  } else if (!existing.fastEnd) {
+    // End fast
+    existing.fastEnd = new Date().toISOString();
+    const s = getIFSettings();
+    const fastHours = (s.windowHours ? 24 - s.windowHours : 16);
+    const durationMs = new Date(existing.fastEnd) - new Date(existing.fastStart);
+    existing.completed = durationMs >= fastHours * 60 * 60 * 1000 * 0.8; // 80% threshold
+    LS.set('mt_if_log', log);
+    toast('Fast ended');
+  } else {
+    // Reset
+    const idx = log.findIndex(e => e.date === today);
+    if (idx >= 0) log.splice(idx, 1);
+    LS.set('mt_if_log', log);
+    toast('Fast reset');
+  }
+  renderFastingView();
+}
+
+let ifCountdownInterval = null;
+
+function renderFastingView() {
+  const s = getIFSettings();
+  const log = getIFLog();
+
+  // Populate controls from saved settings
+  const startHourEl = document.getElementById('if-start-hour');
+  if (startHourEl) startHourEl.value = s.startHour;
+  const enabledEl = document.getElementById('if-enabled-toggle');
+  if (enabledEl) enabledEl.checked = s.enabled;
+
+  // Highlight correct preset pill
+  const fastHours = 24 - s.windowHours;
+  const pills = document.querySelectorAll('.if-preset-pill');
+  const presets = [16, 18, 20, 0];
+  pills.forEach((p, i) => p.classList.toggle('active', presets[i] === fastHours || (presets[i] === 0 && ![16,18,20].includes(fastHours))));
+
+  // Status display
+  const statusIcon = document.getElementById('if-status-icon');
+  const statusLabel = document.getElementById('if-status-label');
+  const statusCountdown = document.getElementById('if-status-countdown');
+  const statusSub = document.getElementById('if-status-sub');
+  const windowDisplay = document.getElementById('if-window-display');
+  const logBtn = document.getElementById('if-log-btn');
+
+  if (statusIcon) {
+    if (!s.enabled) {
+      statusIcon.textContent = '⏸';
+      statusLabel.textContent = 'IF tracking disabled';
+      statusLabel.style.color = 'var(--muted)';
+      statusCountdown.style.display = 'none';
+      statusSub.textContent = 'Enable IF above to begin tracking';
+      if (windowDisplay) windowDisplay.textContent = '';
+      if (logBtn) logBtn.style.display = 'none';
+    } else {
+      const { inWindow, timeLabel, subLabel } = getIFStatus();
+      statusIcon.textContent = inWindow ? '🟢' : '🔴';
+      statusLabel.textContent = inWindow ? 'Eating window' : 'Fasting';
+      statusLabel.style.color = inWindow ? 'var(--protein)' : 'var(--danger)';
+      statusCountdown.style.display = '';
+      statusCountdown.textContent = timeLabel;
+      statusSub.textContent = subLabel;
+
+      const windowEnd = (s.startHour + s.windowHours) % 24;
+      if (windowDisplay) windowDisplay.textContent = `Eating window: ${formatHour(s.startHour)} – ${formatHour(s.startHour + s.windowHours)}`;
+      if (logBtn) {
+        logBtn.style.display = '';
+        const todayEntry = log.find(e => e.date === todayKey());
+        if (!todayEntry || !todayEntry.fastStart) logBtn.textContent = 'Start fast now';
+        else if (!todayEntry.fastEnd) logBtn.textContent = 'End fast';
+        else logBtn.textContent = 'Reset fast';
+      }
+    }
+  }
+
+  // Countdown auto-update
+  if (ifCountdownInterval) clearInterval(ifCountdownInterval);
+  if (s.enabled) {
+    ifCountdownInterval = setInterval(() => {
+      const sc = document.getElementById('if-status-countdown');
+      if (!sc) { clearInterval(ifCountdownInterval); return; }
+      const { timeLabel, inWindow } = getIFStatus();
+      sc.textContent = timeLabel;
+      const sl = document.getElementById('if-status-label');
+      if (sl) {
+        sl.textContent = inWindow ? 'Eating window' : 'Fasting';
+        sl.style.color = inWindow ? 'var(--protein)' : 'var(--danger)';
+      }
+    }, 60000);
+  }
+
+  // 7-day history
+  const chipsEl = document.getElementById('if-history-chips');
+  if (chipsEl) {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+    chipsEl.innerHTML = days.map(dateKey => {
+      const entry = log.find(e => e.date === dateKey);
+      const dayName = new Date(dateKey + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' }).slice(0,1);
+      let dotClass = 'none', dotText = '–';
+      if (entry && entry.fastStart) {
+        if (entry.completed) { dotClass = 'completed'; dotText = '✓'; }
+        else { dotClass = 'broken'; dotText = '✗'; }
+      }
+      return `<div class="if-day-chip">
+        <div class="if-day-dot ${dotClass}">${dotText}</div>
+        <div class="if-day-lbl">${dayName}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// Init IF countdown on page load if enabled
+window.addEventListener('load', () => {
+  const s = getIFSettings();
+  if (s.enabled) renderFastingView();
+});
 </script>
 </body>
 </html>
