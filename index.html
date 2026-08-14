@@ -563,11 +563,48 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-05-30.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.1</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
+    </div>
+  </div>
+
+  <!-- ═══ TRENDS VIEW ═══ -->
+  <div id="view-trends" class="view">
+    <div class="section-title" style="margin-bottom:12px;">Trends</div>
+
+    <!-- Date range pills -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button id="trends-pill-2w" class="btn btn-secondary btn-sm" onclick="setTrendsRange('2w',this)" style="border-radius:20px;padding:5px 14px;">2W</button>
+      <button id="trends-pill-1m" class="btn btn-primary btn-sm" onclick="setTrendsRange('1m',this)" style="border-radius:20px;padding:5px 14px;">1M</button>
+      <button id="trends-pill-3m" class="btn btn-secondary btn-sm" onclick="setTrendsRange('3m',this)" style="border-radius:20px;padding:5px 14px;">3M</button>
+    </div>
+
+    <!-- Main dual-axis chart -->
+    <div class="card" style="padding:12px 8px 8px;">
+      <div style="width:100%;overflow:hidden;">
+        <svg id="trends-svg" viewBox="0 0 420 220" width="100%" preserveAspectRatio="xMidYMid meet" style="overflow:visible;display:block;"></svg>
+      </div>
+      <!-- Legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;padding:0 4px;font-size:11px;color:var(--muted);">
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:16px;height:3px;background:var(--accent);border-radius:2px;"></div>Weight (kg)</div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:10px;background:var(--protein);border-radius:2px;opacity:0.85;"></div>Protein</div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:10px;background:var(--carbs);border-radius:2px;opacity:0.85;"></div>Carbs</div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:10px;background:var(--fat);border-radius:2px;opacity:0.85;"></div>Fat</div>
+        <div style="display:flex;align-items:center;gap:5px;"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>Kcal target</div>
+      </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="trends-tooltip" style="display:none;position:fixed;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4);pointer-events:none;min-width:130px;"></div>
+
+    <!-- Summary row -->
+    <div class="card" style="margin-top:10px;">
+      <div id="trends-summary" style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <div style="color:var(--muted);font-size:12px;">Loading…</div>
+      </div>
     </div>
   </div>
 
@@ -588,6 +625,10 @@
     <button onclick="switchView('settings', this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Settings
+    </button>
+    <button onclick="switchView('trends', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Trends
     </button>
   </nav>
 </div>
@@ -1073,6 +1114,7 @@ function switchView(name, btn) {
   if (name === 'today') renderToday();
   if (name === 'recipes') renderRecipes();
   if (name === 'settings') renderSettings();
+  if (name === 'trends') renderTrends();
   if (name === 'log') { /* keep current tab */ }
 }
 
@@ -3319,6 +3361,315 @@ function showBreakdownModal(displayName, unit, items, total) {
 function closeMacroBreakdown() {
   const modal = document.getElementById('macro-breakdown-modal');
   if (modal) modal.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+//  TRENDS VIEW
+// ═══════════════════════════════════════════════════
+
+let trendsRange = '1m'; // '2w' | '1m' | '3m'
+
+function setTrendsRange(r, btn) {
+  trendsRange = r;
+  document.querySelectorAll('#view-trends .btn').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-secondary');
+  });
+  btn.classList.remove('btn-secondary');
+  btn.classList.add('btn-primary');
+  renderTrends();
+}
+
+function getTrendsDays() {
+  if (trendsRange === '2w') return 14;
+  if (trendsRange === '3m') return 90;
+  return 30; // 1m default
+}
+
+function getTrendsData() {
+  const days = getTrendsDays();
+  const today = todayKey();
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - days + 1);
+
+  // Build date list
+  const dates = [];
+  for (let d = new Date(startDate); d <= new Date(today); d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().slice(0, 10));
+  }
+
+  // Weight map
+  const weightLog = LS.get('mt_weight_log', []);
+  const weightMap = {};
+  weightLog.forEach(e => { weightMap[e.date] = e.weight; });
+
+  // Macro map from mt_logs
+  const logs = getLogs();
+  const macroMap = {};
+  logs.forEach(day => {
+    if (!day.date) return;
+    const entries = day.entries || [];
+    const kcal    = entries.reduce((s, e) => s + (parseFloat(e.kcal)    || 0), 0);
+    const protein = entries.reduce((s, e) => s + (parseFloat(e.protein) || 0), 0);
+    const carbs   = entries.reduce((s, e) => s + (parseFloat(e.carbs)   || 0), 0);
+    const fat     = entries.reduce((s, e) => s + (parseFloat(e.fat)     || 0), 0);
+    macroMap[day.date] = { kcal, protein, carbs, fat };
+  });
+
+  return dates.map(date => {
+    const m = macroMap[date] || null;
+    return {
+      date,
+      weight: weightMap[date] != null ? weightMap[date] : null,
+      kcal:    m ? m.kcal    : null,
+      protein: m ? m.protein : null,
+      carbs:   m ? m.carbs   : null,
+      fat:     m ? m.fat     : null,
+      target: getTargetsForDate(date).kcal || 2000
+    };
+  });
+}
+
+function renderTrends() {
+  const data = getTrendsData();
+  const svg = document.getElementById('trends-svg');
+  if (!svg) return;
+
+  const W = 420, H = 220;
+  const PL = 38, PR = 38, PT = 12, PB = 44;
+  const chartW = W - PL - PR;
+  const chartH = H - PT - PB;
+  const n = data.length;
+
+  // Weight range (left axis)
+  const weights = data.filter(d => d.weight != null).map(d => d.weight);
+  const hasWeight = weights.length > 0;
+  const wMin = hasWeight ? Math.floor(Math.min(...weights) - 0.5) : 60;
+  const wMax = hasWeight ? Math.ceil(Math.max(...weights) + 0.5) : 80;
+  const wRange = wMax - wMin || 1;
+
+  // Kcal range (right axis)
+  const kcals = data.filter(d => d.kcal != null && d.kcal > 0).map(d => d.kcal);
+  const targets = data.map(d => d.target);
+  const kcalTarget = targets[targets.length - 1] || 2000;
+  const kcalMax = Math.max(...kcals, kcalTarget) * 1.15 || kcalTarget * 1.15;
+  const kcalMin = 0;
+  const kcalRange = kcalMax - kcalMin || 1;
+
+  // Coordinate helpers
+  const xOf = i => PL + (i / Math.max(n - 1, 1)) * chartW;
+  const yWeight = w => PT + chartH - ((w - wMin) / wRange) * chartH;
+  const yKcal = k => PT + chartH - ((k - kcalMin) / kcalRange) * chartH;
+
+  // Bar width
+  const barW = Math.max(Math.floor(chartW / n * 0.6), 2);
+
+  let out = '';
+
+  // Grid lines (5 horizontal)
+  for (let i = 0; i <= 4; i++) {
+    const y = PT + (chartH / 4) * i;
+    out += `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W - PR}" y2="${y.toFixed(1)}" stroke="#2e2e3e" stroke-width="1"/>`;
+  }
+
+  // Left axis labels (weight)
+  for (let i = 0; i <= 4; i++) {
+    const v = wMax - (wRange / 4) * i;
+    const y = PT + (chartH / 4) * i;
+    out += `<text x="${PL - 4}" y="${(y + 3.5).toFixed(1)}" text-anchor="end" font-size="8.5" fill="#7070a0">${v.toFixed(1)}</text>`;
+  }
+
+  // Right axis labels (kcal)
+  for (let i = 0; i <= 4; i++) {
+    const v = kcalMax - (kcalRange / 4) * i;
+    const y = PT + (chartH / 4) * i;
+    const lbl = v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v);
+    out += `<text x="${W - PR + 4}" y="${(y + 3.5).toFixed(1)}" text-anchor="start" font-size="8.5" fill="#7070a0">${lbl}</text>`;
+  }
+
+  // Axis labels
+  out += `<text x="${PL - 4}" y="${PT - 3}" text-anchor="end" font-size="8" fill="#9c94ff">kg</text>`;
+  out += `<text x="${W - PR + 4}" y="${PT - 3}" text-anchor="start" font-size="8" fill="#e879f9">kcal</text>`;
+
+  // Stacked macro bars (protein bottom, carbs middle, fat top — by kcal contribution)
+  data.forEach((d, i) => {
+    if (d.kcal == null || d.kcal <= 0) return;
+    const cx = n === 1 ? PL + chartW / 2 : xOf(i);
+    const x = cx - barW / 2;
+    const baseY = PT + chartH; // bottom of chart area
+
+    // Kcal contributions per macro
+    const pKcal = (d.protein || 0) * 4;
+    const cKcal = (d.carbs   || 0) * 4;
+    const fKcal = (d.fat     || 0) * 9;
+    const totalMacroKcal = pKcal + cKcal + fKcal || d.kcal;
+
+    // Scale each segment proportionally to total kcal bar height
+    const totalBarH = Math.max(yKcal(0) - yKcal(d.kcal), 1);
+    const pFrac = totalMacroKcal > 0 ? pKcal / totalMacroKcal : 0;
+    const cFrac = totalMacroKcal > 0 ? cKcal / totalMacroKcal : 0;
+    const fFrac = totalMacroKcal > 0 ? fKcal / totalMacroKcal : 0;
+
+    const ph = pFrac * totalBarH;
+    const ch = cFrac * totalBarH;
+    const fh = fFrac * totalBarH;
+
+    // Encode all macro data on each rect for tooltip
+    const dataAttrs = `data-date="${d.date}" data-kcal="${Math.round(d.kcal)}" data-target="${d.target}" data-protein="${Math.round(d.protein||0)}" data-carbs="${Math.round(d.carbs||0)}" data-fat="${Math.round(d.fat||0)}"`;
+
+    // Protein (bottom segment)
+    if (ph > 0) {
+      const segY = baseY - ph;
+      out += `<rect ${dataAttrs} class="trends-bar" x="${x.toFixed(1)}" y="${segY.toFixed(1)}" width="${barW}" height="${ph.toFixed(1)}" fill="var(--protein)" opacity="0.85" style="cursor:pointer;"/>`;
+    }
+    // Carbs (middle segment)
+    if (ch > 0) {
+      const segY = baseY - ph - ch;
+      out += `<rect ${dataAttrs} class="trends-bar" x="${x.toFixed(1)}" y="${segY.toFixed(1)}" width="${barW}" height="${ch.toFixed(1)}" fill="var(--carbs)" opacity="0.85" style="cursor:pointer;"/>`;
+    }
+    // Fat (top segment)
+    if (fh > 0) {
+      const segY = baseY - ph - ch - fh;
+      const rx = 2;
+      out += `<rect ${dataAttrs} class="trends-bar" x="${x.toFixed(1)}" y="${segY.toFixed(1)}" width="${barW}" height="${fh.toFixed(1)}" rx="${rx}" fill="var(--fat)" opacity="0.85" style="cursor:pointer;"/>`;
+    }
+    // If none of the macros are available, fall back to a single bar
+    if (ph === 0 && ch === 0 && fh === 0 && totalBarH > 0) {
+      out += `<rect ${dataAttrs} class="trends-bar" x="${x.toFixed(1)}" y="${(baseY - totalBarH).toFixed(1)}" width="${barW}" height="${totalBarH.toFixed(1)}" rx="2" fill="#7070a0" opacity="0.6" style="cursor:pointer;"/>`;
+    }
+  });
+
+  // Calorie target dashed line
+  if (kcalTarget > 0) {
+    const ty = yKcal(kcalTarget).toFixed(1);
+    out += `<line x1="${PL}" y1="${ty}" x2="${W - PR}" y2="${ty}" stroke="#6c63ff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>`;
+    out += `<text x="${W - PR - 2}" y="${(parseFloat(ty) - 3).toFixed(1)}" text-anchor="end" font-size="7.5" fill="#6c63ff" opacity="0.9">target</text>`;
+  }
+
+  // Weight polyline
+  if (hasWeight) {
+    const weightPts = data
+      .map((d, i) => d.weight != null ? { x: n === 1 ? PL + chartW / 2 : xOf(i), y: yWeight(d.weight) } : null)
+      .filter(Boolean);
+
+    if (weightPts.length >= 2) {
+      const ptStr = weightPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      out += `<polyline points="${ptStr}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    }
+
+    // Weight dots
+    data.forEach((d, i) => {
+      if (d.weight == null) return;
+      const cx = n === 1 ? PL + chartW / 2 : xOf(i);
+      const cy = yWeight(d.weight);
+      out += `<circle data-date="${d.date}" data-weight="${d.weight}" class="trends-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3.5" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" style="cursor:pointer;"/>`;
+    });
+  }
+
+  // X axis date labels (show ~6 evenly spaced)
+  const labelCount = Math.min(n, 6);
+  const labelStep = Math.max(1, Math.floor(n / labelCount));
+  data.forEach((d, i) => {
+    if (i % labelStep !== 0 && i !== n - 1) return;
+    const cx = n === 1 ? PL + chartW / 2 : xOf(i);
+    const labelY = H - 2;
+    const parts = d.date.split('-');
+    const lbl = parts[2] + '/' + parts[1];
+    out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 20 ? 7 : 8.5}" fill="#7070a0" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+  });
+
+  svg.innerHTML = out;
+
+  // Tooltip on hover
+  const tip = document.getElementById('trends-tooltip');
+  svg.querySelectorAll('.trends-bar').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const d = el.dataset;
+      const ratio = d.target > 0 ? (d.kcal / d.target * 100).toFixed(0) : '—';
+      tip.innerHTML = `<div style="font-weight:600;margin-bottom:5px;">${d.date}</div>
+        <div style="margin-bottom:2px;">Kcal: <b>${d.kcal}</b> / ${d.target} &nbsp;<span style="color:var(--muted);font-size:11px;">(${ratio}%)</span></div>
+        <div style="display:flex;gap:8px;font-size:11px;margin-top:4px;">
+          <span style="color:var(--protein);">P ${d.protein}g</span>
+          <span style="color:var(--carbs);">C ${d.carbs}g</span>
+          <span style="color:var(--fat);">F ${d.fat}g</span>
+        </div>`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 12) + 'px';
+      tip.style.top = (e.clientY - 10) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  });
+  svg.querySelectorAll('.trends-dot').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const d = el.dataset;
+      tip.innerHTML = `<div style="font-weight:600;margin-bottom:4px;">${d.date}</div>
+        <div>Weight: <b>${d.weight} kg</b></div>`;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 12) + 'px';
+      tip.style.top = (e.clientY - 10) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  });
+  svg.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+  // Summary row
+  renderTrendsSummary(data);
+}
+
+function renderTrendsSummary(data) {
+  const el = document.getElementById('trends-summary');
+  if (!el) return;
+
+  const kcalDays = data.filter(d => d.kcal != null && d.kcal > 0);
+  const weightDays = data.filter(d => d.weight != null);
+
+  let summaryHTML = '';
+
+  // Avg kcal vs target
+  if (kcalDays.length > 0) {
+    const avgKcal = Math.round(kcalDays.reduce((s, d) => s + d.kcal, 0) / kcalDays.length);
+    const avgTarget = Math.round(kcalDays.reduce((s, d) => s + d.target, 0) / kcalDays.length);
+    const diff = avgKcal - avgTarget;
+    const diffStr = diff >= 0 ? `+${diff}` : `${diff}`;
+    const diffColor = Math.abs(diff) <= avgTarget * 0.1 ? 'var(--protein)' : diff > 0 ? 'var(--danger)' : 'var(--sugar-warn)';
+    summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--muted);">Avg daily kcal</span>
+      <span><b>${avgKcal}</b> kcal &nbsp;<span style="color:${diffColor};font-size:12px;">(${diffStr} vs target)</span></span>
+    </div>`;
+
+    // Implied trend
+    if (Math.abs(diff) > 20) {
+      const trend = diff > 0 ? 'surplus' : 'deficit';
+      summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:var(--muted);">Implied trend</span>
+        <span style="color:${diff > 0 ? 'var(--danger)' : 'var(--protein)'};">${trend} ~${Math.abs(diff)} kcal/day</span>
+      </div>`;
+    }
+  } else {
+    summaryHTML += `<div style="color:var(--muted);font-size:12px;">No calorie data for this period.</div>`;
+  }
+
+  // Weight change
+  if (weightDays.length >= 2) {
+    const first = weightDays[0].weight;
+    const last = weightDays[weightDays.length - 1].weight;
+    const delta = (last - first).toFixed(1);
+    const sign = delta >= 0 ? '+' : '';
+    const col = delta > 0 ? 'var(--sugar-warn)' : delta < 0 ? 'var(--protein)' : 'var(--muted)';
+    summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--muted);">Weight change</span>
+      <span style="color:${col};font-weight:600;">${sign}${delta} kg</span>
+    </div>`;
+  } else if (weightDays.length === 1) {
+    summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--muted);">Current weight</span>
+      <span><b>${weightDays[0].weight} kg</b></span>
+    </div>`;
+  } else {
+    summaryHTML += `<div style="color:var(--muted);font-size:12px;">No weight data for this period.</div>`;
+  }
+
+  el.innerHTML = summaryHTML;
 }
 </script>
 </body>
