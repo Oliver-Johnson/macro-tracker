@@ -183,7 +183,12 @@
   /* ─── Onboarding wizard (Feature 1) ─── */
   #onboarding-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
   #onboarding-backdrop.open { display: flex; }
-  .onboarding-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 28px 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .onboarding-modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 28px 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; position: relative; }
+  .ob-close-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .ob-close-btn:hover { color: var(--text); background: var(--bg3); }
+  #ob-custom-adj-row { display: none; margin-top: 10px; }
+  #ob-custom-adj-row.visible { display: block; }
+  #ob-custom-adj-input { width: 100%; }
   .onboarding-step { display: none; }
   .onboarding-step.active { display: block; }
   .onboarding-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
@@ -768,7 +773,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.3</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.4</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
@@ -1076,8 +1081,9 @@
   </div>
 </div>
 <!-- ─── TDEE Onboarding Wizard modal (Feature 1) ─── -->
-<div id="onboarding-backdrop">
+<div id="onboarding-backdrop" onclick="obBackdropClick(event)">
   <div class="onboarding-modal">
+    <button class="ob-close-btn" onclick="closeTDEEWizard()" title="Close">✕</button>
     <div class="onboarding-progress">
       <div class="onboarding-dot done" id="ob-dot-1"></div>
       <div class="onboarding-dot" id="ob-dot-2"></div>
@@ -1139,6 +1145,15 @@
       <div class="goal-option" data-adj="300" onclick="obSelectGoal(this)">
         <span style="font-size:20px;">+</span>
         <div><div style="font-weight:700;">Gain muscle</div><div style="font-size:11px;color:var(--muted);">300 kcal surplus per day</div></div>
+      </div>
+      <div class="goal-option" data-adj="custom" onclick="obSelectGoal(this)">
+        <span style="font-size:20px;">✎</span>
+        <div><div style="font-weight:700;">Custom</div><div style="font-size:11px;color:var(--muted);">Set your own adjustment</div></div>
+      </div>
+      <div id="ob-custom-adj-row">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Calorie adjustment (kcal/day)</label>
+        <input type="number" id="ob-custom-adj-input" class="field-input" placeholder="e.g. -400 for deficit, +300 for surplus" oninput="obCustomAdjChange()" style="width:100%;box-sizing:border-box;">
+        <div id="ob-custom-adj-hint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
       </div>
       <div id="ob-preview" style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;color:var(--muted);display:none;"></div>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -4513,12 +4528,23 @@ function openTDEEWizard() {
     document.getElementById(id).classList.toggle('done', i === 0);
   });
   document.getElementById('ob-preview').style.display = 'none';
+  document.getElementById('ob-custom-adj-row').classList.remove('visible');
+  document.getElementById('ob-custom-adj-input').value = '';
+  document.getElementById('ob-custom-adj-hint').textContent = '';
   // Reset selections
   document.querySelectorAll('.activity-option').forEach((el,i) => el.classList.toggle('selected', i===0));
   document.querySelectorAll('.goal-option').forEach((el,i) => el.classList.toggle('selected', i===0));
   obActivityMult = 1.2;
   obGoalAdj = -300;
   document.getElementById('onboarding-backdrop').classList.add('open');
+}
+
+function closeTDEEWizard() {
+  document.getElementById('onboarding-backdrop').classList.remove('open');
+}
+
+function obBackdropClick(e) {
+  if (e.target === document.getElementById('onboarding-backdrop')) closeTDEEWizard();
 }
 
 function obNext(step) {
@@ -4549,8 +4575,31 @@ function obSelectActivity(el) {
 function obSelectGoal(el) {
   document.querySelectorAll('.goal-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
-  obGoalAdj = parseInt(el.dataset.adj);
+  const customRow = document.getElementById('ob-custom-adj-row');
+  if (el.dataset.adj === 'custom') {
+    customRow.classList.add('visible');
+    const raw = parseFloat(document.getElementById('ob-custom-adj-input').value);
+    obGoalAdj = isNaN(raw) ? 0 : raw;
+    obUpdateHint(obGoalAdj);
+  } else {
+    customRow.classList.remove('visible');
+    obGoalAdj = parseInt(el.dataset.adj);
+  }
   obUpdatePreview();
+}
+
+function obCustomAdjChange() {
+  const raw = parseFloat(document.getElementById('ob-custom-adj-input').value);
+  obGoalAdj = isNaN(raw) ? 0 : raw;
+  obUpdateHint(obGoalAdj);
+  obUpdatePreview();
+}
+
+function obUpdateHint(adj) {
+  const hint = document.getElementById('ob-custom-adj-hint');
+  if (adj > 0) hint.textContent = '+' + adj + ' kcal/day surplus above TDEE';
+  else if (adj < 0) hint.textContent = adj + ' kcal/day deficit below TDEE';
+  else hint.textContent = 'Eating at maintenance (TDEE)';
 }
 
 function obCalc() {
