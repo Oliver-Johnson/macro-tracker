@@ -771,21 +771,13 @@
       </div>
       <div id="custom-foods-list" style="display:none;"></div>
     </div>
-    <div class="card" style="margin-top:8px;">
-      <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.7</div>
-      <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
-      <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
-      <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
-    </div>
-
     <!-- ─── Appearance & Admin settings ─── -->
     <div class="card" style="margin-top:8px;">
-      <div class="card-title">Appearance</div>
+      <div class="card-title" onclick="toggleAppearance()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+        <span id="appearance-header">Appearance</span>
+        <span id="appearance-chevron" style="font-size:12px;">▶</span>
+      </div>
+      <div id="appearance-body" style="display:none;">
 
       <div class="settings-section-title">Admin Mode</div>
       <div class="toggle-row">
@@ -907,6 +899,26 @@
           <span class="toggle-track"></span>
         </label>
       </div>
+
+      </div><!-- end #appearance-body -->
+    </div>
+
+    <!-- ─── Data ─── -->
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title" onclick="toggleData()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+        <span id="data-header">Data</span>
+        <span id="data-chevron" style="font-size:12px;">▶</span>
+      </div>
+      <div id="data-body" style="display:none;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.8</div>
+        <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
+        <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
+        <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
+      </div><!-- end #data-body -->
     </div>
   </div>
 
@@ -3851,6 +3863,24 @@ function calcPanWeight() {
 function toggleSavedFoods() {
   const el = document.getElementById('custom-foods-list');
   const chevron = document.getElementById('saved-foods-chevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  chevron.textContent = open ? '▶' : '▼';
+}
+
+// ─── Appearance toggle ───
+function toggleAppearance() {
+  const el = document.getElementById('appearance-body');
+  const chevron = document.getElementById('appearance-chevron');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  chevron.textContent = open ? '▶' : '▼';
+}
+
+// ─── Data toggle ───
+function toggleData() {
+  const el = document.getElementById('data-body');
+  const chevron = document.getElementById('data-chevron');
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : '';
   chevron.textContent = open ? '▶' : '▼';
