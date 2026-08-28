@@ -1,11 +1,11 @@
-const CACHE_NAME = 'macro-tracker-2026-08-28.6';
-const APP_VERSION = '2026-08-28.6';
+const CACHE_NAME = 'macro-tracker-2026-08-28.10';
+const APP_VERSION = '2026-08-28.10';
 const STATIC_ASSETS = [
-  '/macro-tracker/',
-  '/macro-tracker/index.html',
-  '/macro-tracker/manifest.json',
-  '/macro-tracker/icon-192.svg',
-  '/macro-tracker/icon-512.svg'
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon-192.svg',
+  '/icon-512.svg'
 ];
 
 self.addEventListener('install', e => {
@@ -27,7 +27,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
   // Never intercept docs pages — let them load fresh from the network
-  if (url.pathname.startsWith('/macro-tracker/docs/')) {
+  if (url.pathname.startsWith('/docs/')) {
     return;
   }
 
