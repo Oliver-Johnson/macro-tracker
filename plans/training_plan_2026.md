@@ -1,322 +1,325 @@
 # Training Plan — 10k (12 Jul) + HM (20 Sep 2026)
 
-**Athlete:** Oliver, 23, 68.7kg → 72kg lean bulk
-**Current Fitness:** 5k 21:42 | 10k 47:47 | HM 1:49:35
-**10k Target:** sub-47, stretch sub-45 | **HM Target:** sub-1:45, stretch sub-1:40
+**Athlete:** Oliver, 23, 70.6kg → 72kg lean bulk
+**Current Fitness:** 5k ~24 min (est) | 10k PB: 51:58 (12 Jul 2026) | HM — first race, no PB
+**10k Result:** 51:58 ✅ (B-goal achieved, negative split 26:16/25:00) | **HM Target:** 1:49–1:51 (5:10–5:15/km, HR ≤176 for first 16km)
+
+> **Fitness note (updated Jun 16):** Pre-Greece, Garmin VO2max was tracking at 55–57 and interval sessions had Oliver running 400m reps at 3:30–3:50/km. After 2 weeks off (Jun 4–15, Greece holiday), aerobic base has dropped ~5–10%. Estimated 5k fitness is ~24–25 min — do NOT use pre-holiday pace targets until week 3 back. Easy runs remain run-walk style with HR 119–138. Interval targets will be recalibrated conservatively in the return block and restored progressively by race week.
 
 ## Key Paces
 
 | Zone | Pace | HR |
 |------|------|----|
-| Easy / Zone 2 | 5:45-6:30/km | 140-155 bpm |
-| Long Run | 5:30-6:00/km | 140-160 bpm |
-| Tempo (HM pace) | 5:00/km | 170-180 bpm |
-| 10k pace | 4:45/km | 180-188 bpm |
-| Interval (5k pace) | 4:20/km | 188-195 bpm |
-| 400m reps | 4:00-4:10/km | 190+ bpm |
+| Easy / Zone 2 | 5:45–6:30/km (run-walk fine, keep HR in zone) | 119–138 bpm |
+| Long Run | 5:30–6:00/km | 125–145 bpm |
+| Tempo (HM pace) | 5:00–5:10/km | 158–170 bpm |
+| 10k pace (race result) | 5:11/km avg | Avg 181, max 199 |
+| 5k pace / interval target | 3:55–4:05/km | 175–185 bpm |
+| 400m reps | 3:45–3:55/km | 180+ bpm |
 
 ---
 
-## Phase 1: 10k Build (May 20 – July 11)
+## Phase 1: 10k Build (May 20 – July 12)
 
-### Week 1 (May 20-26) — Intervals from day 1, no upper body (wrist recovery)
+### Week 1 (May 20–26) ✅ COMPLETE
 
-| Day | Date | Session | Details |
-|-----|------|---------|---------|
-| Tue | May 19 | Easy Run + Push (done) | 11.3km easy w/ walk breaks, Z2 + limited push |
-| Wed | May 21 | Rest | Full rest day (wrist, leg DOMS) |
-| Thu | May 22 | Intervals | 2km warm-up + 6×400m @ 4:05-4:10/km (90s jog recovery) + 2km cool-down + **Legs A (evening)**: Squats 4x6 @ 80%, RDLs 3x8, Leg press 3x10, Leg curl 3x10, Calf raises 3x15 |
-| Fri | May 23 | Rest | Full rest — double session day Thursday |
-| Sat | May 24 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Sun | May 25 | Long Run | 10km @ 5:40-6:00/km, Z2 |
-| Mon | May 26 | Rest | Recovery day |
-
-**Weekly volume: ~35km | 1 leg session | 0 upper body**
+| Day | Date | Session | Actual |
+|-----|------|---------|--------|
+| Mon | May 19 | Easy Run (done) | 11.3km @ 10:86 avg, HR 122, aerTE 3.0 ✅ |
+| Wed | May 21 | Intervals 6×400m | **Done** — best 3:30/km, HR 141/193, aerTE 3.5, anTE 2.8 ✅ |
+| Fri | May 23 | Easy Run | 8.69km @ 6:98 avg, HR 143/163, aerTE 3.1 ✅ |
+| Sat | May 24 | Long Run | 10.83km @ 8:62 avg (run-walk), HR 126/149, aerTE 2.7 ✅ |
 
 ---
 
-### Week 2 (May 27 – Jun 2) — 800m intervals, test wrist
+### Week 2 (May 27 – Jun 2) — 800m intervals
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | May 27 | Intervals | 2km warm-up + 4×800m @ 4:15/km (2min jog recovery) + 2km cool-down |
-| Wed | May 28 | Legs B | Bulgarian split squats 3x8, Hip thrusts 4x8, Leg extensions 3x12, Hamstring curls 3x10, Calf raises 3x15 |
-| Thu | May 29 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
+| Mon | May 26 | Intervals ✅ | 4×800m done — best 3:46/km, HR 150/194, aerTE 3.7, anTE 3.3 |
+| Thu | May 28 | Easy Run ✅ | 8.67km done — HR 127/153, aerTE 2.6 |
 | Fri | May 30 | Rest | Recovery |
-| Sat | May 31 | Fartlek Run | 9km total: 2km warm-up, 6x(1min hard @ ~4:30/km + 2min easy), 2km cool-down |
-| Sun | Jun 1 | Long Run | 11km @ 5:40-6:00/km |
-| Mon | Jun 2 | Push (light, if wrist allows) | DB bench 3x10 light, lateral raises 3x12, tricep pushdowns 3x12. Skip if wrist still painful. |
+| Sat | May 31 | Fartlek Run | 9km total: 2km warm-up, 6×(1min hard @ **3:50–4:00/km** + 2min easy), 2km cool-down |
+| Sun | Jun 1 | Long Run | 11km @ 5:30–6:00/km, HR 125–145 |
+| Mon | Jun 2 | Push (light, if wrist allows) | DB bench 3×10 light, lateral raises 3×12, tricep pushdowns 3×12. Skip if wrist still painful. |
 
 **Weekly volume: ~36km | 1 leg session | 1 light push (wrist-permitting)**
 
 ---
 
-### Week 3 (Jun 3-9) — Holiday starts Jun 4 (Greece yacht), no gym access
+### Week 3 (Jun 2–9) — Greece holiday starts
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jun 3 | Intervals | 2km warm-up + 6×400m @ 3:50/km (90s jog recovery) + 2km cool-down — DO BEFORE LEAVING |
-| Wed | Jun 4 | Holiday starts | Travel day — rest |
-| Thu | Jun 5 | Easy Run (Greece) | 6-7km easy pace — Musto shoes, keep it comfortable |
-| Fri | Jun 6 | Easy Run or Rest | 5-6km easy if feeling good, otherwise rest |
-| Sat | Jun 7 | Opportunistic | Easy run if yacht stops somewhere flat, otherwise rest |
-| Sun | Jun 8 | Rest | Yacht / rest |
-| Mon | Jun 9 | Rest | Yacht / rest |
+| Tue | Jun 2 | Rest | Recovery |
+| Wed | Jun 3 | 5k Time Trial Attempt ⚠️ DNF | Stopped at 2km — HR hit 196 max, clearly overtaxed. Did not continue. No fitness data usable. |
+| Thu | Jun 4 | 🇬🇷 Greece — Rest | Travel day to Greece. No running. |
+| Fri | Jun 5 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Sat | Jun 6 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Sun | Jun 7 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Mon | Jun 8 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Tue | Jun 9 | 🇬🇷 Greece — Rest | Holiday. No running. |
 
-**Weekly volume: ~20-25km | 0 gym | NOTE: No sailing shoes for hard sessions**
+**Weekly volume: 0km running | Some bodyweight/pool activity — no structured sessions**
 
 ---
 
-### Week 4 (Jun 10-16) — Greece continuing, return Jun 15
+### Week 4 (Jun 10–16) — Greece continuing, interview week
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jun 10 | Opportunistic easy | Easy run if possible on yacht stop — don't force |
-| Wed | Jun 11 | Rest | Yacht |
-| Thu | Jun 12 | Rest | Yacht |
-| Fri | Jun 13 | Easy Run (confirmed) | 7km easy — sailing shoes, conversational pace only |
-| Sat | Jun 14 | Tempo (scaled) | 2km warm-up + 3km @ 5:05/km + 2km cool-down — scaled back for sailing shoes |
-| Sun | Jun 15 | Easy-moderate Run | 8-9km easy — final holiday run or back home |
-| Mon | Jun 16 | Rest | Recovery from travel |
+| Wed | Jun 10 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Thu | Jun 11 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Fri | Jun 12 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Sat | Jun 13 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Sun | Jun 14 | 🇬🇷 Greece — Rest | Holiday. No running. |
+| Mon | Jun 15 | 🇬🇷 Greece — Rest | Return travel day. No running. |
+| Tue | Jun 16 | Rest (interview prep) | No exercise — interview prep today. |
+| Wed | Jun 17 | Rest (interview day) | No exercise — interview day. |
 
-**Weekly volume: ~20-25km | 0 gym | Gym resumes week 5**
+**Weekly volume: 0km running | Full rest block — 2 weeks total detraining (Jun 4–17)**
+
+> ⚠️ **Coaching note:** Two full weeks without running means ~5–10% drop in aerobic base. Garmin predicts 50:30; realistic target is sub-52 (conservative) to sub-50 (if Wednesday intervals go well). Week 5 must be conservative — do NOT target pre-holiday interval paces in the first week back. Let the body re-adapt.
 
 ---
 
-### Week 5 (Jun 17-23) — Sharpening begins
+### Week 5 (Jun 18–22) — Return to running: Z2 only, no intervals
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jun 17 | Intervals | 2km warm-up + 8x400m @ 4:00/km (90s jog recovery) + 2km cool-down |
-| Wed | Jun 18 | Legs A | Squats 4x5, RDLs 3x8, Leg press 3x10, Leg curl 3x10, Calf raises 4x12 |
-| Thu | Jun 19 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Jun 20 | Push | Bench press 3x8, OHP 3x8, Incline DB press 3x10, Lateral raises 3x12 |
-| Sat | Jun 21 | 10k Pace Run | 2km warm-up + 5km @ 4:45/km (10k race pace) + 2km cool-down |
-| Sun | Jun 22 | Long Run | 14km @ 5:40-6:00/km |
-| Mon | Jun 23 | Rest | Full recovery |
+| Thu | Jun 18 | Easy Run | 5km @ Z2, HR 119–138 — first run back, keep it short and controlled |
+| Fri | Jun 19 | Rest | Recovery |
+| Sat | Jun 20 | Easy Run | 7km @ Z2, HR 119–138 |
+| Sun | Jun 21 | Rest | Recovery |
+| Mon | Jun 22 | Easy Run | 6km @ Z2, HR 119–138 |
 
-**Weekly volume: ~43km | 1 leg | 1 push | 1 interval + 1 10k-pace**
+**Weekly volume: ~18km | No intervals — aerobic base re-activation only. Run-walk fine.**
 
 ---
 
-### Week 6 (Jun 24-30) — Peak week
+### Week 6 (Jun 23–29) — Reintroduce intervals (conservative 800m)
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jun 24 | Intervals | 2km warm-up + 4x1000m @ 4:25/km (2.5min jog recovery) + 2km cool-down |
-| Wed | Jun 25 | Legs B | Bulgarian split squats 3x8, Hip thrusts 4x8, Leg extensions 3x12, Hamstring curls 3x10, Calf raises 4x12 |
-| Thu | Jun 26 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Jun 27 | Pull | Pull-ups 3x8, Barbell rows 3x8, Cable rows 3x10, Face pulls 3x15, Bicep curls 3x10 |
-| Sat | Jun 28 | Tempo Run | 2km warm-up + 6km @ 4:55/km + 2km cool-down = 10km total |
-| Sun | Jun 29 | Long Run | 14km @ 5:40-6:00/km |
-| Mon | Jun 30 | Rest | Full recovery |
+| Tue | Jun 23 | Rest | Recovery |
+| Wed | Jun 24 | Intervals | 2km warm-up + 4×800m @ **4:10–4:20/km** (Z2 jog recovery) + 2km cool-down — first intervals back, keep effort controlled |
+| Thu | Jun 25 | Rest | Recovery |
+| Fri | Jun 26 | Easy Run | 7km @ Z2, HR 119–138 |
+| Sat | Jun 27 | Rest | Recovery |
+| Sun | Jun 28 | Long Run | 10km @ Z2, HR 125–145 |
+| Mon | Jun 29 | Rest | Recovery |
 
-**Weekly volume: ~44km | 1 leg | 1 pull | 1 interval + 1 tempo**
+**Weekly volume: ~23km | 1 interval session (4×800m — conservative return, assess HR compliance)**
 
 ---
 
-### Week 7 (Jul 1-7) — Taper begins
+### Week 7 (Jun 30 – Jul 6) — Build intensity
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jul 1 | Intervals (reduced) | 2km warm-up + 5x400m @ 4:00/km (90s recovery) + 2km cool-down |
-| Wed | Jul 2 | Legs (light) | Squats 3x5 (moderate weight), RDLs 3x6, Leg press 2x10. Reduce volume 30%. |
-| Thu | Jul 3 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
-| Fri | Jul 4 | Rest | Recovery |
-| Sat | Jul 5 | Race Pace Shakeout | 2km warm-up + 3km @ 4:45/km + 2km cool-down = 7km total |
-| Sun | Jul 6 | Easy Run | 6km @ 6:00/km, very easy |
-| Mon | Jul 7 | Rest | Full recovery |
+| Tue | Jun 30 | Intervals | 2km warm-up + 5×1km @ **4:20–4:30/km** (Z2 jog recovery) + 2km cool-down — closer to 10k target pace |
+| Wed | Jul 1 | Rest | Recovery |
+| Thu | Jul 2 | Easy Run | 8km @ Z2, HR 119–138 |
+| Fri | Jul 3 | Rest | Recovery |
+| Sat | Jul 4 | Long Run | 12km @ Z2, HR 119–138 — biggest aerobic session before taper |
+| Sun | Jul 5 | Rest | Recovery |
+| Mon | Jul 6 | Rest | Recovery |
 
-**Weekly volume: ~32km | 1 light leg | taper intensity maintained, volume cut 25-30%**
+**Weekly volume: ~29km | 1 interval session (5×1km @ 10k pace) | Longest long run before race week**
 
 ---
 
-### Week 7.5 — Race Week (Jul 8-12)
+### Race Week (Jul 6–12) — Taper
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Tue | Jul 8 | Easy Run + Strides | 5km easy + 4x100m strides |
-| Wed | Jul 9 | Rest | Full rest |
-| Thu | Jul 10 | Shakeout | 3km easy + 2x200m @ race pace |
-| Fri | Jul 11 | Rest | Pre-race rest. Carb load. Hydrate. |
-| **Sat** | **Jul 12** | **10k RACE** | **Target: 46:30-47:00. Go out at 4:45/km, negative split if possible. Stretch goal: 4:30/km for sub-45.** |
-| Sun | Jul 13 | Rest | Recovery day |
+| Mon | Jul 6 | Easy Run | 5km very easy — flush the legs, stay loose |
+| Tue | Jul 7 | Rest | Full recovery |
+| Wed | Jul 8 | Easy + Strides | 3km easy + 4×200m strides @ race effort — legs awake, not tired |
+| Thu | Jul 9 | Rest | Full rest |
+| Fri | Jul 10 | Rest | Full rest |
+| Sat | Jul 11 | Shakeout | 2km easy jog — pre-race activation only. Carb load. Lay out kit. |
+| **Sun** | **Jul 12** | **10k RACE** | **B-goal: sub-52 (5:12/km). A-goal: sub-50 (4:59/km). Km 1–3: 5:15/km (controlled). Km 4–7: 5:10/km. Km 8–10: empty the tank.** |
 
 ---
 
 ## Phase 2: HM Build (July 14 – September 19)
 
-### Week 8 (Jul 14-20) — Recovery + transition
+### Week 8 (Jul 13–19) — Recovery + transition
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Jul 14 | Rest | Post-race recovery |
-| Tue | Jul 15 | Easy Run | 6km @ 6:00-6:30/km, very easy shakeout |
-| Wed | Jul 16 | Legs A | Squats 3x8, RDLs 3x8, Leg press 3x10, Calf raises 3x15. Moderate — ease back in. |
-| Thu | Jul 17 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
-| Fri | Jul 18 | Push | Bench 3x8, OHP 3x8, Lateral raises 3x12, Tricep work 3x12 |
-| Sat | Jul 19 | Easy Run + Strides | 8km easy + 6x100m strides |
-| Sun | Jul 20 | Long Run | 12km @ 5:40-6:00/km |
+| Mon | Jul 13 | Rest | Post-race recovery |
+| Tue | Jul 14 | Easy Run | 6km @ 6:00–6:30/km, very easy shakeout |
+| Wed | Jul 15 | Legs A | Squats 3×8, RDLs 3×8, Leg press 3×10, Calf raises 3×15. Moderate — ease back in. |
+| Thu | Jul 16 | Easy Run | 7km @ Z2 |
+| Fri | Jul 17 | Push | Bench 3×8, OHP 3×8, Lateral raises 3×12, Tricep work 3×12 |
+| Sat | Jul 18 | Easy Run + Strides | 8km easy + 6×100m strides |
+| Sun | Jul 19 | Long Run | 12km @ 5:30–6:00/km |
 
 **Weekly volume: ~33km | 1 leg | 1 push | Recovery week**
 
 ---
 
-### Week 9 (Jul 21-27) — HM base building
+### Week 9 (Jul 20–26) — HM base building
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Jul 21 | Rest | Recovery |
-| Tue | Jul 22 | Tempo Run | 2km warm-up + 5km @ 5:00/km + 2km cool-down |
-| Wed | Jul 23 | Legs B | Bulgarian split squats 3x8, Hip thrusts 4x8, Leg extensions 3x12, Hamstring curls 3x10, Calves 4x12 |
-| Thu | Jul 24 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Jul 25 | Pull | Pull-ups 3x8, Rows 3x8, Face pulls 3x15, Bicep curls 3x10 |
-| Sat | Jul 26 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Sun | Jul 27 | Long Run | 14km @ 5:40-6:00/km |
+| Mon | Jul 20 | Rest | Recovery |
+| Tue | Jul 21 | Tempo Run | 2km warm-up + 5km @ **4:55–5:00/km** + 2km cool-down |
+| Wed | Jul 22 | Legs B | Bulgarian split squats 3×8, Hip thrusts 4×8, Leg extensions 3×12, Hamstring curls 3×10, Calves 4×12 |
+| Thu | Jul 23 | Easy Run | 8km @ Z2 |
+| Fri | Jul 24 | Pull | Pull-ups 3×8, Rows 3×8, Face pulls 3×15, Bicep curls 3×10 |
+| Sat | Jul 25 | Easy Run | 8km @ Z2 |
+| Sun | Jul 26 | Long Run | 14km @ 5:30–6:00/km |
 
 **Weekly volume: ~39km | 1 leg | 1 pull | 1 tempo**
 
 ---
 
-### Week 10 (Jul 28 – Aug 3) — Volume building
+### Week 10 (Jul 27 – Aug 2) — Volume building
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Jul 28 | Rest | Recovery |
-| Tue | Jul 29 | Intervals | 2km warm-up + 6x800m @ 4:20/km (2min jog) + 2km cool-down |
-| Wed | Jul 30 | Legs A | Squats 4x5, RDLs 3x8, Leg press 3x10, Walking lunges 3x10/leg, Calves 4x12 |
-| Thu | Jul 31 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Aug 1 | Push | Bench 3x8, OHP 3x8, Incline DB 3x10, Lateral raises 3x12 |
-| Sat | Aug 2 | Tempo Run | 2km warm-up + 6km @ 5:00/km + 2km cool-down = 10km |
-| Sun | Aug 3 | Long Run | 15km @ 5:40-6:00/km |
+| Mon | Jul 27 | Rest | Recovery |
+| Tue | Jul 28 | Intervals | 2km warm-up + 6×800m @ **4:00–4:10/km** (2min jog) + 2km cool-down |
+| Wed | Jul 29 | Legs A | Squats 4×5, RDLs 3×8, Leg press 3×10, Walking lunges 3×10/leg, Calves 4×12 |
+| Thu | Jul 30 | Easy Run | 8km @ Z2 |
+| Fri | Jul 31 | Push | Bench 3×8, OHP 3×8, Incline DB 3×10, Lateral raises 3×12 |
+| Sat | Aug 1 | Tempo Run | 2km warm-up + 6km @ **4:55–5:00/km** + 2km cool-down = 10km |
+| Sun | Aug 2 | Long Run | 15km @ 5:30–6:00/km |
 
 **Weekly volume: ~45km | 1 leg | 1 push | 1 interval + 1 tempo**
 
 ---
 
-### Week 11 (Aug 4-10) — Building
+### Week 11 (Aug 3–9) — Building
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Aug 4 | Rest | Recovery |
-| Tue | Aug 5 | Intervals | 2km warm-up + 3x1600m @ 4:30/km (3min jog) + 2km cool-down |
-| Wed | Aug 6 | Legs B | Bulgarian split squats 3x8, Hip thrusts 4x8, Leg extensions 3x12, Nordic curls 3x6, Calves 4x12 |
-| Thu | Aug 7 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Aug 8 | Pull | Pull-ups 3x8, Barbell rows 3x8, Cable rows 3x10, Face pulls 3x15, Bicep curls 3x10 |
-| Sat | Aug 9 | HM Pace Run | 2km warm-up + 6km @ 5:00/km + 2km cool-down = 10km |
-| Sun | Aug 10 | Long Run | 16km @ 5:40-6:00/km |
+| Mon | Aug 3 | Rest | Recovery |
+| Tue | Aug 4 | Intervals | 2km warm-up + 3×1600m @ **4:15–4:20/km** (3min jog) + 2km cool-down |
+| Wed | Aug 5 | Legs B | Bulgarian split squats 3×8, Hip thrusts 4×8, Leg extensions 3×12, Nordic curls 3×6, Calves 4×12 |
+| Thu | Aug 6 | Easy Run | 8km @ Z2 |
+| Fri | Aug 7 | Pull | Pull-ups 3×8, Barbell rows 3×8, Cable rows 3×10, Face pulls 3×15, Bicep curls 3×10 |
+| Sat | Aug 8 | HM Pace Run | 2km warm-up + 6km @ **4:55–5:00/km** + 2km cool-down = 10km |
+| Sun | Aug 9 | Long Run | 16km @ 5:30–6:00/km |
 
 **Weekly volume: ~48km | 1 leg | 1 pull | 1 interval + 1 HM-pace**
 
 ---
 
-### Week 12 (Aug 11-17) — Cutback / recovery week
+### Week 12 (Aug 10–16) — Cutback / recovery week
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Aug 11 | Rest | Recovery |
-| Tue | Aug 12 | Easy Run + Strides | 8km easy + 6x100m strides |
-| Wed | Aug 13 | Legs A (light) | Squats 3x6 moderate, RDLs 3x6, Leg press 2x10. Reduced volume. |
-| Thu | Aug 14 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
-| Fri | Aug 15 | Rest | Full recovery |
-| Sat | Aug 16 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
-| Sun | Aug 17 | Long Run (easy) | 13km @ 5:50-6:10/km, relaxed |
+| Mon | Aug 10 | Rest | Recovery |
+| Tue | Aug 11 | Easy Run + Strides | 8km easy + 6×100m strides |
+| Wed | Aug 12 | Legs A (light) | Squats 3×6 moderate, RDLs 3×6, Leg press 2×10. Reduced volume. |
+| Thu | Aug 13 | Easy Run | 7km @ Z2 |
+| Fri | Aug 14 | Rest | Full recovery |
+| Sat | Aug 15 | Easy Run | 7km @ Z2 |
+| Sun | Aug 16 | Long Run (easy) | 13km @ 5:45–6:15/km, relaxed |
 
 **Weekly volume: ~35km | 1 light leg | Recovery week — absorb previous training**
 
 ---
 
-### Week 13 (Aug 18-24) — Peak block begins
+### Week 13 (Aug 18–24) — Peak block begins
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
 | Mon | Aug 18 | Rest | Recovery |
-| Tue | Aug 19 | Tempo Run | 2km warm-up + 8km @ 5:00/km + 2km cool-down = 12km total |
-| Wed | Aug 20 | Legs B | Bulgarian split squats 3x8, Hip thrusts 4x8, Leg extensions 3x12, Hamstring curls 3x10, Calves 4x12 |
-| Thu | Aug 21 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Aug 22 | Push | Bench 3x8, OHP 3x8, Lateral raises 3x12, Tricep work 3x10 |
-| Sat | Aug 23 | Intervals | 2km warm-up + 5x1000m @ 4:25/km (2.5min jog) + 2km cool-down |
-| Sun | Aug 24 | Long Run | 17km @ 5:40-6:00/km |
+| Tue | Aug 19 | Tempo Run | 2km warm-up + 8km @ **4:55–5:00/km** + 2km cool-down = 12km total |
+| Wed | Aug 20 | Legs B | Bulgarian split squats 3×8, Hip thrusts 4×8, Leg extensions 3×12, Hamstring curls 3×10, Calves 4×12 |
+| Thu | Aug 21 | Easy Run | 8km @ Z2 |
+| Fri | Aug 22 | Push | Bench 3×8, OHP 3×8, Lateral raises 3×12, Tricep work 3×10 |
+| Sat | Aug 23 | Intervals | 2km warm-up + 5×1000m @ **4:10–4:15/km** (2.5min jog) + 2km cool-down |
+| Sun | Aug 24 | Long Run | 17km @ 5:30–6:00/km |
 
 **Weekly volume: ~49km | 1 leg | 1 push | 1 tempo + 1 interval**
 
 ---
 
-### Week 14 (Aug 25-31) — Peak week
+### Week 14 (Aug 25–31) — Peak week
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
 | Mon | Aug 25 | Rest | Recovery |
-| Tue | Aug 26 | Intervals | 2km warm-up + 4x1600m @ 4:30/km (3min jog) + 2km cool-down |
-| Wed | Aug 27 | Legs A | Squats 4x5, RDLs 3x8, Leg press 3x10, Leg curl 3x10, Calves 4x12 |
-| Thu | Aug 28 | Easy Run | 8km @ 5:45-6:15/km, Z2 |
-| Fri | Aug 29 | Pull | Pull-ups 3x8, Rows 3x8, Face pulls 3x15, Curls 3x10 |
-| Sat | Aug 30 | HM Pace Long | 2km warm-up + 10km @ 5:00/km + 2km cool-down = 14km (key session) |
-| Sun | Aug 31 | Long Run | 18km @ 5:40-6:00/km |
+| Tue | Aug 26 | Intervals | 2km warm-up + 4×1600m @ **4:15–4:20/km** (3min jog) + 2km cool-down |
+| Wed | Aug 27 | Legs A | Squats 4×5, RDLs 3×8, Leg press 3×10, Leg curl 3×10, Calves 4×12 |
+| Thu | Aug 28 | Easy Run | 8km @ Z2 |
+| Fri | Aug 29 | Pull | Pull-ups 3×8, Rows 3×8, Face pulls 3×15, Curls 3×10 |
+| Sat | Aug 30 | HM Pace Long | 2km warm-up + 10km @ **4:55–5:00/km** + 2km cool-down = 14km (key session) |
+| Sun | Aug 31 | Long Run | 18km @ 5:30–6:00/km |
 
 **Weekly volume: ~52km | 1 leg | 1 pull | 1 interval + 1 HM-pace long — PEAK WEEK**
 
 ---
 
-### Week 15 (Sep 1-7) — Cutback
+### Week 15 (Sep 1–7) — Cutback
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
 | Mon | Sep 1 | Rest | Recovery |
-| Tue | Sep 2 | Easy Run + Strides | 8km easy + 6x100m strides |
-| Wed | Sep 3 | Legs (light) | Squats 3x5 moderate, RDLs 3x6, Leg press 2x8. Maintenance only. |
-| Thu | Sep 4 | Easy Run | 7km @ 5:45-6:15/km, Z2 |
+| Tue | Sep 2 | Easy Run + Strides | 8km easy + 6×100m strides |
+| Wed | Sep 3 | Legs (light) | Squats 3×5 moderate, RDLs 3×6, Leg press 2×8. Maintenance only. |
+| Thu | Sep 4 | Easy Run | 7km @ Z2 |
 | Fri | Sep 5 | Rest | Recovery |
-| Sat | Sep 6 | Tempo Run | 2km warm-up + 5km @ 5:00/km + 2km cool-down = 9km |
-| Sun | Sep 7 | Long Run | 15km @ 5:50-6:10/km, relaxed |
+| Sat | Sep 6 | Tempo Run | 2km warm-up + 5km @ **4:55–5:00/km** + 2km cool-down = 9km |
+| Sun | Sep 7 | Long Run | 15km @ 5:45–6:15/km, relaxed |
 
 **Weekly volume: ~39km | 1 light leg | Cutback — freshen up before taper**
 
 ---
 
-### Week 16 (Sep 8-14) — Taper
+### Week 16 (Sep 8–14) — Taper
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
 | Mon | Sep 8 | Rest | Recovery |
-| Tue | Sep 9 | Intervals (short) | 2km warm-up + 4x400m @ 4:05/km (90s jog) + 2km cool-down. Keep legs sharp. |
-| Wed | Sep 10 | Legs (very light) | Squats 2x5 light, RDLs 2x6 light. Just activation, no fatigue. |
-| Thu | Sep 11 | Easy Run | 6km @ 5:45-6:15/km, Z2 |
+| Tue | Sep 9 | Intervals (short) | 2km warm-up + 4×400m @ **3:50–3:55/km** (90s jog) + 2km cool-down. Keep legs sharp. |
+| Wed | Sep 10 | Legs (very light) | Squats 2×5 light, RDLs 2×6 light. Just activation, no fatigue. |
+| Thu | Sep 11 | Easy Run | 6km @ Z2 |
 | Fri | Sep 12 | Rest | Recovery |
-| Sat | Sep 13 | HM Pace Shakeout | 2km warm-up + 3km @ 5:00/km + 2km cool-down = 7km |
-| Sun | Sep 14 | Easy Run | 5km @ 6:00/km, very easy |
+| Sat | Sep 13 | HM Pace Shakeout | 2km warm-up + 3km @ **4:55–5:00/km** + 2km cool-down = 7km |
+| Sun | Sep 14 | Easy Run | 5km, very easy |
 
 **Weekly volume: ~28km | 1 activation leg | Taper — maintain intensity, drop volume 40%**
 
 ---
 
-### Week 17 — Race Week (Sep 15-20)
+### Week 17 — Race Week (Sep 15–20)
 
 | Day | Date | Session | Details |
 |-----|------|---------|---------|
-| Mon | Sep 15 | Easy Run + Strides | 4km easy + 4x100m strides |
+| Mon | Sep 15 | Easy Run + Strides | 4km easy + 4×100m strides |
 | Tue | Sep 16 | Rest | Full rest |
-| Wed | Sep 17 | Shakeout | 3km easy + 2x200m @ race pace |
+| Wed | Sep 17 | Shakeout | 3km easy + 2×200m @ race pace |
 | Thu | Sep 18 | Rest | Full rest. Carb load begins. |
 | Fri | Sep 19 | Rest | Pre-race rest. Hydrate. Lay out kit. |
-| **Sat** | **Sep 20** | **HALF MARATHON RACE** | **Target: 1:44:00-1:45:00. Start at 5:00/km, settle in, aim negative split last 5km. Stretch goal: 4:45/km avg for sub-1:40.** |
+| **Sat** | **Sep 20** | **HALF MARATHON RACE** | **Target: 1:44:00–1:45:00. Start at 5:00/km, settle in, aim negative split last 5km. Stretch goal: 4:45/km avg for sub-1:40.** |
 
 ---
 
 ## Race Strategy Notes
 
-### 10k (Jul 12)
-- Warm-up: 10min easy jog + 4x100m strides + dynamic stretches
-- First 2km: settle at 4:50/km (don't go out too fast)
-- Km 3-7: lock in at 4:45/km
-- Km 8-10: push to 4:35-4:40/km if feeling strong
-- Goal: negative split, finish strong
+### 10k (Jul 12) — London
+- **Wave F** (avg ~6:00/km) — arrive early, get to the front of F pen, try to drift into back of Wave E when marshals allow
+- Warm-up: 10min easy jog + 4×100m strides + dynamic stretches
+- **Km 1–1.5 (crowded):** accept 5:30–5:40/km in the crowd — do NOT weave or sprint gaps, it wastes energy
+- **Km 1.5–3 (road opens):** settle to **5:05–5:10/km**, let HR settle
+- **Km 3 checkpoint (Embankment):** check HR — if under 168, push to **5:00/km**; stay at 5:10/km if not. This is where slower runners start fading — overtake cleanly, don't fight.
+- **Km 4–7:** lock in at 5:00/km on the Embankment (wide road, easier to hold pace)
+- **Km 8–10:** push, empty the tank
+- Goal: negative split. Do NOT go out faster than 5:05/km no matter how good you feel — race adrenaline is deceptive.
+- Note: 4×800m treadmill (Jun 24) showed threshold at 162 HR / 176 max. Outdoor effort will be higher at the same pace — trust the watch pace, not how easy it feels early.
 
 ### HM (Sep 20)
-- Warm-up: 10min easy jog + 4x100m strides
-- Km 1-5: 5:05/km (slightly conservative)
-- Km 6-15: 5:00/km (cruise)
-- Km 16-21: 4:50-4:55/km if legs allow (negative split)
+- Warm-up: 10min easy jog + 4×100m strides
+- Km 1–5: 5:05/km (slightly conservative)
+- Km 6–15: 5:00/km (cruise)
+- Km 16–21: 4:50–4:55/km if legs allow (negative split)
 - Fueling: gel at km 8 and km 15
 - Hydrate every 5km
 
@@ -344,8 +347,8 @@
 3. Push/pull (do when recovered, skip if fatigued from running)
 
 ## Nutrition Reminders
-- Caloric surplus of 200-300kcal on training days for lean bulk
-- 1.8-2.0g protein/kg (125-140g/day)
-- Carb-heavy pre-run meals (2-3hrs before)
+- Caloric surplus of 200–300kcal on training days for lean bulk
+- 1.8–2.0g protein/kg (125–140g/day)
+- Carb-heavy pre-run meals (2–3hrs before)
 - Post-run: protein + carbs within 30min
-- Hydrate: 2.5-3L water daily minimum
+- Hydrate: 2.5–3L water daily minimum
