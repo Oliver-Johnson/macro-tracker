@@ -231,6 +231,19 @@
 
   /* ─── Fasting view (Feature 8) ─── */
   #view-fasting { }
+
+  /* ─── Settings toggles ─── */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 14px; color: var(--text); }
+  .toggle-label-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .toggle-switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track { position: absolute; inset: 0; background: var(--bg3); border: 1px solid var(--border); border-radius: 13px; cursor: pointer; transition: background 0.2s; }
+  .toggle-track::after { content: ''; position: absolute; left: 3px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; background: var(--muted); border-radius: 50%; transition: left 0.2s, background 0.2s; }
+  .toggle-switch input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+  .toggle-switch input:checked + .toggle-track::after { left: 21px; background: #fff; }
+  .settings-section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 8px; }
   .if-status-display { text-align: center; padding: 24px 16px 20px; }
   .if-status-icon { font-size: 36px; margin-bottom: 8px; }
   .if-status-label { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -339,16 +352,16 @@
     <div class="section-header">
       <span class="section-title" id="today-date-label">Today</span>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-secondary btn-sm" onclick="syncFromMain()" title="Sync to server">⇅ Sync</button>
+        <button id="today-sync-btn" class="btn btn-secondary btn-sm" onclick="syncFromMain()" title="Sync to server">⇅ Sync</button>
         <button class="btn btn-secondary btn-sm" onclick="showDatePicker()">📅 History</button>
       </div>
     </div>
 
     <!-- Stat chips (Feature 5) -->
-    <div class="stat-chips" id="stat-chips"></div>
+    <div class="stat-chips" id="stat-chips" data-section="today-stat-chips"></div>
 
     <!-- Kcal ring -->
-    <div class="card" id="dashboard-card" onclick="openHistoryScreen()" style="cursor:pointer;">
+    <div class="card" id="dashboard-card" data-section="today-macro-card" onclick="openHistoryScreen()" style="cursor:pointer;">
       <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <div style="position:relative; width:90px; height:90px; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation();showMacroBreakdown('kcal','Calories','kcal')">
           <svg viewBox="0 0 90 90" width="90" height="90">
@@ -373,31 +386,33 @@
     </div>
 
     <!-- Meal breakdown card (Feature 6) -->
-    <div class="card" id="meal-breakdown-card" style="display:none;">
+    <div class="card" id="meal-breakdown-card" data-section="today-meal-breakdown" style="display:none;">
       <div class="card-title">Meal Breakdown</div>
       <table class="meal-breakdown-table" id="meal-breakdown-table"></table>
     </div>
 
     <!-- Streak + weight row -->
-    <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
+    <div id="today-streak-weight-row" data-section="today-streak-weight" style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
       <span id="streak-badge" class="streak-badge" style="display:none;">🔥 0</span>
       <div style="flex:1;"></div>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <input type="number" id="weight-today-input" placeholder="kg" min="20" max="300" step="0.1"
-          style="width:70px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:5px 8px; font-size:13px; outline:none; text-align:center;"
+      <div style="display:flex; align-items:center; gap:6px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:6px 10px; cursor:text;" onclick="document.getElementById('weight-today-input').focus()">
+        <span style="font-size:11px; color:var(--muted); white-space:nowrap;">Body weight</span>
+        <input type="number" id="weight-today-input" placeholder="—" min="20" max="300" step="0.1"
+          style="width:54px; background:transparent; border:none; color:var(--text); padding:0; font-size:15px; font-weight:700; outline:none; text-align:right;"
           onchange="logWeightToday(this.value)">
-        <span style="font-size:12px; color:var(--muted);">kg</span>
+        <span style="font-size:12px; color:var(--muted); font-weight:600;">kg</span>
+        <span id="weight-saved-tick" style="display:none; color:var(--protein); font-size:14px; transition:opacity 0.3s;">✓</span>
       </div>
     </div>
 
     <!-- Food log -->
-    <div class="card">
+    <div class="card" id="today-food-log-card" data-section="today-food-log">
       <div class="card-title">Food Log</div>
       <div id="food-log-list"></div>
     </div>
 
     <!-- Water card (Feature 2) -->
-    <div class="water-card" id="water-card">
+    <div class="water-card" id="water-card" data-section="today-water">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:14px;font-weight:700;">Water</div>
         <div style="font-size:13px;font-weight:600;color:#38bdf8;" id="water-display">0 / 2000 ml</div>
@@ -416,7 +431,7 @@
     </div>
 
     <!-- Exercise card (Feature 7) -->
-    <div class="exercise-card" id="exercise-card">
+    <div class="exercise-card" id="exercise-card" data-section="today-exercise">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:14px;font-weight:700;">Exercise</div>
         <button class="btn btn-secondary btn-sm" onclick="openExerciseModal()">+ Add</button>
@@ -427,19 +442,19 @@
     </div>
 
     <!-- Diary notes -->
-    <div class="card" style="margin-top:0;">
+    <div class="card" id="today-notes-card" data-section="today-notes" style="margin-top:0;">
       <div class="card-title" style="margin-bottom:8px;">Notes</div>
       <textarea id="diary-notes" rows="2" placeholder="How did today feel? Any notes…" oninput="saveDiaryNotes(this.value)"></textarea>
     </div>
 
     <!-- Weekly summary -->
-    <div class="card" id="weekly-summary-card" style="margin-top:0;">
+    <div class="card" id="weekly-summary-card" data-section="today-weekly-summary" style="margin-top:0;">
       <div class="card-title">7-Day Average</div>
       <div id="weekly-summary-body"></div>
     </div>
 
     <!-- Weight chart -->
-    <div class="card" id="weight-chart-card" style="margin-top:0; display:none;">
+    <div class="card" id="weight-chart-card" data-section="today-weight-chart" style="margin-top:0; display:none;">
       <div class="card-title">Weight</div>
       <div id="weight-chart-body" class="weight-chart"></div>
     </div>
@@ -464,13 +479,13 @@
       <div id="scan-status" style="text-align:center; color:var(--muted); font-size:13px; margin-bottom:12px;">
         Point camera at a barcode
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1">Stop Camera</button>
-        <button class="btn btn-secondary" onclick="flipCamera()" style="flex:0 0 auto; padding:10px 16px;" title="Flip camera">⟳</button>
+      <div style="display:flex;gap:8px;box-sizing:border-box;max-width:100%;">
+        <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1;min-width:0;">Stop Camera</button>
+        <button class="btn btn-secondary" onclick="flipCamera()" style="flex:0 0 auto;padding:10px 16px;min-width:0;" title="Flip camera">⟳</button>
       </div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1">📷 Scan Label</button>
-        <button class="btn btn-secondary" onclick="ocrFromFile()" style="flex:1">🖼️ Upload Label</button>
+      <div style="display:flex;gap:8px;margin-top:8px;box-sizing:border-box;max-width:100%;">
+        <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1;min-width:0;">📷 Scan Label</button>
+        <button class="btn btn-secondary" onclick="ocrFromFile()" style="flex:1;min-width:0;">🖼️ Upload Label</button>
       </div>
       <div id="ocr-status"></div>
       <div id="ocr-progress-bar"><div id="ocr-progress-fill"></div></div>
@@ -669,7 +684,7 @@
       <button class="btn btn-primary" onclick="saveSettings()">Save Targets</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="openTDEEWizard()">Recalculate targets (TDEE)</button>
     </div>
-    <div class="card" style="margin-top:8px;">
+    <div class="card" id="settings-sync-card" style="margin-top:8px;">
       <div class="card-title">Sync Server</div>
       <div class="field">
         <label>Sync Server URL</label>
@@ -686,13 +701,139 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-14.3</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.1</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
-      <button class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
+      <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
       <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
+    </div>
+
+    <!-- ─── Appearance & Admin settings ─── -->
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">Appearance</div>
+
+      <div class="settings-section-title">Admin Mode</div>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Admin Mode</div>
+          <div class="toggle-label-sub">Show sync controls and server settings</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-admin-mode" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-section-title" style="margin-top:16px;">Navigation Tabs</div>
+      <div class="toggle-row">
+        <div class="toggle-label">Today</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-tab-today" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Log Food</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-tab-log" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Recipes</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-tab-recipes" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Trends</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-tab-trends" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Fasting</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-tab-fasting" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-section-title" style="margin-top:16px;">Today Page Sections</div>
+      <div class="toggle-row">
+        <div class="toggle-label">Stat Chips</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-stat-chips" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Macro / Calorie Card</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-macro-card" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Meal Breakdown</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-meal-breakdown" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Streak &amp; Weight Row</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-streak-weight" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Food Log</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-food-log" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Water Tracker</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-water" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Exercise Log</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-exercise" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Diary Notes</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-notes" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">7-Day Average</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-weekly-summary" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Weight Chart</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-weight-chart" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -772,9 +913,12 @@
           <option value="18">18:00</option>
         </select>
       </div>
-      <div style="display:flex; align-items:center; gap:10px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
         <label style="margin-bottom:0; font-size:13px; color:var(--text);">Enable IF Tracker</label>
-        <input type="checkbox" id="if-enabled-toggle" onchange="ifToggleEnabled(this.checked)" style="width:auto; margin-left:auto; accent-color:var(--accent); width:18px; height:18px;">
+        <label class="toggle-switch" style="margin-left:auto;">
+          <input type="checkbox" id="if-enabled-toggle" onchange="ifToggleEnabled(this.checked)">
+          <span class="toggle-track"></span>
+        </label>
       </div>
     </div>
 
@@ -1289,6 +1433,123 @@ const LS = {
   set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) { toast('Storage full!'); } }
 };
 
+// ═══════════════════════════════════════════════════
+//  DISPLAY PREFERENCES (tab/section visibility + admin)
+// ═══════════════════════════════════════════════════
+const DISPLAY_PREFS_KEY = 'mt_display_prefs';
+
+function getDisplayPrefs() {
+  return LS.get(DISPLAY_PREFS_KEY, {
+    adminMode: false,
+    tabs: { today: true, log: true, recipes: true, trends: true, fasting: true },
+    sections: {
+      'today-stat-chips': true,
+      'today-macro-card': true,
+      'today-meal-breakdown': true,
+      'today-streak-weight': true,
+      'today-food-log': true,
+      'today-water': true,
+      'today-exercise': true,
+      'today-notes': true,
+      'today-weekly-summary': true,
+      'today-weight-chart': true
+    }
+  });
+}
+
+function applyDisplayPrefs() {
+  const prefs = getDisplayPrefs();
+
+  // ── Admin mode: sync button on Today, sync card + sync-to-server in Settings
+  const todaySyncBtn = document.getElementById('today-sync-btn');
+  const settingsSyncCard = document.getElementById('settings-sync-card');
+  const settingsSyncToServerBtn = document.getElementById('settings-sync-to-server-btn');
+  if (todaySyncBtn) todaySyncBtn.style.display = prefs.adminMode ? '' : 'none';
+  if (settingsSyncCard) settingsSyncCard.style.display = prefs.adminMode ? '' : 'none';
+  if (settingsSyncToServerBtn) settingsSyncToServerBtn.style.display = prefs.adminMode ? '' : 'none';
+
+  // ── Tab visibility (never hide Settings tab so user can always get back)
+  const navBtns = document.querySelectorAll('nav button');
+  const tabMap = ['today', 'log', 'recipes', 'settings', 'trends', 'fasting'];
+  navBtns.forEach((btn, i) => {
+    const key = tabMap[i];
+    if (key === 'settings') return; // always visible
+    const visible = prefs.tabs[key] !== false;
+    btn.style.display = visible ? '' : 'none';
+  });
+
+  // ── Section visibility on Today page
+  const sections = prefs.sections || {};
+  // weight-chart: only toggle its hidden-by-pref state; the app may also hide it when no data
+  document.querySelectorAll('[data-section]').forEach(el => {
+    const key = el.getAttribute('data-section');
+    const visible = sections[key] !== false;
+    if (!visible) {
+      // Save original display value before hiding (only on first hide)
+      if (!el.hasAttribute('data-pref-hidden')) {
+        el.setAttribute('data-orig-display', el.style.display || '');
+      }
+      el.setAttribute('data-pref-hidden', '1');
+      el.style.display = 'none';
+    } else {
+      el.removeAttribute('data-pref-hidden');
+      // Don't force-show elements with their own show/hide logic
+      if (el.id !== 'weight-chart-card' && el.id !== 'meal-breakdown-card') {
+        const orig = el.getAttribute('data-orig-display');
+        el.style.display = (orig !== null) ? orig : '';
+      }
+    }
+  });
+}
+
+function saveDisplayPrefs() {
+  const prefs = getDisplayPrefs();
+
+  prefs.adminMode = document.getElementById('pref-admin-mode').checked;
+
+  const tabIds = ['today', 'log', 'recipes', 'trends', 'fasting'];
+  tabIds.forEach(t => {
+    const el = document.getElementById('pref-tab-' + t);
+    if (el) prefs.tabs[t] = el.checked;
+  });
+
+  const secIds = [
+    'today-stat-chips', 'today-macro-card', 'today-meal-breakdown',
+    'today-streak-weight', 'today-food-log', 'today-water',
+    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart'
+  ];
+  secIds.forEach(s => {
+    const el = document.getElementById('pref-sec-' + s);
+    if (el) prefs.sections[s] = el.checked;
+  });
+
+  LS.set(DISPLAY_PREFS_KEY, prefs);
+  applyDisplayPrefs();
+  toast('Appearance saved');
+}
+
+function populateDisplayPrefToggles() {
+  const prefs = getDisplayPrefs();
+  const adminEl = document.getElementById('pref-admin-mode');
+  if (adminEl) adminEl.checked = !!prefs.adminMode;
+
+  const tabIds = ['today', 'log', 'recipes', 'trends', 'fasting'];
+  tabIds.forEach(t => {
+    const el = document.getElementById('pref-tab-' + t);
+    if (el) el.checked = prefs.tabs[t] !== false;
+  });
+
+  const secIds = [
+    'today-stat-chips', 'today-macro-card', 'today-meal-breakdown',
+    'today-streak-weight', 'today-food-log', 'today-water',
+    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart'
+  ];
+  secIds.forEach(s => {
+    const el = document.getElementById('pref-sec-' + s);
+    if (el) el.checked = prefs.sections[s] !== false;
+  });
+}
+
 function getSettings() {
   return LS.get('mt_settings', { kcal: 2350, protein: 140, fat: 65, carbs: 240, fibre: 30 });
 }
@@ -1550,7 +1811,7 @@ function renderToday() {
   // Weight chart
   const chartCard = document.getElementById('weight-chart-card');
   const chartBody = document.getElementById('weight-chart-body');
-  if (wLog.length >= 2 && chartCard && chartBody) {
+  if (wLog.length >= 2 && chartCard && chartBody && !chartCard.getAttribute('data-pref-hidden')) {
     chartCard.style.display = '';
     const recent = wLog.slice(-14);
     chartBody.innerHTML = weightSparkline(recent);
@@ -2609,6 +2870,7 @@ function renderSettings() {
   document.getElementById('set-fibre').value = s.fibre || 30;
   document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
+  populateDisplayPrefToggles();
 
   const customs = getCustomFoods();
   const el = document.getElementById('custom-foods-list');
@@ -2844,6 +3106,13 @@ function logWeightToday(val) {
   if (idx >= 0) log[idx].weight = w;
   else { log.push({ date: viewingDate, weight: w }); log.sort((a,b) => a.date.localeCompare(b.date)); }
   LS.set('mt_weight_log', log);
+  // Show tick feedback
+  const tick = document.getElementById('weight-saved-tick');
+  if (tick) {
+    tick.style.display = '';
+    tick.style.opacity = '1';
+    setTimeout(() => { tick.style.opacity = '0'; setTimeout(() => { tick.style.display = 'none'; }, 300); }, 1200);
+  }
   renderToday();
 }
 
@@ -3027,6 +3296,7 @@ deduplicateLogs();
 migrateHistoricalTargets();
 recordTodayTargets();
 seedCustomFoods();
+applyDisplayPrefs();
 renderToday();
 fetchSyncTargets();
 fetchSyncFoodLog();
@@ -4281,6 +4551,7 @@ function renderMealBreakdownCard(entries) {
   });
 
   if (!rows.length) { card.style.display = 'none'; return; }
+  if (card.getAttribute('data-pref-hidden')) return;
   card.style.display = '';
 
   table.innerHTML = `<thead><tr>
