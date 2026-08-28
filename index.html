@@ -773,7 +773,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.4</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.5</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
@@ -4169,7 +4169,7 @@ function showBreakdownModal(displayName, unit, items, total) {
 
   modal.innerHTML = `
     <div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);padding:16px;" onclick="if(event.target===this)closeMacroBreakdown()">
-      <div style="background:var(--card);border-radius:16px;width:100%;max-width:380px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="background:var(--bg2);border-radius:16px;width:100%;max-width:380px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--bg3);">
           <h3 style="margin:0;font-size:17px;font-weight:600;">${displayName} Breakdown</h3>
           <button onclick="closeMacroBreakdown()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;">✕</button>
