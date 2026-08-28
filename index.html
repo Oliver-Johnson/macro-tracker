@@ -773,9 +773,10 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.6</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.7</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
       <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
@@ -3101,14 +3102,57 @@ function deleteCustomFood(i) {
 
 function exportData() {
   const data = {
-    logs: getLogs(), recipes: getRecipes(),
-    customFoods: getCustomFoods(), settings: getSettings()
+    logs: getLogs(),
+    recipes: getRecipes(),
+    customFoods: getCustomFoods(),
+    settings: getSettings(),
+    dailyTargets: getDailyTargets(),
+    weightLog: getWeightLog(),
+    waterLog: getWaterLog(),
+    exerciseLog: getExerciseLog(),
+    ifSettings: getIFSettings(),
+    ifLog: getIFLog(),
+    displayPrefs: getDisplayPrefs()
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `macro-tracker-${todayKey()}.json`;
   a.click();
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!confirm('This will overwrite your current data with the imported file. Continue?')) return;
+        if (data.logs !== undefined)         LS.set('mt_logs', data.logs);
+        if (data.recipes !== undefined)      LS.set('mt_recipes', data.recipes);
+        if (data.customFoods !== undefined)  LS.set('mt_custom_foods', data.customFoods);
+        if (data.settings !== undefined)     LS.set('mt_settings', data.settings);
+        if (data.dailyTargets !== undefined) LS.set('mt_daily_targets', data.dailyTargets);
+        if (data.weightLog !== undefined)    LS.set('mt_weight_log', data.weightLog);
+        if (data.waterLog !== undefined)     LS.set('mt_water_log', data.waterLog);
+        if (data.exerciseLog !== undefined)  LS.set('mt_exercise_log', data.exerciseLog);
+        if (data.ifSettings !== undefined)   LS.set('mt_if_settings', data.ifSettings);
+        if (data.ifLog !== undefined)        LS.set('mt_if_log', data.ifLog);
+        if (data.displayPrefs !== undefined) LS.set(DISPLAY_PREFS_KEY, data.displayPrefs);
+        toast('Import successful — reloading…');
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        toast('Import failed: invalid JSON file');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
 function getSyncUrl() {
