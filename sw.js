@@ -26,6 +26,11 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
+  // Never intercept docs pages — let them load fresh from the network
+  if (url.pathname.startsWith('/macro-tracker/docs/')) {
+    return;
+  }
+
   // Network-first for Open Food Facts API and USDA
   if (url.hostname.includes('api.nal.usda.gov')) {
     e.respondWith(
