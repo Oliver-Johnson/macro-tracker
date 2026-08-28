@@ -1,63 +1,86 @@
-# Macro Tracker PWA
+# Macro Tracker
 
-A mobile-first progressive web app for tracking daily macros and calories. Works offline, installable on iPhone/Android.
+A mobile-first progressive web app (PWA) for tracking daily calories and macronutrients. No account, no backend, no app store — install it directly from the browser.
+
+**Live app:** https://oliver-johnson.github.io/macro-tracker/
+**Docs:** https://oliver-johnson.github.io/macro-tracker/docs/
+
+---
 
 ## Features
 
-- **Barcode scan** — scan product barcodes via camera → Open Food Facts lookup → log with weight
-- **Food search** — text search via Open Food Facts
-- **Manual entry** — add custom foods to personal DB
-- **Daily dashboard** — progress rings/bars for kcal, protein, carbs, fat vs targets
-- **Recipe builder** — create recipes from ingredients, log by weight or portion
-- **Offline caching** — barcode lookups cached locally after first scan
-- **History** — view any past day's log
-- **Data export** — JSON export of all data
+| Feature | Detail |
+|---|---|
+| Barcode scanning | Camera scan → Open Food Facts lookup → log with weight |
+| Food search | Text search across millions of Open Food Facts products |
+| Manual entry | Add custom foods to a personal local database |
+| Recipe builder | Compose recipes from ingredients, log by weight or portion |
+| Daily dashboard | Progress rings for kcal, protein, carbs, fat, and fibre vs targets |
+| History | Browse any past day's food log |
+| Offline support | Service worker caches the app and barcode lookups for offline use |
+| Data export | Full JSON export of all logged data |
 
-## Running locally
+---
+
+## Deploying (GitHub Pages)
+
+Camera access requires HTTPS. GitHub Pages provides this for free.
+
+1. Fork this repo.
+2. In repo Settings → Pages → Source: `main` branch, root folder.
+3. Your app will be live at `https://YOUR_USERNAME.github.io/macro-tracker/`.
+4. If the repo name differs from `macro-tracker`, update `start_url` and `scope` in `manifest.json` to match.
+
+### Running locally
 
 ```bash
-# Requires HTTPS or localhost for camera access
 python3 -m http.server 8080
-# then open http://localhost:8080
+# open http://localhost:8080
 ```
 
-## Deploying (required for camera on mobile)
+> Note: barcode scanning (camera) requires HTTPS and won't work over plain HTTP on mobile.
 
-Camera access requires HTTPS. Options:
+---
 
-### GitHub Pages
-1. Create a new repo on GitHub
-2. Push this folder:
-   ```bash
-   git remote add origin https://github.com/YOUR_USER/macro-tracker.git
-   git push -u origin main
-   ```
-3. In repo Settings → Pages → Source: main branch / root
-4. App will be at `https://YOUR_USER.github.io/macro-tracker/`
+## Installing as a PWA
 
-### Cloudflare Pages
-1. Connect your GitHub repo to Cloudflare Pages
-2. No build command needed (static files)
-3. Deploy — auto HTTPS
+On **iOS (Safari):** Share → Add to Home Screen.
+On **Android (Chrome):** browser menu → Install app.
+
+The app launches in full-screen standalone mode with no browser chrome.
+
+---
 
 ## Default targets
 
 | Macro | Default |
-|-------|---------|
+|---|---|
 | Calories | 2750 kcal |
-| Protein | 134g |
-| Carbs | 430g |
-| Fat | 55g |
+| Protein | 134 g |
+| Carbs | 430 g |
+| Fat | 55 g |
 
-Change in Settings tab.
+Adjust in the Settings tab. Changes are stored locally.
+
+---
 
 ## Storage
 
-All data is stored in `localStorage` — no server, no account needed. Use Settings → Export JSON to back up your data.
+All data lives in `localStorage` — no server, no account. Use **Settings → Export JSON** to back up or migrate your data.
+
+---
 
 ## Tech stack
 
-- Pure HTML + CSS + Vanilla JS (no build step)
-- ZXing JS for barcode scanning
-- Open Food Facts API (free, no API key)
-- Service Worker for offline support + PWA install
+- Pure HTML + CSS + Vanilla JS — zero npm dependencies, no build step
+- Service Worker for offline caching and PWA installation
+- Web App Manifest for installability
+- [Open Food Facts API](https://world.openfoodfacts.org/) — free, no API key required
+- [ZXing JS](https://github.com/zxing-js/library) via unpkg for barcode decoding
+- Hosted on GitHub Pages
+
+---
+
+## License
+
+Data from Open Food Facts is available under [CC BY-SA](https://creativecommons.org/licenses/by-sa/3.0/).
