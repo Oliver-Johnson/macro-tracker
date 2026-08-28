@@ -343,6 +343,69 @@
   }
   .hist-mini-bar-col { flex: 1; display: flex; align-items: flex-end; height: 28px; }
   .hist-mini-bar { width: 100%; border-radius: 2px 2px 0 0; }
+
+  /* ─── Custom Calendar Picker ─── */
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-month-label {
+    font-size: 16px; font-weight: 700; color: var(--text);
+  }
+  .cal-nav-btn {
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .cal-nav-btn:active { background: var(--border); }
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; margin-bottom: 12px;
+  }
+  .cal-day-name {
+    text-align: center; font-size: 10px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 4px 0 6px;
+  }
+  .cal-day {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 3px; padding: 6px 2px;
+    border-radius: 8px; cursor: pointer; min-height: 44px;
+    transition: background 0.12s;
+    position: relative;
+  }
+  .cal-day:active { background: var(--bg3); }
+  .cal-day.empty { cursor: default; pointer-events: none; }
+  .cal-day.today .cal-day-num {
+    background: var(--accent); color: #fff;
+    border-radius: 50%; width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-day.selected { background: rgba(108,99,255,0.18); }
+  .cal-day.selected .cal-day-num {
+    color: var(--accent2); font-weight: 700;
+  }
+  .cal-day.today.selected .cal-day-num {
+    background: var(--accent); color: #fff;
+  }
+  .cal-day-num {
+    font-size: 14px; line-height: 1; color: var(--text);
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  }
+  .cal-day.other-month .cal-day-num { color: var(--muted); }
+  .cal-dot {
+    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  }
+  .cal-dot-green { background: var(--protein); }
+  .cal-dot-amber { background: var(--sugar-warn); }
+  .cal-today-btn {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 9px;
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;
+    transition: color 0.15s;
+  }
+  .cal-today-btn:active { color: var(--text); }
 </style>
 </head>
 <body>
@@ -701,7 +764,7 @@
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title">Data</div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.1</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Version 2026-08-28.2</div>
       <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
       <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
@@ -1219,15 +1282,18 @@
   </div>
 </div>
 
-<!-- ─── Date picker modal ─── -->
+<!-- ─── Calendar Picker modal ─── -->
 <div class="modal-backdrop" id="date-modal">
-  <div class="modal">
+  <div class="modal" style="padding-bottom: calc(16px + var(--safe-bottom));">
     <button class="modal-close" onclick="closeModal('date-modal')">✕</button>
-    <div class="modal-title">View History</div>
-    <div class="field">
-      <input type="date" id="history-date-input">
+    <div class="modal-title">History</div>
+    <div class="cal-header">
+      <button class="cal-nav-btn" onclick="calNavigate(-1)">&#8249;</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-nav-btn" onclick="calNavigate(1)">&#8250;</button>
     </div>
-    <button class="btn btn-primary" onclick="loadHistoryDate()">View Day</button>
+    <div class="cal-grid" id="cal-grid"></div>
+    <button class="cal-today-btn" onclick="calGoToday()">Jump to Today</button>
   </div>
 </div>
 
@@ -1962,14 +2028,103 @@ function formatDate(d) {
   return new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
 }
 
+// ─── Custom Calendar Picker ───
+let calYear, calMonth; // currently displayed month
+
 function showDatePicker() {
-  document.getElementById('history-date-input').value = viewingDate;
+  const [y, m] = viewingDate.split('-').map(Number);
+  calYear = y; calMonth = m - 1; // 0-based month
+  renderCal();
   openModal('date-modal');
 }
 
-function loadHistoryDate() {
-  const val = document.getElementById('history-date-input').value;
-  if (val) { viewingDate = val; renderToday(); closeModal('date-modal'); }
+function calNavigate(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+function calGoToday() {
+  const today = todayKey();
+  const [y, m] = today.split('-').map(Number);
+  calYear = y; calMonth = m - 1;
+  renderCal();
+  calSelectDate(today);
+}
+
+function calSelectDate(dateKey) {
+  viewingDate = dateKey;
+  renderToday();
+  closeModal('date-modal');
+}
+
+function calGetDotColour(dateKey) {
+  const logs = getLogs();
+  const day = logs.find(d => d.date === dateKey);
+  if (!day || !day.entries || day.entries.length === 0) return null;
+  const totalKcal = day.entries.reduce((s, e) => s + (e.kcal || 0), 0);
+  if (totalKcal === 0) return null;
+  const targets = getTargetsForDate(dateKey);
+  const goal = targets.kcal || 2350;
+  const ratio = totalKcal / goal;
+  // Within ±20% → green, otherwise amber
+  return (ratio >= 0.8 && ratio <= 1.2) ? 'green' : 'amber';
+}
+
+function renderCal() {
+  const DAYS = ['S','M','T','W','T','F','S'];
+  const monthNames = ['January','February','March','April','May','June',
+                      'July','August','September','October','November','December'];
+
+  document.getElementById('cal-month-label').textContent =
+    monthNames[calMonth] + ' ' + calYear;
+
+  const today = todayKey();
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  let html = '';
+  // Day name headers
+  DAYS.forEach(d => { html += `<div class="cal-day-name">${d}</div>`; });
+
+  // Leading blank cells (previous month overflow)
+  for (let i = 0; i < firstDay; i++) {
+    const dayNum = daysInPrev - firstDay + 1 + i;
+    html += `<div class="cal-day other-month empty"><div class="cal-day-num">${dayNum}</div></div>`;
+  }
+
+  // Days of month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const mm = String(calMonth + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    const key = `${calYear}-${mm}-${dd}`;
+    const isToday = key === today;
+    const isSelected = key === viewingDate;
+    const dot = calGetDotColour(key);
+    const dotHtml = dot
+      ? `<span class="cal-dot cal-dot-${dot}"></span>`
+      : `<span class="cal-dot" style="opacity:0;"></span>`; // invisible placeholder for alignment
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    html += `<div class="${cls}" onclick="calSelectDate('${key}')">` +
+              `<div class="cal-day-num">${d}</div>` +
+              dotHtml +
+            `</div>`;
+  }
+
+  // Trailing cells to complete the grid row
+  const totalCells = firstDay + daysInMonth;
+  const trailing = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= trailing; i++) {
+    html += `<div class="cal-day other-month empty"><div class="cal-day-num">${i}</div></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
 }
 
 // ═══════════════════════════════════════════════════
