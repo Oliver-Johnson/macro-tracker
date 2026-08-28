@@ -411,6 +411,94 @@
     transition: color 0.15s;
   }
   .cal-today-btn:active { color: var(--text); }
+
+  /* ─── First-Run Tour ─── */
+  #tour-welcome-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 9000;
+    background: rgba(0,0,0,0.85);
+    align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #tour-welcome-backdrop.open { display: flex; }
+  #tour-welcome-modal {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 24px 28px;
+    max-width: 380px; width: 100%; text-align: center;
+    animation: tourFadeIn 0.3s ease;
+  }
+  @keyframes tourFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #tour-welcome-modal .tw-icon {
+    font-size: 48px; margin-bottom: 16px; display: block;
+  }
+  #tour-welcome-modal .tw-title {
+    font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px;
+  }
+  #tour-welcome-modal .tw-tagline {
+    font-size: 14px; color: var(--accent2); font-weight: 600; margin-bottom: 16px;
+  }
+  #tour-welcome-modal .tw-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px;
+  }
+  #tour-welcome-modal .tw-pwa {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; font-size: 12px;
+    color: var(--muted); line-height: 1.5; margin-bottom: 24px; text-align: left;
+  }
+  #tour-welcome-modal .tw-pwa strong { color: var(--text); }
+  .tw-btn-row { display: flex; gap: 10px; }
+  .tw-btn-row .btn { flex: 1; }
+
+  /* Tour overlay */
+  #tour-overlay {
+    display: none; position: fixed; inset: 0; z-index: 8000;
+    pointer-events: none;
+  }
+  #tour-overlay.active { display: block; }
+
+  /* Four dark panels surrounding the spotlight */
+  #tour-dim-top, #tour-dim-bottom, #tour-dim-left, #tour-dim-right {
+    position: absolute; background: rgba(0,0,0,0.75);
+    pointer-events: all; transition: all 0.25s ease;
+  }
+
+  #tour-tooltip {
+    position: absolute; z-index: 8100;
+    background: var(--bg2); border: 1px solid var(--accent);
+    border-radius: 14px; padding: 16px 18px;
+    max-width: 300px; width: calc(100vw - 48px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    pointer-events: all; transition: top 0.25s ease, left 0.25s ease;
+  }
+  .tour-tt-title {
+    font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+  }
+  .tour-tt-body {
+    font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 14px;
+  }
+  .tour-tt-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .tour-tt-counter {
+    font-size: 12px; color: var(--muted); flex-shrink: 0;
+  }
+  .tour-tt-btns { display: flex; gap: 8px; }
+  .tour-tt-btns button {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 7px 14px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .tour-tt-btns button.primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .tour-tt-btns button:active { opacity: 0.8; }
+  .tour-exit-btn {
+    background: none; border: none; color: var(--muted);
+    font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0;
+  }
 </style>
 </head>
 <body>
@@ -910,7 +998,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.8</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.9</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1172,6 +1260,41 @@
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button class="btn btn-secondary" onclick="obPrev(3)">Back</button>
         <button class="btn btn-primary" style="flex:1;" onclick="obFinish()">Set Targets</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FIRST-RUN WELCOME SCREEN ═══ -->
+<div id="tour-welcome-backdrop">
+  <div id="tour-welcome-modal">
+    <span class="tw-icon">🥗</span>
+    <div class="tw-title">Macro Tracker</div>
+    <div class="tw-tagline">Your daily nutrition companion</div>
+    <div class="tw-desc">Log meals, track macros, monitor your weight and water, and build healthy habits — all in one place.</div>
+    <div class="tw-pwa"><strong>Install as an app:</strong> on iOS tap the Share button then "Add to Home Screen". On Android/Chrome tap the install prompt or browser menu to add it to your home screen.</div>
+    <div class="tw-btn-row">
+      <button class="btn btn-secondary" onclick="tourSkip()">Skip Tutorial</button>
+      <button class="btn btn-primary" onclick="tourStart()">Start Tour</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOUR OVERLAY ═══ -->
+<div id="tour-overlay">
+  <div id="tour-dim-top"></div>
+  <div id="tour-dim-bottom"></div>
+  <div id="tour-dim-left"></div>
+  <div id="tour-dim-right"></div>
+  <div id="tour-tooltip">
+    <div class="tour-tt-title" id="tour-tt-title"></div>
+    <div class="tour-tt-body" id="tour-tt-body"></div>
+    <div class="tour-tt-nav">
+      <button class="tour-exit-btn" onclick="tourExit()">Exit Tour</button>
+      <span class="tour-tt-counter" id="tour-tt-counter"></span>
+      <div class="tour-tt-btns">
+        <button id="tour-back-btn" onclick="tourBack()">Back</button>
+        <button class="primary" id="tour-next-btn" onclick="tourNext()">Next</button>
       </div>
     </div>
   </div>
@@ -3606,7 +3729,8 @@ applyDisplayPrefs();
 renderToday();
 fetchSyncTargets();
 fetchSyncFoodLog();
-checkOnboarding();
+// First-run tour takes priority; it calls checkOnboarding() when done
+if (!checkFirstRunTour()) checkOnboarding();
 
 // Auto-start scan if on scan tab and view-log is navigated to
 document.querySelector('[onclick*="view-log"] , [onclick*=\'log\']');
@@ -4615,9 +4739,11 @@ let obActivityMult = 1.2;
 let obGoalAdj = -300;
 
 function checkOnboarding() {
+  // For existing users who already have targets, no TDEE wizard needed
+  // For brand-new users, the first-run tour handles this (tourFinish calls back here)
   const daily = getDailyTargets();
   const hasTargets = Object.keys(daily).length > 0;
-  if (!hasTargets) openTDEEWizard();
+  if (!hasTargets && !localStorage.getItem(TOUR_DEMO_KEY)) openTDEEWizard();
 }
 
 function openTDEEWizard() {
@@ -5231,6 +5357,295 @@ window.addEventListener('load', () => {
   const s = getIFSettings();
   if (s.enabled) renderFastingView();
 });
+
+// ═══════════════════════════════════════════════════
+//  FIRST-RUN TOUR
+// ═══════════════════════════════════════════════════
+const TOUR_COMPLETE_KEY = 'mt_tour_complete';
+const TOUR_DEMO_KEY = 'mt_tour_demo_active';
+
+// Demo data keys that get cleaned up after the tour
+const TOUR_DEMO_DATA_KEYS = ['mt_logs', 'mt_weight_log', 'mt_water_log'];
+
+function hasExistingUserData() {
+  // Don't show first-run tour if user already has logs or settings
+  const logs = LS.get('mt_logs', []);
+  if (logs.length > 0) return true;
+  const wlog = LS.get('mt_weight_log', []);
+  if (wlog.length > 0) return true;
+  return false;
+}
+
+function checkFirstRunTour() {
+  if (localStorage.getItem(TOUR_COMPLETE_KEY)) return false; // already done/skipped
+  if (hasExistingUserData()) return false; // existing user, skip silently
+  // Show welcome screen
+  document.getElementById('tour-welcome-backdrop').classList.add('open');
+  return true; // we're showing the tour, caller should not run checkOnboarding yet
+}
+
+function tourSkip() {
+  document.getElementById('tour-welcome-backdrop').classList.remove('open');
+  localStorage.setItem(TOUR_COMPLETE_KEY, '1');
+}
+
+function tourStart() {
+  document.getElementById('tour-welcome-backdrop').classList.remove('open');
+  injectTourDemoData();
+  tourStep = 0;
+  tourShowStep();
+}
+
+function injectTourDemoData() {
+  const today = todayKey();
+
+  // Backup existing keys so we can restore after tour (there should be none for new users)
+  TOUR_DEMO_DATA_KEYS.forEach(k => {
+    const val = localStorage.getItem(k);
+    if (val) localStorage.setItem('mt_tour_backup_' + k, val);
+  });
+
+  // Food log with breakfast, lunch, snack
+  const demoLogs = [
+    {
+      date: today,
+      notes: '',
+      entries: [
+        { name: 'Porridge with Berries', meal: 'Breakfast', kcal: 320, protein: 11, carbs: 52, fat: 7, fibre: 5, sugar: 10, weight: 300 },
+        { name: 'Banana', meal: 'Breakfast', kcal: 89, protein: 1.1, carbs: 22.8, fat: 0.3, fibre: 2.6, sugar: 12, weight: 100 },
+        { name: 'Chicken & Rice Bowl', meal: 'Lunch', kcal: 480, protein: 38, carbs: 55, fat: 10, fibre: 4, sugar: 3, weight: 400 },
+        { name: 'Greek Salad Side', meal: 'Lunch', kcal: 130, protein: 5, carbs: 8, fat: 9, fibre: 2, sugar: 5, weight: 150 },
+        { name: 'Apple', meal: 'Snacks', kcal: 52, protein: 0.3, carbs: 13.8, fat: 0.2, fibre: 2.4, sugar: 10, weight: 100 },
+        { name: 'Protein Bar', meal: 'Snacks', kcal: 210, protein: 20, carbs: 22, fat: 6, fibre: 3, sugar: 6, weight: 60 }
+      ]
+    }
+  ];
+  LS.set('mt_logs', demoLogs);
+
+  // Weight log: 5 recent entries trending down slightly
+  const wLog = [];
+  const baseW = 75.2;
+  for (let i = 4; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const w = Math.round((baseW - i * 0.15 + (Math.random() * 0.2 - 0.1)) * 10) / 10;
+    wLog.push({ date: dateStr, weight: w });
+  }
+  LS.set('mt_weight_log', wLog);
+
+  // Water log
+  const waterLog = {};
+  waterLog[today] = 1500;
+  LS.set('mt_water_log', waterLog);
+
+  // Mark demo active
+  localStorage.setItem(TOUR_DEMO_KEY, '1');
+
+  // Re-render so demo data shows
+  renderToday();
+}
+
+function clearTourDemoData() {
+  TOUR_DEMO_DATA_KEYS.forEach(k => {
+    const backup = localStorage.getItem('mt_tour_backup_' + k);
+    if (backup) {
+      localStorage.setItem(k, backup);
+      localStorage.removeItem('mt_tour_backup_' + k);
+    } else {
+      localStorage.removeItem(k);
+    }
+  });
+  localStorage.removeItem(TOUR_DEMO_KEY);
+}
+
+// Tour step definitions: { title, body, getTarget }
+// getTarget returns an Element to spotlight, or null for a full-screen step
+const TOUR_STEPS = [
+  {
+    title: 'Your Daily Dashboard',
+    body: 'This is the Today page — your home base. See your calorie and macro progress at a glance, along with your food log, water, and more.',
+    getTarget: () => document.getElementById('view-today')
+  },
+  {
+    title: 'Calorie & Macro Rings',
+    body: 'Tap this card to open detailed macro history. The ring shows calories consumed vs your target, and the bars show protein, carbs and fat.',
+    getTarget: () => document.getElementById('dashboard-card')
+  },
+  {
+    title: 'Log Food',
+    body: 'Tap Log Food to add meals. Search thousands of foods, scan barcodes with your camera, or enter macros manually.',
+    getTarget: () => {
+      const btns = document.querySelectorAll('nav button');
+      return btns[1] || null; // Log Food is second nav button
+    }
+  },
+  {
+    title: 'Recipes',
+    body: 'Save your favourite meals as recipes. Log an entire recipe with one tap — perfect for meals you eat regularly.',
+    getTarget: () => {
+      const btns = document.querySelectorAll('nav button');
+      return btns[2] || null; // Recipes is third nav button
+    }
+  },
+  {
+    title: 'Trends',
+    body: 'Track your progress over 2 weeks, 1 month or 3 months. See calorie, macro and weight charts to spot patterns.',
+    getTarget: () => {
+      const btns = document.querySelectorAll('nav button');
+      return btns[4] || null; // Trends is fifth nav button
+    }
+  },
+  {
+    title: 'Fasting Tracker',
+    body: 'Use the fasting tracker to log intermittent fasting windows. Track your eating and fasting hours each day.',
+    getTarget: () => {
+      const btns = document.querySelectorAll('nav button');
+      return btns[5] || null; // Fasting is sixth nav button
+    }
+  },
+  {
+    title: 'Settings',
+    body: 'Customise which tabs and sections are visible, set your macro targets, manage saved foods, and more.',
+    getTarget: () => {
+      const btns = document.querySelectorAll('nav button');
+      return btns[3] || null; // Settings is fourth nav button
+    }
+  },
+  {
+    title: 'View History',
+    body: 'Tap the History button to browse any past day\'s food log using the calendar picker.',
+    getTarget: () => document.querySelector('button[onclick="showDatePicker()"]') || null
+  }
+];
+
+let tourStep = 0;
+
+function tourShowStep() {
+  const overlay = document.getElementById('tour-overlay');
+  overlay.classList.add('active');
+
+  const step = TOUR_STEPS[tourStep];
+  document.getElementById('tour-tt-title').textContent = step.title;
+  document.getElementById('tour-tt-body').textContent = step.body;
+  document.getElementById('tour-tt-counter').textContent = (tourStep + 1) + ' / ' + TOUR_STEPS.length;
+
+  const backBtn = document.getElementById('tour-back-btn');
+  const nextBtn = document.getElementById('tour-next-btn');
+  backBtn.style.display = tourStep === 0 ? 'none' : '';
+  nextBtn.textContent = tourStep === TOUR_STEPS.length - 1 ? 'Finish' : 'Next';
+
+  // Make sure we're on the Today tab for step 0 and 1 and 7
+  // (other steps still show Today since we don't switch tabs)
+  if (tourStep <= 1 || tourStep === 7) {
+    const todayBtn = document.querySelector('nav button');
+    if (todayBtn && !todayBtn.classList.contains('active')) {
+      switchView('today', todayBtn);
+    }
+  }
+
+  const target = step.getTarget();
+  tourPositionSpotlight(target);
+}
+
+function tourPositionSpotlight(target) {
+  const pad = 6; // padding around highlighted element
+  const tooltip = document.getElementById('tour-tooltip');
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let rect;
+  if (target) {
+    rect = target.getBoundingClientRect();
+  } else {
+    // No target — dim nothing, center tooltip
+    rect = null;
+  }
+
+  const top    = document.getElementById('tour-dim-top');
+  const bottom = document.getElementById('tour-dim-bottom');
+  const left   = document.getElementById('tour-dim-left');
+  const right  = document.getElementById('tour-dim-right');
+
+  if (rect) {
+    const x = Math.max(0, rect.left - pad);
+    const y = Math.max(0, rect.top - pad);
+    const w = Math.min(rect.width + pad * 2, vw);
+    const h = Math.min(rect.height + pad * 2, vh);
+    const x2 = Math.min(x + w, vw);
+    const y2 = Math.min(y + h, vh);
+
+    top.style.cssText    = `top:0;left:0;right:0;height:${y}px;`;
+    bottom.style.cssText = `top:${y2}px;left:0;right:0;bottom:0;`;
+    left.style.cssText   = `top:${y}px;left:0;width:${x}px;height:${h}px;`;
+    right.style.cssText  = `top:${y}px;left:${x2}px;right:0;height:${h}px;`;
+
+    // Position tooltip below or above the spotlight
+    const ttH = 180; // approximate tooltip height
+    const ttW = Math.min(300, vw - 48);
+    let ttTop, ttLeft;
+
+    if (y2 + 12 + ttH <= vh) {
+      // Place below
+      ttTop = y2 + 12;
+    } else if (y - 12 - ttH >= 0) {
+      // Place above
+      ttTop = y - 12 - ttH;
+    } else {
+      // Place in center of screen, clamp
+      ttTop = Math.max(8, Math.min(vh - ttH - 8, vh / 2 - ttH / 2));
+    }
+
+    // Horizontally: center over the target, clamped to viewport
+    ttLeft = Math.max(24, Math.min(vw - ttW - 24, x + w / 2 - ttW / 2));
+
+    tooltip.style.top = ttTop + 'px';
+    tooltip.style.left = ttLeft + 'px';
+    tooltip.style.width = ttW + 'px';
+  } else {
+    // No target — dim everything
+    top.style.cssText    = 'top:0;left:0;right:0;bottom:0;';
+    bottom.style.cssText = 'display:none;';
+    left.style.cssText   = 'display:none;';
+    right.style.cssText  = 'display:none;';
+
+    // Center tooltip
+    const ttW = Math.min(300, vw - 48);
+    const ttH = 180;
+    tooltip.style.top  = Math.max(24, (vh - ttH) / 2) + 'px';
+    tooltip.style.left = ((vw - ttW) / 2) + 'px';
+    tooltip.style.width = ttW + 'px';
+  }
+}
+
+function tourNext() {
+  if (tourStep >= TOUR_STEPS.length - 1) {
+    tourFinish();
+  } else {
+    tourStep++;
+    tourShowStep();
+  }
+}
+
+function tourBack() {
+  if (tourStep > 0) {
+    tourStep--;
+    tourShowStep();
+  }
+}
+
+function tourExit() {
+  tourFinish();
+}
+
+function tourFinish() {
+  document.getElementById('tour-overlay').classList.remove('active');
+  clearTourDemoData();
+  localStorage.setItem(TOUR_COMPLETE_KEY, '1');
+  renderToday();
+  // Check if TDEE wizard needs to fire for a fresh user
+  checkOnboarding();
+}
 </script>
 </body>
 </html>
