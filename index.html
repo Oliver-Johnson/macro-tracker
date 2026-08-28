@@ -499,6 +499,67 @@
     background: none; border: none; color: var(--muted);
     font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0;
   }
+
+  /* ─── Ko-fi overlay (desktop ≥768px) ─── */
+  #kofi-overlay {
+    display: none;
+    position: fixed; right: 16px; bottom: 16px; z-index: 60;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 14px 16px;
+    max-width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    animation: kofiSlideIn 0.3s ease;
+  }
+  @keyframes kofiSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #kofi-overlay .kofi-close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; line-height: 1; padding: 2px 4px;
+  }
+  #kofi-overlay .kofi-close:hover { color: var(--text); }
+  #kofi-overlay .kofi-icon { font-size: 22px; margin-bottom: 4px; display: block; }
+  #kofi-overlay .kofi-title {
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px;
+  }
+  #kofi-overlay .kofi-sub {
+    font-size: 11px; color: var(--muted); margin-bottom: 10px;
+  }
+  #kofi-overlay .kofi-btn {
+    display: inline-block; background: var(--accent); color: #fff;
+    border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: opacity 0.15s;
+  }
+  #kofi-overlay .kofi-btn:hover { opacity: 0.85; text-decoration: none; }
+  @media (min-width: 768px) {
+    #kofi-overlay { display: block; }
+    body.kofi-on { padding-bottom: 0; }
+  }
+
+  /* ─── Ko-fi inline card (mobile <768px, Today page) ─── */
+  .kofi-mobile-card {
+    display: none;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 12px;
+    align-items: center; gap: 12px;
+  }
+  .kofi-mobile-card .kofi-mc-icon { font-size: 22px; flex-shrink: 0; }
+  .kofi-mobile-card .kofi-mc-text { flex: 1; }
+  .kofi-mobile-card .kofi-mc-title {
+    font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px;
+  }
+  .kofi-mobile-card .kofi-mc-link {
+    font-size: 12px; color: var(--accent2); text-decoration: none;
+  }
+  .kofi-mobile-card .kofi-mc-link:hover { text-decoration: underline; }
+  .kofi-mobile-card .kofi-mc-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+  }
+  @media (max-width: 767px) {
+    .kofi-mobile-card { display: flex; }
+  }
 </style>
 </head>
 <body>
@@ -617,6 +678,16 @@
     <div class="card" id="weight-chart-card" data-section="today-weight-chart" style="margin-top:0; display:none;">
       <div class="card-title">Weight</div>
       <div id="weight-chart-body" class="weight-chart"></div>
+    </div>
+
+    <!-- Ko-fi mobile inline card -->
+    <div class="kofi-mobile-card" id="kofi-mobile-card">
+      <div class="kofi-mc-icon">&#9749;</div>
+      <div class="kofi-mc-text">
+        <div class="kofi-mc-title">Enjoying Macrolog?</div>
+        <a class="kofi-mc-link" href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener">Buy me a coffee &#9749;</a>
+      </div>
+      <button class="kofi-mc-close" onclick="dismissKofi()" title="Dismiss">&times;</button>
     </div>
   </div>
 
@@ -998,7 +1069,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.12</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.13</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1007,6 +1078,27 @@
         <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
         <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
       </div><!-- end #data-body -->
+    </div>
+
+    <!-- ─── Documentation link ─── -->
+    <div class="card" style="margin-top:8px;">
+      <a href="/docs/" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);">
+        <span style="font-size:20px;">&#128218;</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;">Documentation &amp; FAQ</div>
+          <div style="font-size:12px;color:var(--muted);">Feature guides, self-hosting, and how-to</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);font-size:14px;">&#8594;</span>
+      </a>
+    </div>
+
+    <!-- ─── Support section ─── -->
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title">Support</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Macrolog is free and open. No ads, no accounts, no fees. If it saves you time, a coffee goes a long way.</div>
+      <a href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">
+        &#9749; Buy me a coffee
+      </a>
     </div>
   </div>
 
@@ -1301,6 +1393,15 @@
 </div>
 
 <div class="hist-tooltip" id="hist-tooltip"></div>
+
+<!-- ─── Ko-fi overlay (desktop) ─── -->
+<div id="kofi-overlay">
+  <button class="kofi-close" onclick="dismissKofi()" title="Dismiss">&times;</button>
+  <span class="kofi-icon">&#9749;</span>
+  <div class="kofi-title">Buy me a coffee</div>
+  <div class="kofi-sub">Free, no ads, no accounts</div>
+  <a class="kofi-btn" href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener">Support on Ko-fi</a>
+</div>
 
 <!-- ─── Weight entry modal ─── -->
 <div class="modal-backdrop" id="weight-modal">
@@ -5358,6 +5459,33 @@ window.addEventListener('load', () => {
   if (s.enabled) renderFastingView();
 });
 
+// ─── Ko-fi ───
+const KOFI_DISMISSED_KEY = 'mt_kofi_dismissed';
+
+function dismissKofi() {
+  localStorage.setItem(KOFI_DISMISSED_KEY, '1');
+  const overlay = document.getElementById('kofi-overlay');
+  const mobileCard = document.getElementById('kofi-mobile-card');
+  if (overlay) overlay.style.display = 'none';
+  if (mobileCard) mobileCard.style.display = 'none';
+  document.body.classList.remove('kofi-on');
+}
+
+(function initKofi() {
+  const overlay = document.getElementById('kofi-overlay');
+  const mobileCard = document.getElementById('kofi-mobile-card');
+  if (localStorage.getItem(KOFI_DISMISSED_KEY)) {
+    // Hide both regardless of CSS media queries
+    if (overlay) overlay.style.display = 'none';
+    if (mobileCard) mobileCard.style.display = 'none';
+    return;
+  }
+  // Desktop: CSS already shows overlay at >=768px; add body class
+  if (window.innerWidth >= 768) {
+    document.body.classList.add('kofi-on');
+  }
+})();
+
 // ═══════════════════════════════════════════════════
 //  FIRST-RUN TOUR
 // ═══════════════════════════════════════════════════
@@ -5516,6 +5644,12 @@ const TOUR_STEPS = [
     title: 'View History',
     body: 'Tap the History button to browse any past day\'s food log using the calendar picker.',
     getTarget: () => document.querySelector('button[onclick="showDatePicker()"]') || null
+  },
+  {
+    title: 'Macrolog is free ☕',
+    body: 'No ads, no accounts, no subscription. If you find it useful, buying me a coffee helps keep the app updated and supported.',
+    getTarget: () => null,
+    kofi: true
   }
 ];
 
@@ -5527,7 +5661,21 @@ function tourShowStep() {
 
   const step = TOUR_STEPS[tourStep];
   document.getElementById('tour-tt-title').textContent = step.title;
-  document.getElementById('tour-tt-body').textContent = step.body;
+  const bodyEl = document.getElementById('tour-tt-body');
+  bodyEl.textContent = step.body;
+  // Ko-fi step: append a link below the body text
+  const existingKofiLink = bodyEl.querySelector('.tour-kofi-link');
+  if (existingKofiLink) existingKofiLink.remove();
+  if (step.kofi) {
+    const a = document.createElement('a');
+    a.href = 'https://ko-fi.com/oliver_johnson';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = '☕ ko-fi.com/oliver_johnson';
+    a.className = 'tour-kofi-link';
+    a.style.cssText = 'display:block;margin-top:10px;color:var(--accent2);font-size:13px;font-weight:600;';
+    bodyEl.appendChild(a);
+  }
   document.getElementById('tour-tt-counter').textContent = (tourStep + 1) + ' / ' + TOUR_STEPS.length;
 
   const backBtn = document.getElementById('tour-back-btn');

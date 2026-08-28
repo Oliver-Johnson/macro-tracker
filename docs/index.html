@@ -287,6 +287,46 @@
       color: var(--text);
     }
 
+    /* ── Ko-fi section ── */
+    .kofi-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .kofi-section-icon { font-size: 48px; flex-shrink: 0; line-height: 1; }
+    .kofi-section h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .kofi-section p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .kofi-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .kofi-cta:hover { opacity: 0.85; text-decoration: none; }
+    @media (max-width: 480px) {
+      .kofi-section { flex-direction: column; gap: 12px; }
+    }
+
     /* ── Footer ── */
     footer {
       background: var(--surface);
@@ -478,6 +518,18 @@
         <span class="tech-tag">GitHub Pages</span>
       </div>
       <p style="margin-top: 16px; font-size: 14px; color: var(--muted);">Zero npm dependencies. No build step. The entire app ships as a single <code>index.html</code> file plus a service worker — fast to load, easy to audit.</p>
+    </section>
+
+    <section>
+      <h2 class="section-title">Support the project</h2>
+      <div class="kofi-section">
+        <div class="kofi-section-icon">&#9749;</div>
+        <div>
+          <h3>Macrolog is completely free</h3>
+          <p>No ads. No accounts. No subscription. The app is built and maintained by one person in their spare time. If it saves you time or helps you hit your goals, buying me a coffee is a lovely way to say thanks — and it helps keep the project alive.</p>
+          <a class="kofi-cta" href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener">&#9749; Buy me a coffee</a>
+        </div>
+      </div>
     </section>
 
   </div>
