@@ -59,6 +59,7 @@
   nav {
     display: flex; background: var(--bg2); border-top: 1px solid var(--border);
     padding-bottom: var(--safe-bottom); flex-shrink: 0;
+    position: relative; z-index: 8001;
   }
   nav button {
     flex: 1; background: none; border: none; color: var(--muted);
@@ -1103,7 +1104,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.20</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.21</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -5797,6 +5798,12 @@ const TOUR_STEPS = [
     getTarget: () => document.getElementById('dashboard-card')
   },
   {
+    view: 'today',
+    title: 'View History',
+    body: 'Tap the History button to browse any past day\'s food log using the calendar. Days with entries show a dot.',
+    getTarget: () => document.querySelector('button[onclick="showDatePicker()"]') || null
+  },
+  {
     view: 'log',
     title: 'Log Food — Search',
     body: 'Search thousands of foods by name here. Results come from Open Food Facts, a free community database with millions of products.',
@@ -5831,12 +5838,6 @@ const TOUR_STEPS = [
     title: 'Fasting Tracker',
     body: 'Log your intermittent fasting windows here. Start a fast, mark it complete, and review your fasting history over time.',
     getTarget: () => document.getElementById('view-fasting')
-  },
-  {
-    view: 'today',
-    title: 'View History',
-    body: 'Tap the History button to browse any past day\'s food log using the calendar. Days with entries show a dot.',
-    getTarget: () => document.querySelector('button[onclick="showDatePicker()"]') || null
   },
   {
     view: null,
