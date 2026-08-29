@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog — Macrolog</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #6c63ff;
+      --accent-light: #9c94ff;
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --radius: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f13;
+        --surface: #1a1a24;
+        --border: #2e2e3e;
+        --text: #e8e8f0;
+        --muted: #9090b0;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .logo-text h1 { font-size: 16px; font-weight: 700; }
+    .logo-text p { font-size: 12px; color: var(--muted); }
+
+    .header-cta {
+      background: var(--accent); color: #fff;
+      padding: 8px 18px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+    }
+    .header-cta:hover { opacity: 0.85; text-decoration: none; }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      margin-bottom: 28px;
+      color: var(--muted);
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+
+    /* ── Release entry ── */
+    .release {
+      position: relative;
+      padding-left: 28px;
+      margin-bottom: 40px;
+    }
+    .release::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 10px;
+      bottom: -40px;
+      width: 2px;
+      background: var(--border);
+    }
+    .release:last-child::before { display: none; }
+
+    .release-dot {
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 3px solid var(--bg);
+    }
+    .release-dot.latest {
+      background: var(--accent);
+    }
+
+    .release-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .release-version {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .release-date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .release-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .release-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+    }
+
+    .change-group {
+      margin-bottom: 14px;
+    }
+    .change-group:last-child { margin-bottom: 0; }
+
+    .change-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    ul.changes {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    ul.changes li {
+      font-size: 14px;
+      padding-left: 18px;
+      position: relative;
+      color: var(--text);
+    }
+    ul.changes li::before {
+      content: '·';
+      position: absolute;
+      left: 5px;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    footer a { color: var(--accent-light); }
+
+    @media (max-width: 480px) {
+      .container { padding: 32px 16px 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">&#9679;</div>
+      <div class="logo-text">
+        <h1>Macrolog</h1>
+        <p>Nutrition PWA</p>
+      </div>
+    </div>
+    <a class="header-cta" href="https://macrolog.co.uk/">Open App &rarr;</a>
+  </header>
+
+  <div class="container">
+
+    <a class="back-link" href="index.html">&larr; Documentation</a>
+
+    <h1 class="page-title">Changelog</h1>
+    <p class="page-subtitle">A history of every update to Macrolog.</p>
+
+    <!-- ── v2026-08-29 ── -->
+    <div class="release">
+      <div class="release-dot latest"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-08-29</span>
+        <span class="release-date">29 August 2026</span>
+        <span class="release-badge">Latest</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">Bug fixes</div>
+          <ul class="changes">
+            <li>Fixed a hidden startup crash where tour constants were declared after the init block, silently breaking the Trends chart (and any feature relying on variables declared after line 3844) for all users</li>
+            <li>Fixed Trends chart showing "Chart error" — root cause was the startup crash preventing <code>trendsRange</code> from initialising</li>
+            <li>Fixed Ko-fi X button not dismissing on mobile (enlarged tap target, CSS class approach)</li>
+            <li>Fixed data export generating corrupt <code>dailyTargets: null</code> when localStorage held a null value</li>
+            <li>Import now validates all collection types before writing to localStorage (prevents null/wrong-type values causing future crashes)</li>
+            <li><code>getDailyTargets()</code> hardened to always return a plain object, never null</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Improvements</div>
+          <ul class="changes">
+            <li>Ko-fi support card now session-only — dismisses until next app open instead of permanently</li>
+            <li>Settings page reordered: Docs &amp; FAQ → Appearance → Data → Support Me → Developer Mode</li>
+            <li>"Admin Mode" renamed to "Developer Mode"</li>
+            <li>Trends chart error message now shows the actual exception for easier debugging</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Developer</div>
+          <ul class="changes">
+            <li>GitHub Actions CI workflow added (JS syntax check, required files, version consistency, manifest validation)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-08-28 ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-08-28</span>
+        <span class="release-date">28 August 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">New features</div>
+          <ul class="changes">
+            <li>Custom domain <strong>macrolog.co.uk</strong> — proper PWA with standalone install, no browser chrome</li>
+            <li>First-run onboarding tour with step-by-step spotlight and live demo data (cleared when you start for real)</li>
+            <li>Settings page — toggle individual nav tabs and Today page sections on or off</li>
+            <li>Custom calendar date picker on the History screen with dot indicators for logged days</li>
+            <li>Ko-fi support integration — inline card on Today page, overlay on desktop, and in docs</li>
+            <li>Documentation page at <a href="https://macrolog.co.uk/docs/">macrolog.co.uk/docs</a></li>
+            <li>GPL v3 open-source licence added</li>
+            <li>Community health files: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Improvements</div>
+          <ul class="changes">
+            <li>Data export now covers all 14 localStorage keys (previously 7 were missing)</li>
+            <li>Import function comprehensively restores all app state from an export file</li>
+            <li>Calorie breakdown panel background fixed (was transparent)</li>
+            <li>Trends tooltip no longer clips off-screen edges</li>
+            <li>Service worker version check rewritten — now reliably detects minor-version updates</li>
+            <li>Admin mode defaults to off; toggle moved to bottom of settings</li>
+            <li>Camera and flip button now equal-width on the barcode scanner</li>
+            <li>Trends and History charts now show a friendly "no data" message when the period is empty</li>
+            <li>TDEE wizard now has a close button so you can exit without completing it</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Bug fixes</div>
+          <ul class="changes">
+            <li>PWA 404 on custom domain resolved (manifest start_url updated from /macro-tracker/ to /)</li>
+            <li>Importing a backup no longer restores Admin Mode if it was enabled in the export</li>
+            <li>Weight entry now shows a visible confirmation state on the dashboard</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-08-21 ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-08-21</span>
+        <span class="release-date">August 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">New features</div>
+          <ul class="changes">
+            <li>Macro History screen with bar chart — view up to 90 days of macro breakdowns</li>
+            <li>Intermittent fasting tracker with countdown timer and log</li>
+            <li>Exercise log on the Today page</li>
+            <li>Water tracker with customisable daily target</li>
+            <li>7-day rolling average summary on the Today page</li>
+            <li>Body weight chart on the Today page</li>
+            <li>Diary notes section</li>
+            <li>Per-day calorie targets (override global targets for specific dates)</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Improvements</div>
+          <ul class="changes">
+            <li>Trends page redesigned with combined calorie bar + weight line chart</li>
+            <li>Ingredient-level barcode scanner for the Recipe Builder</li>
+            <li>Quick-add meal section for frequently logged items</li>
+            <li>Streak counter tracks consecutive days of logging</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-08 (early) ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-08 (early)</span>
+        <span class="release-date">August 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">Foundation</div>
+          <ul class="changes">
+            <li>Initial release as a Progressive Web App (PWA)</li>
+            <li>Food logging with barcode scanning (Open Food Facts database)</li>
+            <li>Manual food entry with full macro breakdown</li>
+            <li>Recipe builder — combine ingredients and save as a meal</li>
+            <li>TDEE wizard — calculate your targets from height, weight, age, and activity level</li>
+            <li>Trends page — calorie and weight charts over 2 weeks, 1 month, or 3 months</li>
+            <li>Offline-first with service worker caching</li>
+            <li>Data export and import (JSON)</li>
+            <li>All data stored locally — no account, no server, no tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>
+      <a href="index.html">Documentation</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://macrolog.co.uk/">Open App</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://github.com/oliver-johnson/macro-tracker">GitHub</a>
+    </p>
+    <p style="margin-top:4px;">Macrolog is free software licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General Public License v3</a>. Copyright &copy; 2026 Oliver Johnson.</p>
+  </footer>
+
+</body>
+</html>

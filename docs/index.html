@@ -378,6 +378,39 @@
   <div class="container">
 
     <section>
+      <h2 class="section-title">What's New</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+            <span style="font-weight:700;font-size:15px;">v2026-08-29 — Stability &amp; Polish</span>
+            <span style="font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 10px;">Latest</span>
+          </div>
+          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
+            <li>Fixed a hidden startup crash (tour constants in wrong scope) that was silently breaking the Trends chart for all users</li>
+            <li>Ko-fi support card now session-only — dismisses until next app open</li>
+            <li>Settings page reordered: Docs → Appearance → Data → Support Me → Developer Mode</li>
+            <li>Ko-fi X button tap target enlarged and made bulletproof</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:8px;">v2026-08-28 — Major feature release</div>
+          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
+            <li>Custom domain <strong>macrolog.co.uk</strong> — app now a proper installable PWA</li>
+            <li>First-run onboarding tour with live demo data</li>
+            <li>Settings page with per-tab and per-section visibility toggles</li>
+            <li>Ko-fi support integration across app and docs</li>
+            <li>GPL v3 open-source licence</li>
+            <li>Custom date picker with dot indicators on the History screen</li>
+            <li>Data export now includes all 14 keys; import validates types</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:16px;font-size:14px;">
+        <a href="changelog.html">Full changelog →</a>
+      </p>
+    </section>
+
+    <section>
       <h2 class="section-title">What it tracks</h2>
       <p style="color: var(--muted); margin-bottom: 20px;">Set your daily targets for each macro and watch progress rings fill as you log meals throughout the day.</p>
       <div class="macro-pills">
