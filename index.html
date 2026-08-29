@@ -1072,7 +1072,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.5</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.6</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -5496,10 +5496,8 @@ window.addEventListener('load', () => {
 });
 
 // ─── Ko-fi ───
-const KOFI_DISMISSED_KEY = 'mt_kofi_dismissed';
-
+// Dismissal is session-only — no localStorage — card reappears on next load.
 function dismissKofi() {
-  localStorage.setItem(KOFI_DISMISSED_KEY, '1');
   const overlay = document.getElementById('kofi-overlay');
   const mobileCard = document.getElementById('kofi-mobile-card');
   if (overlay) { overlay.style.display = 'none'; overlay.classList.add('kofi-dismissed'); }
@@ -5508,13 +5506,6 @@ function dismissKofi() {
 }
 
 (function initKofi() {
-  const overlay = document.getElementById('kofi-overlay');
-  const mobileCard = document.getElementById('kofi-mobile-card');
-  if (localStorage.getItem(KOFI_DISMISSED_KEY)) {
-    if (overlay) { overlay.style.display = 'none'; overlay.classList.add('kofi-dismissed'); }
-    if (mobileCard) { mobileCard.style.display = 'none'; mobileCard.classList.add('kofi-dismissed'); }
-    return;
-  }
   if (window.innerWidth >= 768) {
     document.body.classList.add('kofi-on');
   }
