@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # HTML validation
+      # ------------------------------------------------------------------
+      - name: Validate index.html
+        run: npx --yes htmlhint index.html
+
+      - name: Validate docs/index.html
+        run: npx htmlhint docs/index.html
+
+      # ------------------------------------------------------------------
+      # JSON validation
+      # ------------------------------------------------------------------
+      - name: Validate manifest.json
+        run: |
+          python3 -c "
+          import json, sys
+          try:
+              json.load(open('manifest.json'))
+              print('manifest.json is valid JSON')
+          except json.JSONDecodeError as e:
+              print(f'manifest.json is invalid: {e}', file=sys.stderr)
+              sys.exit(1)
+          "
+
+      # ------------------------------------------------------------------
+      # Version consistency: index.html must match sw.js APP_VERSION
+      # ------------------------------------------------------------------
+      - name: Check version consistency
+        run: |
+          python3 - <<'EOF'
+          import re, sys
+
+          # Extract APP_VERSION from sw.js
+          sw = open('sw.js').read()
+          m = re.search(r"APP_VERSION\s*=\s*'([^']+)'", sw)
+          if not m:
+              print("ERROR: APP_VERSION not found in sw.js", file=sys.stderr)
+              sys.exit(1)
+          sw_version = m.group(1)
+
+          # Extract version from index.html — "Version YYYY-MM-DD.N"
+          html = open('index.html').read()
+          m2 = re.search(r'Version (\d{4}-\d{2}-\d{2}\.\d+)', html)
+          if not m2:
+              print("ERROR: Version string not found in index.html", file=sys.stderr)
+              sys.exit(1)
+          html_version = m2.group(1)
+
+          if sw_version != html_version:
+              print(f"ERROR: version mismatch — sw.js has '{sw_version}', index.html has '{html_version}'", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"Version consistent: {sw_version}")
+          EOF
+
+  # --------------------------------------------------------------------------
+  # Deploy to GitHub Pages on push to master
+  # --------------------------------------------------------------------------
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repo root (the PWA is served from root)
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
