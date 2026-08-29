@@ -1077,7 +1077,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.14</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.15</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -5593,6 +5593,11 @@ function hasExistingUserData() {
   return false;
 }
 
+function hasExistingUserData() {
+  const logs = LS.get('mt_logs', []);
+  return Array.isArray(logs) && logs.length > 0;
+}
+
 function checkFirstRunTour() {
   if (localStorage.getItem(TOUR_COMPLETE_KEY)) return false; // already done/skipped
   if (hasExistingUserData()) return false; // existing user, skip silently
@@ -5608,9 +5613,20 @@ function tourSkip() {
 
 function tourStart() {
   document.getElementById('tour-welcome-backdrop').classList.remove('open');
-  injectTourDemoData();
+  // Only inject demo data for brand-new users with no existing data
+  if (!hasExistingUserData()) {
+    injectTourDemoData();
+  }
   tourStep = 0;
   tourShowStep();
+}
+
+function tourSwitchView(name) {
+  const viewMap = { today: 0, log: 1, recipes: 2, settings: 3, trends: 4, fasting: 5 };
+  const idx = viewMap[name];
+  if (idx === undefined) return;
+  const btn = document.querySelectorAll('nav button')[idx];
+  if (btn) switchView(name, btn);
 }
 
 function injectTourDemoData() {
@@ -5676,71 +5692,73 @@ function clearTourDemoData() {
   localStorage.removeItem(TOUR_DEMO_KEY);
 }
 
-// Tour step definitions: { title, body, getTarget }
+// Tour step definitions: { view, title, body, getTarget }
+// view: the tab to switch to before showing this step (null = no switch)
 // getTarget returns an Element to spotlight, or null for a full-screen step
 const TOUR_STEPS = [
   {
+    view: 'today',
     title: 'Your Daily Dashboard',
-    body: 'This is the Today page — your home base. See your calorie and macro progress at a glance, along with your food log, water, and more.',
+    body: 'This is the Today page — your home base. See your calorie and macro progress at a glance, along with your food log, water, weight and more.',
     getTarget: () => document.getElementById('view-today')
   },
   {
+    view: 'today',
     title: 'Calorie & Macro Rings',
-    body: 'Tap this card to open detailed macro history. The ring shows calories consumed vs your target, and the bars show protein, carbs and fat.',
+    body: 'Tap this card to open a detailed macro breakdown. The ring shows calories consumed vs your target, and the bars show protein, carbs and fat.',
     getTarget: () => document.getElementById('dashboard-card')
   },
   {
-    title: 'Log Food',
-    body: 'Tap Log Food to add meals. Search thousands of foods, scan barcodes with your camera, or enter macros manually.',
-    getTarget: () => {
-      const btns = document.querySelectorAll('nav button');
-      return btns[1] || null; // Log Food is second nav button
-    }
+    view: 'log',
+    title: 'Log Food — Search',
+    body: 'Search thousands of foods by name here. Results come from Open Food Facts, a free community database with millions of products.',
+    getTarget: () => document.getElementById('search-input')
   },
   {
+    view: 'log',
+    title: 'Barcode Scanner',
+    body: 'Tap "📷 Scan" to use your camera to scan any food barcode. Products are looked up instantly and added to your log. Every food you scan is automatically saved so it\'s easy to log again.',
+    getTarget: () => document.querySelector('.tab[onclick*="scan"]') || null
+  },
+  {
+    view: 'log',
+    title: 'Saved Foods',
+    body: 'Every food you scan or add manually is saved here for quick re-logging. No searching required next time — just tap and log.',
+    getTarget: () => document.getElementById('saved-foods-header') || null
+  },
+  {
+    view: 'recipes',
     title: 'Recipes',
-    body: 'Save your favourite meals as recipes. Log an entire recipe with one tap — perfect for meals you eat regularly.',
-    getTarget: () => {
-      const btns = document.querySelectorAll('nav button');
-      return btns[2] || null; // Recipes is third nav button
-    }
+    body: 'Build and save your favourite meals as recipes. Log an entire recipe with one tap — perfect for meals you eat regularly.',
+    getTarget: () => document.getElementById('view-recipes')
   },
   {
+    view: 'trends',
     title: 'Trends',
-    body: 'Track your progress over 2 weeks, 1 month or 3 months. See calorie, macro and weight charts to spot patterns.',
-    getTarget: () => {
-      const btns = document.querySelectorAll('nav button');
-      return btns[4] || null; // Trends is fifth nav button
-    }
+    body: 'Track your progress over 2 weeks, 1 month or 3 months. Calorie, macro and weight charts help you spot patterns and stay on track.',
+    getTarget: () => document.getElementById('view-trends')
   },
   {
+    view: 'fasting',
     title: 'Fasting Tracker',
-    body: 'Use the fasting tracker to log intermittent fasting windows. Track your eating and fasting hours each day.',
-    getTarget: () => {
-      const btns = document.querySelectorAll('nav button');
-      return btns[5] || null; // Fasting is sixth nav button
-    }
+    body: 'Log your intermittent fasting windows here. Start a fast, mark it complete, and review your fasting history over time.',
+    getTarget: () => document.getElementById('view-fasting')
   },
   {
-    title: 'Settings',
-    body: 'Customise which tabs and sections are visible, set your macro targets, manage saved foods, and more.',
-    getTarget: () => {
-      const btns = document.querySelectorAll('nav button');
-      return btns[3] || null; // Settings is fourth nav button
-    }
-  },
-  {
+    view: 'today',
     title: 'View History',
-    body: 'Tap the History button to browse any past day\'s food log using the calendar picker.',
+    body: 'Tap the History button to browse any past day\'s food log using the calendar. Days with entries show a dot.',
     getTarget: () => document.querySelector('button[onclick="showDatePicker()"]') || null
   },
   {
+    view: null,
     title: 'Macrolog is free ☕',
     body: 'No ads, no accounts, no subscription. If you find it useful, buying me a coffee helps keep the app updated and supported.',
     getTarget: () => null,
     kofi: true
   },
   {
+    view: null,
     title: 'Add to your Home Screen',
     body: 'Install Macrolog for a full-screen app experience with an icon on your home screen — no browser bar needed.',
     getTarget: () => null,
@@ -5755,6 +5773,7 @@ function tourShowStep() {
   overlay.classList.add('active');
 
   const step = TOUR_STEPS[tourStep];
+  if (step.view) tourSwitchView(step.view);
   document.getElementById('tour-tt-title').textContent = step.title;
   const bodyEl = document.getElementById('tour-tt-body');
   bodyEl.textContent = step.body;
