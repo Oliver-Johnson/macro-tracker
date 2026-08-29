@@ -1072,7 +1072,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.12</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.13</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1286,6 +1286,7 @@
       <div class="onboarding-dot done" id="ob-dot-1"></div>
       <div class="onboarding-dot" id="ob-dot-2"></div>
       <div class="onboarding-dot" id="ob-dot-3"></div>
+      <div class="onboarding-dot" id="ob-dot-4"></div>
     </div>
 
     <!-- Step 1: body stats -->
@@ -1363,6 +1364,34 @@
       <div id="ob-preview" style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;color:var(--muted);display:none;"></div>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button class="btn btn-secondary" onclick="obPrev(3)">Back</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="obNext(3)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 4: diet type -->
+    <div class="onboarding-step" id="ob-step-4">
+      <div class="onboarding-title">Diet style</div>
+      <div class="onboarding-sub" style="margin-bottom:12px;">Choose how you want your calories split between protein, carbs and fat.</div>
+
+      <div class="goal-option selected" data-diet="standard" onclick="obSelectDiet(this)">
+        <span>🔄</span><div><strong>Standard</strong><br><span style="font-size:12px;color:var(--muted);">Balanced — 25% protein · 45% carbs · 30% fat</span></div>
+      </div>
+      <div class="goal-option" data-diet="high_protein" onclick="obSelectDiet(this)">
+        <span>💪</span><div><strong>High Protein</strong><br><span style="font-size:12px;color:var(--muted);">Muscle building / recomposition — 35% protein · 35% carbs · 30% fat</span></div>
+      </div>
+      <div class="goal-option" data-diet="carb_heavy" onclick="obSelectDiet(this)">
+        <span>🏃</span><div><strong>Carb Heavy</strong><br><span style="font-size:12px;color:var(--muted);">Endurance / performance — 20% protein · 55% carbs · 25% fat</span></div>
+      </div>
+      <div class="goal-option" data-diet="low_carb" onclick="obSelectDiet(this)">
+        <span>🥩</span><div><strong>Low Carb</strong><br><span style="font-size:12px;color:var(--muted);">Fat loss / blood sugar — 30% protein · 20% carbs · 50% fat</span></div>
+      </div>
+      <div class="goal-option" data-diet="keto" onclick="obSelectDiet(this)">
+        <span>⚡</span><div><strong>Keto</strong><br><span style="font-size:12px;color:var(--muted);">Very low carb, high fat — 25% protein · 5% carbs · 70% fat</span></div>
+      </div>
+
+      <div id="ob-diet-preview" style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin:12px 0 4px;font-size:13px;color:var(--muted);"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-secondary" onclick="obPrev(4)">Back</button>
         <button class="btn btn-primary" style="flex:1;" onclick="obFinish()">Set Targets</button>
       </div>
     </div>
@@ -4858,11 +4887,40 @@ function renderTrendsSummary(data) {
 let obActivityMult = 1.2;
 let obGoalAdj = -300;
 let obSex = 'male';
+let obDietType = 'standard';
+
+const OB_DIETS = {
+  standard:    { p: 0.25, c: 0.45, f: 0.30 },
+  high_protein:{ p: 0.35, c: 0.35, f: 0.30 },
+  carb_heavy:  { p: 0.20, c: 0.55, f: 0.25 },
+  low_carb:    { p: 0.30, c: 0.20, f: 0.50 },
+  keto:        { p: 0.25, c: 0.05, f: 0.70 },
+};
 
 function obSetSex(sex) {
   obSex = sex;
   document.getElementById('ob-sex-male').className   = sex === 'male'   ? 'btn btn-primary' : 'btn btn-secondary';
   document.getElementById('ob-sex-female').className = sex === 'female' ? 'btn btn-primary' : 'btn btn-secondary';
+}
+
+function obSelectDiet(el) {
+  document.querySelectorAll('[data-diet]').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  obDietType = el.dataset.diet;
+  obUpdateDietPreview();
+}
+
+function obUpdateDietPreview() {
+  const { kcal } = obCalc();
+  const d = OB_DIETS[obDietType];
+  const protein = Math.round(kcal * d.p / 4);
+  const carbs   = Math.round(kcal * d.c / 4);
+  const fat     = Math.round(kcal * d.f / 9);
+  document.getElementById('ob-diet-preview').innerHTML =
+    `<strong style="color:var(--text);">${kcal} kcal</strong> &nbsp;·&nbsp; ` +
+    `<span style="color:var(--protein);">${protein}g protein</span> &nbsp;·&nbsp; ` +
+    `<span style="color:var(--carbs);">${carbs}g carbs</span> &nbsp;·&nbsp; ` +
+    `<span style="color:var(--fat);">${fat}g fat</span>`;
 }
 
 function checkOnboarding() {
@@ -4877,7 +4935,7 @@ function openTDEEWizard() {
   // Reset to step 1
   document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
   document.getElementById('ob-step-1').classList.add('active');
-  ['ob-dot-1','ob-dot-2','ob-dot-3'].forEach((id,i) => {
+  ['ob-dot-1','ob-dot-2','ob-dot-3','ob-dot-4'].forEach((id,i) => {
     document.getElementById(id).classList.toggle('done', i === 0);
   });
   document.getElementById('ob-preview').style.display = 'none';
@@ -4887,8 +4945,10 @@ function openTDEEWizard() {
   // Reset selections
   document.querySelectorAll('.activity-option').forEach((el,i) => el.classList.toggle('selected', i===0));
   document.querySelectorAll('.goal-option').forEach((el,i) => el.classList.toggle('selected', i===0));
+  document.querySelectorAll('[data-diet]').forEach((el,i) => el.classList.toggle('selected', i===0));
   obActivityMult = 1.2;
   obGoalAdj = -300;
+  obDietType = 'standard';
   document.getElementById('onboarding-backdrop').classList.add('open');
 }
 
@@ -4912,6 +4972,7 @@ function obNext(step) {
   // Update progress dots
   document.getElementById('ob-dot-' + (step + 1)).classList.add('done');
   if (step === 2) obUpdatePreview();
+  if (step === 3) obUpdateDietPreview();
 }
 
 function obPrev(step) {
@@ -4962,10 +5023,10 @@ function obCalc() {
   const bmr = 10 * w + 6.25 * h - 5 * a + (obSex === 'female' ? -161 : 5);
   const tdee = bmr * obActivityMult;
   const kcal = Math.round(tdee + obGoalAdj);
-  const protein = Math.round(1.8 * w);
-  const fat = Math.round(0.8 * w);
-  const carbsKcal = kcal - protein * 4 - fat * 9;
-  const carbs = Math.max(0, Math.round(carbsKcal / 4));
+  const d = OB_DIETS[obDietType] || OB_DIETS.standard;
+  const protein = Math.round(kcal * d.p / 4);
+  const fat     = Math.round(kcal * d.f / 9);
+  const carbs   = Math.max(0, Math.round(kcal * d.c / 4));
   const fibre = 30;
   return { kcal, protein, carbs, fat, fibre, weight: w, bmr: Math.round(bmr), tdee: Math.round(tdee) };
 }
