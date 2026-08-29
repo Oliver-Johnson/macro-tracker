@@ -894,17 +894,17 @@
       <div class="field-row">
         <div class="field">
           <label>Protein (g)</label>
-          <input type="number" id="set-protein" placeholder="140" oninput="recalcKcal()">
+          <input type="number" id="set-protein" placeholder="50" oninput="recalcKcal()">
         </div>
         <div class="field">
           <label>Carbs (g)</label>
-          <input type="number" id="set-carbs" placeholder="240" oninput="recalcKcal()">
+          <input type="number" id="set-carbs" placeholder="260" oninput="recalcKcal()">
         </div>
       </div>
       <div class="field-row">
         <div class="field">
           <label>Fat (g)</label>
-          <input type="number" id="set-fat" placeholder="65" oninput="recalcKcal()">
+          <input type="number" id="set-fat" placeholder="70" oninput="recalcKcal()">
         </div>
         <div class="field">
           <label>Fibre (g)</label>
@@ -1072,7 +1072,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.10</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.11</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1887,7 +1887,7 @@ function populateDisplayPrefToggles() {
 }
 
 function getSettings() {
-  return LS.get('mt_settings', { kcal: 2350, protein: 140, fat: 65, carbs: 240, fibre: 30 });
+  return LS.get('mt_settings', { kcal: 2000, protein: 50, fat: 70, carbs: 260, fibre: 30 });
 }
 function getLogs() { return LS.get('mt_logs', []); }
 function getRecipes() { return LS.get('mt_recipes', []); }
@@ -1902,29 +1902,6 @@ function getTargetsForDate(dateKey) {
   return t;
 }
 
-const HISTORICAL_TARGETS = {
-  "2026-04-23": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-04-24": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-04-25": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-04-26": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-04-29": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-04": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-06": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-12": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-16": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-17": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-18": {protein:160,carbs:300,fat:65,kcal:2750},
-  "2026-05-19": {protein:180,carbs:330,fat:70,kcal:2900}
-};
-
-function migrateHistoricalTargets() {
-  const daily = getDailyTargets();
-  let changed = false;
-  for (const [date, tgt] of Object.entries(HISTORICAL_TARGETS)) {
-    if (!daily[date]) { daily[date] = tgt; changed = true; }
-  }
-  if (changed) LS.set('mt_daily_targets', daily);
-}
 
 function openEditTargets() {
   const t = getTargetsForDate(viewingDate);
@@ -3838,7 +3815,6 @@ const TOUR_COMPLETE_KEY = 'mt_tour_complete';
 const TOUR_DEMO_KEY = 'mt_tour_demo_active';
 
 deduplicateLogs();
-migrateHistoricalTargets();
 recordTodayTargets();
 seedCustomFoods();
 applyDisplayPrefs();
