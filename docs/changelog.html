@@ -234,29 +234,41 @@
       </div>
       <div class="release-body">
         <div class="change-group">
+          <div class="change-group-label">New features</div>
+          <ul class="changes">
+            <li>Dark / Light / Auto theme toggle in Settings → Appearance</li>
+            <li>TDEE wizard — biological sex selector (male/female) for accurate BMR calculation</li>
+            <li>TDEE wizard — new diet style step: Standard, High Protein, Carb Heavy, Low Carb, Keto with live macro preview</li>
+            <li>Onboarding tour now navigates to the relevant page for each step (Today, Log Food, Recipes, Trends, Fasting)</li>
+            <li>Tour — three new Log Food steps: search, barcode scanner (explains auto-save to Saved Foods), Saved Foods list</li>
+            <li>Tour — final step prompts PWA install (native button on Android/Chrome, Share instructions on iOS, unsupported-browser message otherwise)</li>
+            <li>Settings — "Take the tour again" button</li>
+            <li>Changelog page at <a href="changelog.html">macrolog.co.uk/docs/changelog.html</a></li>
+            <li>Docs — "What's New" section and "Supported Browsers" table with install support matrix</li>
+          </ul>
+        </div>
+        <div class="change-group">
           <div class="change-group-label">Bug fixes</div>
           <ul class="changes">
-            <li>Fixed a hidden startup crash where tour constants were declared after the init block, silently breaking the Trends chart (and any feature relying on variables declared after line 3844) for all users</li>
-            <li>Fixed Trends chart showing "Chart error" — root cause was the startup crash preventing <code>trendsRange</code> from initialising</li>
-            <li>Fixed Ko-fi X button not dismissing on mobile (enlarged tap target, CSS class approach)</li>
-            <li>Fixed data export generating corrupt <code>dailyTargets: null</code> when localStorage held a null value</li>
-            <li>Import now validates all collection types before writing to localStorage (prevents null/wrong-type values causing future crashes)</li>
-            <li><code>getDailyTargets()</code> hardened to always return a plain object, never null</li>
+            <li>Fixed startup crash (TDZ) silently breaking the Trends chart and corrupting data exports for all users</li>
+            <li>Fixed Ko-fi X button not dismissing on mobile</li>
+            <li>Fixed data export generating <code>dailyTargets: null</code>; import now validates all fields before writing</li>
+            <li>Tour retake no longer injects demo data over existing user data</li>
+            <li>Tour finish no longer deletes real food/weight/water logs when no demo data was injected</li>
+            <li>Tour data backed up and auto-restored on startup if an abandoned tour session is detected</li>
+            <li>Removed personal historical macro targets that were being injected into every new user's history</li>
           </ul>
         </div>
         <div class="change-group">
           <div class="change-group-label">Improvements</div>
           <ul class="changes">
-            <li>Ko-fi support card now session-only — dismisses until next app open instead of permanently</li>
-            <li>Settings page reordered: Docs &amp; FAQ → Appearance → Data → Support Me → Developer Mode</li>
+            <li>Default macro targets changed to standard reference values (2500 kcal for male audience)</li>
+            <li>Ko-fi support card is session-only — reappears each time the app is opened</li>
+            <li>Settings reordered: Docs &amp; FAQ → Take Tour → Appearance → Data → Support Me → Developer Mode</li>
             <li>"Admin Mode" renamed to "Developer Mode"</li>
-            <li>Trends chart error message now shows the actual exception for easier debugging</li>
-          </ul>
-        </div>
-        <div class="change-group">
-          <div class="change-group-label">Developer</div>
-          <ul class="changes">
-            <li>GitHub Actions CI workflow added (JS syntax check, required files, version consistency, manifest validation)</li>
+            <li>PWA install prompt is browser/platform-aware — recommends Chrome/Opera/Samsung on mobile, Chrome/Edge on desktop</li>
+            <li>README updated to point to macrolog.co.uk; self-hosting instructions removed</li>
+            <li>GitHub Actions CI workflow added</li>
           </ul>
         </div>
       </div>

@@ -382,14 +382,16 @@
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-08-29 — Stability &amp; Polish</span>
+            <span style="font-weight:700;font-size:15px;">v2026-08-29 — Setup &amp; Onboarding Overhaul</span>
             <span style="font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 10px;">Latest</span>
           </div>
           <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li>Fixed a hidden startup crash (tour constants in wrong scope) that was silently breaking the Trends chart for all users</li>
-            <li>Ko-fi support card now session-only — dismisses until next app open</li>
-            <li>Settings page reordered: Docs → Appearance → Data → Support Me → Developer Mode</li>
-            <li>Ko-fi X button tap target enlarged and made bulletproof</li>
+            <li>Dark / Light / Auto theme toggle in Settings → Appearance</li>
+            <li>TDEE wizard now asks for biological sex and diet style (Standard, High Protein, Carb Heavy, Low Carb, Keto)</li>
+            <li>Onboarding tour navigates to each section — Log Food, Recipes, Trends, Fasting — as it describes them</li>
+            <li>Tour includes a PWA install step with browser-specific guidance</li>
+            <li>Several data-safety bug fixes in the tour (retaking the tour no longer risks overwriting real data)</li>
+            <li>Changelog and Supported Browsers docs pages added</li>
           </ul>
         </div>
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
