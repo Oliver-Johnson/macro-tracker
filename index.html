@@ -894,17 +894,17 @@
       <div class="field-row">
         <div class="field">
           <label>Protein (g)</label>
-          <input type="number" id="set-protein" placeholder="50" oninput="recalcKcal()">
+          <input type="number" id="set-protein" placeholder="60" oninput="recalcKcal()">
         </div>
         <div class="field">
           <label>Carbs (g)</label>
-          <input type="number" id="set-carbs" placeholder="260" oninput="recalcKcal()">
+          <input type="number" id="set-carbs" placeholder="310" oninput="recalcKcal()">
         </div>
       </div>
       <div class="field-row">
         <div class="field">
           <label>Fat (g)</label>
-          <input type="number" id="set-fat" placeholder="70" oninput="recalcKcal()">
+          <input type="number" id="set-fat" placeholder="85" oninput="recalcKcal()">
         </div>
         <div class="field">
           <label>Fibre (g)</label>
@@ -1072,7 +1072,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.11</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.12</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1292,6 +1292,13 @@
     <div class="onboarding-step active" id="ob-step-1">
       <div class="onboarding-title">Welcome!</div>
       <div class="onboarding-sub">Let's calculate your daily targets. First, a few body stats.</div>
+      <div class="field">
+        <label>Biological sex <span style="font-size:11px;font-weight:400;color:var(--muted);">(used for BMR calculation)</span></label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button id="ob-sex-male" class="btn btn-primary" style="flex:1;" onclick="obSetSex('male')">Male</button>
+          <button id="ob-sex-female" class="btn btn-secondary" style="flex:1;" onclick="obSetSex('female')">Female</button>
+        </div>
+      </div>
       <div class="field"><label>Weight (kg)</label><input type="number" id="ob-weight" placeholder="e.g. 80" min="30" max="300" step="0.1"></div>
       <div class="field"><label>Height (cm)</label><input type="number" id="ob-height" placeholder="e.g. 178" min="100" max="250" step="1"></div>
       <div class="field"><label>Age</label><input type="number" id="ob-age" placeholder="e.g. 25" min="10" max="100" step="1"></div>
@@ -1887,7 +1894,7 @@ function populateDisplayPrefToggles() {
 }
 
 function getSettings() {
-  return LS.get('mt_settings', { kcal: 2000, protein: 50, fat: 70, carbs: 260, fibre: 30 });
+  return LS.get('mt_settings', { kcal: 2500, protein: 60, fat: 85, carbs: 310, fibre: 30 });
 }
 function getLogs() { return LS.get('mt_logs', []); }
 function getRecipes() { return LS.get('mt_recipes', []); }
@@ -4850,6 +4857,13 @@ function renderTrendsSummary(data) {
 // ═══════════════════════════════════════════════════
 let obActivityMult = 1.2;
 let obGoalAdj = -300;
+let obSex = 'male';
+
+function obSetSex(sex) {
+  obSex = sex;
+  document.getElementById('ob-sex-male').className   = sex === 'male'   ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('ob-sex-female').className = sex === 'female' ? 'btn btn-primary' : 'btn btn-secondary';
+}
 
 function checkOnboarding() {
   // For existing users who already have targets, no TDEE wizard needed
@@ -4945,7 +4959,7 @@ function obCalc() {
   const w = parseFloat(document.getElementById('ob-weight').value) || 80;
   const h = parseFloat(document.getElementById('ob-height').value) || 175;
   const a = parseFloat(document.getElementById('ob-age').value) || 25;
-  const bmr = 10 * w + 6.25 * h - 5 * a + 5;
+  const bmr = 10 * w + 6.25 * h - 5 * a + (obSex === 'female' ? -161 : 5);
   const tdee = bmr * obActivityMult;
   const kcal = Math.round(tdee + obGoalAdj);
   const protein = Math.round(1.8 * w);
