@@ -2,8 +2,8 @@
 
 A mobile-first progressive web app (PWA) for tracking daily calories and macronutrients. No account, no backend, no app store — install it directly from the browser.
 
-**Live app:** https://oliver-johnson.github.io/macro-tracker/
-**Docs:** https://oliver-johnson.github.io/macro-tracker/docs/
+**Live app:** https://macrolog.co.uk/
+**Docs:** https://macrolog.co.uk/docs/
 
 ---
 
@@ -28,7 +28,7 @@ Camera access requires HTTPS. GitHub Pages provides this for free.
 
 1. Fork this repo.
 2. In repo Settings → Pages → Source: `main` branch, root folder.
-3. Your app will be live at `https://YOUR_USERNAME.github.io/macro-tracker/`.
+3. Your app will be live at `https://YOUR_USERNAME.github.io/macro-tracker/` (or your custom domain if you configure one).
 4. If the repo name differs from `macro-tracker`, update `start_url` and `scope` in `manifest.json` to match.
 
 ### Running locally
