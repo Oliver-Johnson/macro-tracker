@@ -1,0 +1,60 @@
+name: Bug report
+description: Something calculated wrong, didn't work, or looked broken
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The most useful thing you can give is clear steps
+        to reproduce — what you entered, what you expected, and what actually happened.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected instead
+      placeholder: |
+        I added a food item and the protein total didn't update.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Tap "Add food"
+        3. Search for "chicken breast"
+        4. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: where
+    attributes:
+      label: Which part of the app
+      options:
+        - Food log / diary
+        - Macro totals / targets
+        - Barcode scanner
+        - PWA / offline behaviour
+        - Documentation site
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Safari on iOS 17 / Chrome on Android 14
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots help. Drag images straight into this box.
+    validations:
+      required: false

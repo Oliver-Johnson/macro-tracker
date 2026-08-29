@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How do I set my macro targets?
+    url: https://oliver-johnson.github.io/macro-tracker/docs/
+    about: Guide to setting calorie and macro targets based on your goals.
+  - name: General nutrition questions
+    url: https://oliver-johnson.github.io/macro-tracker/docs/
+    about: How the app calculates macros, serving sizes, and daily totals.

@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest something the app should be able to do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to track or do?
+      description: >
+        The real use case usually matters more than the feature itself. Describing
+        what you are trying to achieve and why the current app falls short often
+        leads somewhere better than the feature as first imagined.
+      placeholder: |
+        I eat the same meals most days and re-entering them manually is slow.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you have in mind
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Worth knowing before suggesting
+      options:
+        - label: >
+            I understand everything runs in the browser with no server, so features
+            needing accounts, cloud storage, or third-party APIs are likely out of scope.
+          required: true
+        - label: >
+            I understand the app is intentionally a single self-contained file with no
+            build step or external dependencies.
+          required: true
