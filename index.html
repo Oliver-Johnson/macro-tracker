@@ -556,11 +556,13 @@
   .kofi-mobile-card .kofi-mc-link:hover { text-decoration: underline; }
   .kofi-mobile-card .kofi-mc-close {
     background: none; border: none; color: var(--muted);
-    font-size: 16px; cursor: pointer; padding: 2px 4px; flex-shrink: 0;
+    font-size: 20px; cursor: pointer; padding: 6px 10px; flex-shrink: 0; line-height: 1;
+    min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;
   }
   @media (max-width: 767px) {
     .kofi-mobile-card { display: flex; }
   }
+  .kofi-dismissed { display: none !important; }
 </style>
 </head>
 <body>
@@ -1058,7 +1060,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.14</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.1</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1891,7 +1893,7 @@ function getLogs() { return LS.get('mt_logs', []); }
 function getRecipes() { return LS.get('mt_recipes', []); }
 function getCustomFoods() { return LS.get('mt_custom_foods', []); }
 function getBarcodeCache() { return LS.get('mt_barcode_cache', {}); }
-function getDailyTargets() { return LS.get('mt_daily_targets', {}); }
+function getDailyTargets() { const v = LS.get('mt_daily_targets', {}); return (v && typeof v === 'object' && !Array.isArray(v)) ? v : {}; }
 
 function getTargetsForDate(dateKey) {
   const daily = getDailyTargets();
@@ -4802,7 +4804,7 @@ function renderTrends() {
   } catch(e) {
     console.error('renderTrends error:', e);
     const summaryEl = document.getElementById('trends-summary');
-    if (summaryEl) summaryEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Chart error — check console.</div>';
+    if (summaryEl) summaryEl.innerHTML = `<div style="color:var(--muted);font-size:12px;">Chart error: ${e && e.message ? e.message : e}</div>`;
   }
 }
 
@@ -5495,8 +5497,8 @@ function dismissKofi() {
   localStorage.setItem(KOFI_DISMISSED_KEY, '1');
   const overlay = document.getElementById('kofi-overlay');
   const mobileCard = document.getElementById('kofi-mobile-card');
-  if (overlay) overlay.style.display = 'none';
-  if (mobileCard) mobileCard.style.display = 'none';
+  if (overlay) { overlay.style.display = 'none'; overlay.classList.add('kofi-dismissed'); }
+  if (mobileCard) { mobileCard.style.display = 'none'; mobileCard.classList.add('kofi-dismissed'); }
   document.body.classList.remove('kofi-on');
 }
 
@@ -5504,12 +5506,10 @@ function dismissKofi() {
   const overlay = document.getElementById('kofi-overlay');
   const mobileCard = document.getElementById('kofi-mobile-card');
   if (localStorage.getItem(KOFI_DISMISSED_KEY)) {
-    // Hide both regardless of CSS media queries
-    if (overlay) overlay.style.display = 'none';
-    if (mobileCard) mobileCard.style.display = 'none';
+    if (overlay) { overlay.style.display = 'none'; overlay.classList.add('kofi-dismissed'); }
+    if (mobileCard) { mobileCard.style.display = 'none'; mobileCard.classList.add('kofi-dismissed'); }
     return;
   }
-  // Desktop: CSS already shows overlay at >=768px; add body class
   if (window.innerWidth >= 768) {
     document.body.classList.add('kofi-on');
   }
