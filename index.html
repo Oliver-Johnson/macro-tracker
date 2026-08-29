@@ -1060,7 +1060,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.1</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.2</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -3379,12 +3379,12 @@ function importData() {
         if (data.recipes !== undefined)      LS.set('mt_recipes', data.recipes);
         if (data.customFoods !== undefined)  LS.set('mt_custom_foods', data.customFoods);
         if (data.settings !== undefined)     LS.set('mt_settings', data.settings);
-        if (data.dailyTargets !== undefined) LS.set('mt_daily_targets', data.dailyTargets);
-        if (data.weightLog !== undefined)    LS.set('mt_weight_log', data.weightLog);
-        if (data.waterLog !== undefined)     LS.set('mt_water_log', data.waterLog);
-        if (data.exerciseLog !== undefined)  LS.set('mt_exercise_log', data.exerciseLog);
-        if (data.ifSettings !== undefined)   LS.set('mt_if_settings', data.ifSettings);
-        if (data.ifLog !== undefined)        LS.set('mt_if_log', data.ifLog);
+        if (data.dailyTargets && typeof data.dailyTargets === 'object') LS.set('mt_daily_targets', data.dailyTargets);
+        if (Array.isArray(data.weightLog))   LS.set('mt_weight_log', data.weightLog);
+        if (data.waterLog && typeof data.waterLog === 'object') LS.set('mt_water_log', data.waterLog);
+        if (Array.isArray(data.exerciseLog)) LS.set('mt_exercise_log', data.exerciseLog);
+        if (data.ifSettings && typeof data.ifSettings === 'object') LS.set('mt_if_settings', data.ifSettings);
+        if (Array.isArray(data.ifLog))       LS.set('mt_if_log', data.ifLog);
         if (data.displayPrefs !== undefined) {
           const dp = Object.assign({}, data.displayPrefs);
           delete dp.adminMode; // never import adminMode — it defaults to false
