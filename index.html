@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later. Copyright (C) 2026 Oliver Johnson -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -711,8 +712,8 @@
         Point camera at a barcode
       </div>
       <div style="display:flex;gap:8px;box-sizing:border-box;max-width:100%;">
-        <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1;min-width:0;">Stop Camera</button>
-        <button class="btn btn-secondary" onclick="flipCamera()" style="flex:0 0 44px;width:44px;height:44px;padding:0;min-width:0;" title="Flip camera">⟳</button>
+        <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1;min-width:0;height:48px;padding:0;display:flex;align-items:center;justify-content:center;">Stop Camera</button>
+        <button class="btn btn-secondary" onclick="flipCamera()" style="flex:1;min-width:0;height:48px;padding:0;display:flex;align-items:center;justify-content:center;" title="Flip camera">⟳</button>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px;box-sizing:border-box;max-width:100%;">
         <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1;min-width:0;">📷 Scan Label</button>
@@ -938,19 +939,7 @@
       </div>
       <div id="appearance-body" style="display:none;">
 
-      <div class="settings-section-title">Admin Mode</div>
-      <div class="toggle-row">
-        <div>
-          <div class="toggle-label">Admin Mode</div>
-          <div class="toggle-label-sub">Show sync controls and server settings</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="pref-admin-mode" onchange="saveDisplayPrefs()">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-
-      <div class="settings-section-title" style="margin-top:16px;">Navigation Tabs</div>
+      <div class="settings-section-title">Navigation Tabs</div>
       <div class="toggle-row">
         <div class="toggle-label">Today</div>
         <label class="toggle-switch">
@@ -1069,7 +1058,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.13</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-28.14</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1099,6 +1088,20 @@
       <a href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;text-decoration:none;transition:opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">
         &#9749; Buy me a coffee
       </a>
+    </div>
+
+    <!-- ─── Admin Mode toggle (bottom of settings) ─── -->
+    <div class="card" style="margin-top:8px;">
+      <div class="toggle-row" style="border-bottom:none;">
+        <div>
+          <div class="toggle-label">Admin Mode</div>
+          <div class="toggle-label-sub">Show sync controls and server settings</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-admin-mode" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
     </div>
   </div>
 
@@ -3296,6 +3299,7 @@ function renderSettings() {
   document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
   populateDisplayPrefToggles();
+  applyDisplayPrefs();
 
   const customs = getCustomFoods();
   const el = document.getElementById('custom-foods-list');
@@ -3379,7 +3383,11 @@ function importData() {
         if (data.exerciseLog !== undefined)  LS.set('mt_exercise_log', data.exerciseLog);
         if (data.ifSettings !== undefined)   LS.set('mt_if_settings', data.ifSettings);
         if (data.ifLog !== undefined)        LS.set('mt_if_log', data.ifLog);
-        if (data.displayPrefs !== undefined) LS.set(DISPLAY_PREFS_KEY, data.displayPrefs);
+        if (data.displayPrefs !== undefined) {
+          const dp = Object.assign({}, data.displayPrefs);
+          delete dp.adminMode; // never import adminMode — it defaults to false
+          LS.set(DISPLAY_PREFS_KEY, dp);
+        }
         toast('Import successful — reloading…');
         setTimeout(() => location.reload(), 800);
       } catch (err) {
@@ -4215,6 +4223,7 @@ function renderHistoryScreen() {
 }
 
 function renderHistChart() {
+  try {
   const data = getHistData();
   const svg = document.getElementById('hist-chart-svg');
   const legend = document.getElementById('hist-legend');
@@ -4330,6 +4339,11 @@ function renderHistChart() {
     out += `<text x="${W-PR-2}" y="${(parseFloat(ty)-3).toFixed(1)}" text-anchor="end" font-size="8" fill="#6c63ff" opacity="0.85">100%</text>`;
   }
 
+  // No-data overlay
+  if (!data.some(d => d.hasData)) {
+    out += `<text x="${(PL + (W-PR))/2}" y="${PT + chartH/2}" text-anchor="middle" dominant-baseline="middle" font-size="13" fill="#7070a0">No data logged for this period</text>`;
+  }
+
   svg.innerHTML = out;
 
   // Legend
@@ -4362,6 +4376,9 @@ function renderHistChart() {
       document.getElementById('hist-tooltip').style.display = 'none';
     }
   });
+  } catch(e) {
+    console.error('renderHistChart error:', e);
+  }
 }
 
 function showHistTooltip(d, e) {
@@ -4582,6 +4599,7 @@ function getTrendsData() {
 }
 
 function renderTrends() {
+  try {
   const data = getTrendsData();
   const svg = document.getElementById('trends-svg');
   if (!svg) return;
@@ -4729,6 +4747,12 @@ function renderTrends() {
     out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 20 ? 7 : 8.5}" fill="#7070a0" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
   });
 
+  // No-data message overlay
+  const hasAnyData = data.some(d => d.kcal != null && d.kcal > 0) || data.some(d => d.weight != null);
+  if (!hasAnyData) {
+    out += `<text x="${W/2}" y="${PT + chartH/2}" text-anchor="middle" dominant-baseline="middle" font-size="13" fill="#7070a0">No data for this period — try a wider range</text>`;
+  }
+
   svg.innerHTML = out;
 
   // Tooltip on hover
@@ -4775,6 +4799,11 @@ function renderTrends() {
 
   // Summary row
   renderTrendsSummary(data);
+  } catch(e) {
+    console.error('renderTrends error:', e);
+    const summaryEl = document.getElementById('trends-summary');
+    if (summaryEl) summaryEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">Chart error — check console.</div>';
+  }
 }
 
 function renderTrendsSummary(data) {

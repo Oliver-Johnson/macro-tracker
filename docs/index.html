@@ -356,7 +356,7 @@
         <p>Nutrition PWA</p>
       </div>
     </div>
-    <a class="header-cta" href="https://oliver-johnson.github.io/macro-tracker/">
+    <a class="header-cta" href="https://macrolog.co.uk/">
       Open App &rarr;
     </a>
   </header>
@@ -370,7 +370,7 @@
       <span class="badge">Installs on iPhone &amp; Android</span>
       <span class="badge">Free &amp; open source</span>
     </div>
-    <a class="hero-cta" href="https://oliver-johnson.github.io/macro-tracker/">
+    <a class="hero-cta" href="https://macrolog.co.uk/">
       Launch Macro Tracker
     </a>
   </div>
@@ -443,7 +443,7 @@
           <div class="step-number">1</div>
           <div>
             <h3>Open the app</h3>
-            <p>Visit <a href="https://oliver-johnson.github.io/macro-tracker/">oliver-johnson.github.io/macro-tracker</a> in Safari (iOS) or Chrome (Android). Camera access requires HTTPS — GitHub Pages provides this automatically.</p>
+            <p>Visit <a href="https://macrolog.co.uk/">macrolog.co.uk</a> in Safari (iOS) or Chrome (Android). Camera access requires HTTPS — macrolog.co.uk serves over HTTPS automatically.</p>
           </div>
         </div>
         <div class="step">
@@ -478,34 +478,6 @@
     </section>
 
     <section>
-      <h2 class="section-title">Self-hosting</h2>
-      <p style="color: var(--muted); margin-bottom: 20px;">No backend required. It's a fully static PWA — just serve the files over HTTPS.</p>
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div>
-            <h3>Fork the repository</h3>
-            <p>Fork <a href="https://github.com/oliver-johnson/macro-tracker">github.com/oliver-johnson/macro-tracker</a> to your own GitHub account.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div>
-            <h3>Enable GitHub Pages</h3>
-            <p>In your repo settings, go to Pages and set the source branch to <code>main</code>, root folder. GitHub will publish it at <code>https://YOUR_USERNAME.github.io/macro-tracker/</code>.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div>
-            <h3>Update start_url in manifest.json</h3>
-            <p>Edit <code>manifest.json</code> and update <code>start_url</code> and <code>scope</code> to match your new GitHub Pages path if the repo name is different.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section>
       <h2 class="section-title">Tech stack</h2>
       <div class="tech-list">
         <span class="tech-tag">Vanilla HTML/CSS/JS</span>
@@ -515,7 +487,7 @@
         <span class="tech-tag">Web App Manifest</span>
         <span class="tech-tag">Open Food Facts API</span>
         <span class="tech-tag">Camera / MediaDevices API</span>
-        <span class="tech-tag">GitHub Pages</span>
+        <span class="tech-tag">Cloudflare / Custom domain</span>
       </div>
       <p style="margin-top: 16px; font-size: 14px; color: var(--muted);">Zero npm dependencies. No build step. The entire app ships as a single <code>index.html</code> file plus a service worker — fast to load, easy to audit.</p>
     </section>
@@ -536,11 +508,12 @@
 
   <footer>
     <p style="margin-bottom: 8px;">
-      <a href="https://oliver-johnson.github.io/macro-tracker/">Open Macro Tracker</a>
+      <a href="https://macrolog.co.uk/">Open Macro Tracker</a>
       &nbsp;&middot;&nbsp;
       <a href="https://github.com/oliver-johnson/macro-tracker">GitHub</a>
     </p>
     <p>Nutrition data provided by <a href="https://world.openfoodfacts.org/">Open Food Facts</a> (CC BY-SA). No warranties expressed or implied.</p>
+    <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">Macro Tracker is free software licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General Public License v3</a> (or later). Copyright &copy; 2026 Oliver Johnson.</p>
   </footer>
 
 </body>
