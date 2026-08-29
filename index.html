@@ -702,6 +702,15 @@
       <div id="weight-chart-body" class="weight-chart"></div>
     </div>
 
+    <!-- AI daily summary card -->
+    <div class="card" id="today-ai-card" data-section="today-ai-summary" style="margin-top:0;display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="card-title" style="margin-bottom:0;">✨ AI Daily Summary</div>
+        <button id="ai-daily-btn" class="btn btn-secondary btn-sm" onclick="generateDailySummary()">Generate</button>
+      </div>
+      <div id="ai-daily-body" style="font-size:13px;color:var(--muted);">Tap Generate for a personalised review of today's nutrition.</div>
+    </div>
+
     <!-- Ko-fi mobile inline card -->
     <div class="kofi-mobile-card" id="kofi-mobile-card">
       <div class="kofi-mc-icon">&#9749;</div>
@@ -721,6 +730,7 @@
       <button class="tab" onclick="switchLogTab('search', this)">🔍 Search</button>
       <button class="tab" onclick="switchLogTab('manual', this)">✏️ Manual</button>
       <button class="tab" onclick="switchLogTab('quickadd', this)">⚡ Quick</button>
+      <button class="tab" id="tab-ai-btn" onclick="switchLogTab('ai', this)">✨ Describe</button>
     </div>
 
     <!-- Scan -->
@@ -890,6 +900,52 @@
       </div>
       <button class="btn btn-primary" onclick="confirmQuickAdd()">Add to Log</button>
     </div>
+
+    <!-- AI Describe -->
+    <div id="log-ai" class="log-tab" style="display:none;">
+      <div style="margin-bottom:10px;">
+        <textarea id="ai-describe-input" placeholder="Describe your meal, e.g. 'Large bowl of chicken fried rice with egg, about 400g'" style="width:100%;box-sizing:border-box;height:100px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px;resize:vertical;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="aiEstimateMeal()" style="width:100%;" id="ai-estimate-btn">✨ Estimate</button>
+      <div id="ai-results" style="display:none;margin-top:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:600;">Review &amp; Edit</div>
+          <span id="ai-confidence-badge" style="font-size:11px;padding:2px 9px;border-radius:12px;background:var(--bg2);border:1px solid var(--border);"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;font-weight:600;color:var(--text);">Food Name</label>
+            <input type="text" id="ai-res-name" style="width:180px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;color:var(--muted);">Est. weight (g)</label>
+            <input type="number" id="ai-res-weight" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;font-weight:600;color:var(--text);">Calories (kcal)</label>
+            <input type="number" id="ai-res-kcal" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;font-weight:600;color:var(--text);">Protein (g)</label>
+            <input type="number" id="ai-res-protein" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;font-weight:600;color:var(--text);">Carbs (g)</label>
+            <input type="number" id="ai-res-carbs" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;font-weight:600;color:var(--text);">Fat (g)</label>
+            <input type="number" id="ai-res-fat" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <label style="font-size:14px;color:var(--muted);">Fibre (g)</label>
+            <input type="number" id="ai-res-fibre" style="width:80px;text-align:right;background:transparent;border:none;outline:none;font-size:14px;color:var(--text);-moz-appearance:textfield;appearance:textfield;">
+          </div>
+        </div>
+        <div id="ai-assumptions" style="font-size:12px;color:var(--muted);margin-top:10px;padding:8px 10px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="aiAddToLog()">Add to Log</button>
+      </div>
+    </div>
   </div>
 
   <!-- ═══ RECIPES VIEW ═══ -->
@@ -945,6 +1001,34 @@
         <input type="password" id="set-sync-key" placeholder="API key (optional)" style="margin-top:6px;">
       </div>
       <button class="btn btn-primary" onclick="saveSyncSettings()">Save</button>
+    </div>
+    <div class="card" id="settings-ai-card" style="margin-top:8px;display:none;">
+      <div class="card-title">AI Features</div>
+      <div class="toggle-row" style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px;">
+        <div class="toggle-label">Enable AI</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="set-ai-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="field">
+        <label>Provider</label>
+        <select id="set-ai-provider" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:14px;">
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="gemini">Gemini (Google)</option>
+          <option value="openai">OpenAI</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input type="password" id="set-ai-key" placeholder="sk-... or similar" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Model override <span style="color:var(--muted);font-size:11px;">(optional)</span></label>
+        <input type="text" id="set-ai-model" placeholder="Leave blank for default">
+      </div>
+      <button class="btn btn-primary" onclick="saveAISettings()">Save</button>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5;">⚠ Your API key is stored on this device and sent directly to the provider from your browser.</div>
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title" onclick="toggleSavedFoods()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
@@ -1094,6 +1178,13 @@
           <span class="toggle-track"></span>
         </label>
       </div>
+      <div class="toggle-row" id="pref-ai-summary-row" style="display:none;">
+        <div class="toggle-label">AI Daily Summary</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pref-sec-today-ai-summary" onchange="saveDisplayPrefs()">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
 
       </div><!-- end #appearance-body -->
     </div>
@@ -1105,7 +1196,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.22</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.23</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1178,6 +1269,15 @@
       <div id="trends-summary" style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
         <div style="color:var(--muted);font-size:12px;">Loading…</div>
       </div>
+    </div>
+
+    <!-- AI weekly review card -->
+    <div class="card" id="trends-ai-card" style="margin-top:10px;display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="card-title" style="margin-bottom:0;">✨ AI Weekly Review</div>
+        <button id="ai-weekly-btn" class="btn btn-secondary btn-sm" onclick="generateWeeklySummary()">Generate</button>
+      </div>
+      <div id="ai-weekly-body" style="font-size:13px;color:var(--muted);">Tap Generate for an AI-powered analysis of your week.</div>
     </div>
   </div>
 
@@ -1877,6 +1977,17 @@ function applyDisplayPrefs() {
   if (settingsSyncCard) settingsSyncCard.style.display = prefs.adminMode ? '' : 'none';
   if (settingsSyncToServerBtn) settingsSyncToServerBtn.style.display = prefs.adminMode ? '' : 'none';
 
+  // ── AI: settings card + describe tab + summary pref row + trends card
+  const aiSettingsCard = document.getElementById('settings-ai-card');
+  const aiTabBtn = document.getElementById('tab-ai-btn');
+  const aiPrefRow = document.getElementById('pref-ai-summary-row');
+  const trendAiCard = document.getElementById('trends-ai-card');
+  const aiEnabled = prefs.adminMode;
+  if (aiSettingsCard) aiSettingsCard.style.display = aiEnabled ? '' : 'none';
+  if (aiTabBtn) aiTabBtn.style.display = aiEnabled ? '' : 'none';
+  if (aiPrefRow) aiPrefRow.style.display = aiEnabled ? '' : 'none';
+  if (trendAiCard) trendAiCard.style.display = (aiEnabled && isAIEnabled()) ? '' : 'none';
+
   // ── Tab visibility (never hide Settings tab so user can always get back)
   const navBtns = document.querySelectorAll('nav button');
   const tabMap = ['today', 'log', 'recipes', 'settings', 'trends', 'fasting'];
@@ -1925,7 +2036,8 @@ function saveDisplayPrefs() {
   const secIds = [
     'today-stat-chips', 'today-macro-card', 'today-meal-breakdown',
     'today-streak-weight', 'today-food-log', 'today-water',
-    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart'
+    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart',
+    'today-ai-summary'
   ];
   secIds.forEach(s => {
     const el = document.getElementById('pref-sec-' + s);
@@ -1951,7 +2063,8 @@ function populateDisplayPrefToggles() {
   const secIds = [
     'today-stat-chips', 'today-macro-card', 'today-meal-breakdown',
     'today-streak-weight', 'today-food-log', 'today-water',
-    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart'
+    'today-exercise', 'today-notes', 'today-weekly-summary', 'today-weight-chart',
+    'today-ai-summary'
   ];
   secIds.forEach(s => {
     const el = document.getElementById('pref-sec-' + s);
@@ -2227,6 +2340,17 @@ function renderToday() {
       <div class="week-cell"><div class="week-val" style="color:var(--fat);">${ws.fat}g</div><div class="week-lbl">fat</div></div>
     </div>`;
   } else if (wsBody) wsBody.innerHTML = '<div style="color:var(--muted);font-size:13px;">Log at least one day to see averages</div>';
+
+  // AI daily summary card
+  const aiCard = document.getElementById('today-ai-card');
+  if (aiCard) {
+    const prefs = getDisplayPrefs();
+    const showAI = prefs.adminMode && isAIEnabled() && prefs.sections['today-ai-summary'] !== false;
+    if (!aiCard.hasAttribute('data-pref-hidden')) {
+      aiCard.style.display = showAI ? '' : 'none';
+    }
+    if (showAI) renderAIDailySummary(viewingDate);
+  }
 
   // Feature 2, 5, exercise, fasting
   renderWaterCard();
@@ -3351,6 +3475,15 @@ function renderSettings() {
   document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
   document.getElementById('set-sync-key').value = localStorage.getItem('syncApiKey') || '';
+  const aiCfg = LS.get('mt_ai_settings', {});
+  const aiEnabledEl = document.getElementById('set-ai-enabled');
+  const aiProviderEl = document.getElementById('set-ai-provider');
+  const aiKeyEl = document.getElementById('set-ai-key');
+  const aiModelEl = document.getElementById('set-ai-model');
+  if (aiEnabledEl) aiEnabledEl.checked = !!aiCfg.enabled;
+  if (aiProviderEl) aiProviderEl.value = aiCfg.provider || 'claude';
+  if (aiKeyEl) aiKeyEl.value = aiCfg.key || '';
+  if (aiModelEl) aiModelEl.value = aiCfg.model || '';
   populateDisplayPrefToggles();
   applyDisplayPrefs();
 
@@ -3473,6 +3606,329 @@ function saveSyncSettings() {
   if (url) { localStorage.setItem('syncServerUrl', url); } else { localStorage.removeItem('syncServerUrl'); }
   if (key) { localStorage.setItem('syncApiKey', key); } else { localStorage.removeItem('syncApiKey'); }
   toast(url ? 'Sync settings saved!' : 'Sync URL cleared — sync disabled');
+}
+
+// ═══════════════════════════════════════════════════
+//  AI FEATURES
+// ═══════════════════════════════════════════════════
+
+function isAIEnabled() {
+  return !!(LS.get('mt_ai_settings', {}).enabled);
+}
+
+function getAIProvider() {
+  return LS.get('mt_ai_settings', {}).provider || 'claude';
+}
+
+function getAIKey() {
+  return LS.get('mt_ai_settings', {}).key || '';
+}
+
+function getAIModel() {
+  return LS.get('mt_ai_settings', {}).model || '';
+}
+
+function saveAISettings() {
+  const cfg = {
+    enabled: document.getElementById('set-ai-enabled').checked,
+    provider: document.getElementById('set-ai-provider').value,
+    key: document.getElementById('set-ai-key').value.trim(),
+    model: document.getElementById('set-ai-model').value.trim()
+  };
+  LS.set('mt_ai_settings', cfg);
+  applyDisplayPrefs();
+  toast('AI settings saved');
+}
+
+async function aiComplete({ system, userText, imageBase64, imageMime, schema }) {
+  const provider = getAIProvider();
+  const key = getAIKey();
+  const modelOverride = getAIModel();
+
+  if (!key) { toast('AI error — check API key'); return null; }
+
+  try {
+    if (provider === 'claude') {
+      const model = modelOverride || 'claude-sonnet-4-5';
+      const content = [];
+      if (imageBase64 && imageMime) {
+        content.push({ type: 'image', source: { type: 'base64', media_type: imageMime, data: imageBase64 } });
+      }
+      content.push({ type: 'text', text: userText });
+      const body = {
+        model,
+        max_tokens: 1024,
+        system: system + (schema ? '\n\nRespond ONLY with valid JSON matching this schema: ' + JSON.stringify(schema) : ''),
+        messages: [{ role: 'user', content }]
+      };
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify(body)
+      });
+      if (res.status === 401) { toast('AI error — check API key'); return null; }
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const match = text.match(/\{[\s\S]*\}/);
+      return match ? JSON.parse(match[0]) : JSON.parse(text);
+
+    } else if (provider === 'gemini') {
+      const model = modelOverride || 'gemini-2.5-flash';
+      const parts = [];
+      if (imageBase64 && imageMime) {
+        parts.push({ inlineData: { mimeType: imageMime, data: imageBase64 } });
+      }
+      parts.push({ text: userText });
+      const body = {
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts }],
+        generationConfig: { responseMimeType: 'application/json' }
+      };
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+        { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }
+      );
+      if (res.status === 401 || res.status === 400) { toast('AI error — check API key'); return null; }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return JSON.parse(text);
+
+    } else if (provider === 'openai') {
+      const model = modelOverride || 'gpt-4o-mini';
+      const msgs = [{ role: 'system', content: system }];
+      if (imageBase64 && imageMime) {
+        msgs.push({ role: 'user', content: [
+          { type: 'image_url', image_url: { url: `data:${imageMime};base64,${imageBase64}` } },
+          { type: 'text', text: userText }
+        ]});
+      } else {
+        msgs.push({ role: 'user', content: userText });
+      }
+      const body = { model, messages: msgs, response_format: { type: 'json_object' } };
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + key, 'content-type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.status === 401) { toast('AI error — check API key'); return null; }
+      const data = await res.json();
+      return JSON.parse(data.choices?.[0]?.message?.content || '{}');
+    }
+  } catch (e) {
+    console.error('aiComplete error:', e);
+    toast('AI error — ' + (e.message || 'unknown'));
+    return null;
+  }
+}
+
+async function aiEstimateMeal() {
+  const desc = document.getElementById('ai-describe-input').value.trim();
+  if (!desc) { toast('Please describe your meal first'); return; }
+  if (!isAIEnabled()) { toast('Enable AI in Developer Settings first'); return; }
+
+  const btn = document.getElementById('ai-estimate-btn');
+  btn.disabled = true;
+  btn.textContent = '…estimating';
+  document.getElementById('ai-results').style.display = 'none';
+
+  const system = 'You are a nutrition estimator. Given a meal description, estimate total macros for the WHOLE portion described (not per 100g). Prefer UK food composition values. If quantity is vague, assume a typical single serving and state it in assumptions. Never omit fields.';
+  const schema = { name:'string', estimated_weight_g:0, kcal:0, protein_g:0, carbs_g:0, fat_g:0, fibre_g:0, sugar_g:0, confidence:'low|medium|high', assumptions:'string' };
+
+  const result = await aiComplete({ system, userText: desc, schema });
+
+  btn.disabled = false;
+  btn.textContent = '✨ Estimate';
+
+  if (!result) return;
+
+  document.getElementById('ai-res-name').value = result.name || desc;
+  document.getElementById('ai-res-weight').value = result.estimated_weight_g || 0;
+  document.getElementById('ai-res-kcal').value = result.kcal || 0;
+  document.getElementById('ai-res-protein').value = result.protein_g || 0;
+  document.getElementById('ai-res-carbs').value = result.carbs_g || 0;
+  document.getElementById('ai-res-fat').value = result.fat_g || 0;
+  document.getElementById('ai-res-fibre').value = result.fibre_g || 0;
+
+  const conf = result.confidence || 'medium';
+  const badge = document.getElementById('ai-confidence-badge');
+  badge.textContent = conf + ' confidence';
+  badge.style.color = conf === 'high' ? 'var(--protein)' : conf === 'medium' ? 'var(--accent)' : 'var(--muted)';
+
+  const assumpEl = document.getElementById('ai-assumptions');
+  if (result.assumptions) {
+    assumpEl.textContent = '💡 ' + result.assumptions;
+    assumpEl.style.display = '';
+  } else {
+    assumpEl.style.display = 'none';
+  }
+
+  document.getElementById('ai-results').style.display = '';
+}
+
+function aiAddToLog() {
+  const name = document.getElementById('ai-res-name').value || 'AI meal estimate';
+  const weight = parseFloat(document.getElementById('ai-res-weight').value) || 0;
+  const kcal = parseFloat(document.getElementById('ai-res-kcal').value) || 0;
+  const protein = parseFloat(document.getElementById('ai-res-protein').value) || 0;
+  const carbs = parseFloat(document.getElementById('ai-res-carbs').value) || 0;
+  const fat = parseFloat(document.getElementById('ai-res-fat').value) || 0;
+  const fibre = parseFloat(document.getElementById('ai-res-fibre').value) || 0;
+
+  addEntryToLog({
+    id: uid(), name, weight: weight || null, meal: selectedMeal,
+    kcal, protein, carbs, fat, fibre, sugar: 0,
+    sodium: 0, per100kcal: null, per100protein: null, per100carbs: null, per100fat: null,
+    barcode: null, source: 'ai'
+  });
+  renderToday();
+  switchView('today');
+  document.getElementById('ai-describe-input').value = '';
+  document.getElementById('ai-results').style.display = 'none';
+  toast('Added to log!');
+}
+
+function renderAIDailySummary(dateKey) {
+  const cache = LS.get('mt_ai_daily_summary', {});
+  const cached = cache[dateKey];
+  const bodyEl = document.getElementById('ai-daily-body');
+  if (!bodyEl) return;
+  if (cached) {
+    bodyEl.innerHTML = formatAIDailySummary(cached);
+  }
+}
+
+async function generateDailySummary() {
+  if (!isAIEnabled()) { toast('Enable AI in Developer Settings first'); return; }
+  const btn = document.getElementById('ai-daily-btn');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  const day = getDayLog(viewingDate);
+  const totals = sumEntries(day.entries);
+  const s = getTargetsForDate(viewingDate);
+
+  const entryList = day.entries.map(e =>
+    `- ${e.name}: ${Math.round(e.kcal)} kcal, P${r1(e.protein)}g C${r1(e.carbs)}g F${r1(e.fat)}g`
+  ).join('\n');
+
+  const userText = `Date: ${viewingDate}
+Targets: ${s.kcal} kcal, P${s.protein}g C${s.carbs}g F${s.fat}g
+Totals: ${Math.round(totals.kcal)} kcal, P${r1(totals.protein)}g C${r1(totals.carbs)}g F${r1(totals.fat)}g fibre ${r1(totals.fibre)}g
+Foods logged:
+${entryList || '(nothing logged)'}`;
+
+  const system = 'You are a friendly nutrition coach. Analyse the user\'s daily food log and give concise, actionable feedback. Be encouraging but honest. Keep each item brief.';
+  const schema = { headline: 'string', wins: ['string'], improvements: ['string'], focus_tomorrow: 'string' };
+
+  const result = await aiComplete({ system, userText, schema });
+
+  btn.disabled = false;
+  btn.textContent = 'Regenerate';
+
+  if (!result) return;
+
+  const cache = LS.get('mt_ai_daily_summary', {});
+  cache[viewingDate] = result;
+  LS.set('mt_ai_daily_summary', cache);
+
+  const bodyEl = document.getElementById('ai-daily-body');
+  if (bodyEl) bodyEl.innerHTML = formatAIDailySummary(result);
+}
+
+function formatAIDailySummary(r) {
+  let html = `<div style="font-weight:600;margin-bottom:8px;">${esc(r.headline || '')}</div>`;
+  if (r.wins && r.wins.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--protein);margin-bottom:4px;">✓ Wins</div>`;
+    html += r.wins.map(w => `<div style="font-size:13px;margin-bottom:4px;padding-left:8px;">· ${esc(w)}</div>`).join('');
+  }
+  if (r.improvements && r.improvements.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--accent);margin:8px 0 4px;">↑ Improvements</div>`;
+    html += r.improvements.map(i => `<div style="font-size:13px;margin-bottom:4px;padding-left:8px;">· ${esc(i)}</div>`).join('');
+  }
+  if (r.focus_tomorrow) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--muted);margin:8px 0 4px;">Tomorrow</div>`;
+    html += `<div style="font-size:13px;padding-left:8px;">${esc(r.focus_tomorrow)}</div>`;
+  }
+  return html;
+}
+
+async function generateWeeklySummary() {
+  if (!isAIEnabled()) { toast('Enable AI in Developer Settings first'); return; }
+  const btn = document.getElementById('ai-weekly-btn');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  // Get ISO week start (Monday)
+  const now = new Date(viewingDate + 'T00:00:00');
+  const day = now.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() + diff);
+  const weekKey = weekStart.toISOString().slice(0, 10);
+
+  const cache = LS.get('mt_ai_weekly_summary', {});
+  if (cache[weekKey]) {
+    const bodyEl = document.getElementById('ai-weekly-body');
+    if (bodyEl) bodyEl.innerHTML = formatAIWeeklySummary(cache[weekKey]);
+    btn.disabled = false;
+    btn.textContent = 'Regenerate';
+    return;
+  }
+
+  // Build 7-day summary
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    const dk = d.toISOString().slice(0, 10);
+    const log = getDayLog(dk);
+    if (log.entries.length) {
+      const t = sumEntries(log.entries);
+      days.push(`${dk}: ${Math.round(t.kcal)} kcal P${r1(t.protein)}g C${r1(t.carbs)}g F${r1(t.fat)}g`);
+    }
+  }
+
+  if (!days.length) { toast('No data logged this week'); btn.disabled = false; btn.textContent = 'Generate'; return; }
+
+  const s = getTargetsForDate(viewingDate);
+  const userText = `Week starting ${weekKey}\nTargets: ${s.kcal} kcal, P${s.protein}g C${s.carbs}g F${s.fat}g\n\nDaily logs:\n${days.join('\n')}`;
+  const system = 'You are a nutrition coach. Analyse the user\'s weekly food log. Identify patterns, highlight strengths, and give specific, actionable recommendations. Keep each point brief.';
+  const schema = { headline: 'string', patterns: ['string'], recommendations: ['string'], focus_next_week: 'string' };
+
+  const result = await aiComplete({ system, userText, schema });
+
+  btn.disabled = false;
+  btn.textContent = 'Regenerate';
+
+  if (!result) return;
+
+  cache[weekKey] = result;
+  LS.set('mt_ai_weekly_summary', cache);
+
+  const bodyEl = document.getElementById('ai-weekly-body');
+  if (bodyEl) bodyEl.innerHTML = formatAIWeeklySummary(result);
+}
+
+function formatAIWeeklySummary(r) {
+  let html = `<div style="font-weight:600;margin-bottom:8px;">${esc(r.headline || '')}</div>`;
+  if (r.patterns && r.patterns.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px;">Patterns</div>`;
+    html += r.patterns.map(p => `<div style="font-size:13px;margin-bottom:4px;padding-left:8px;">· ${esc(p)}</div>`).join('');
+  }
+  if (r.recommendations && r.recommendations.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--protein);margin:8px 0 4px;">Recommendations</div>`;
+    html += r.recommendations.map(rec => `<div style="font-size:13px;margin-bottom:4px;padding-left:8px;">· ${esc(rec)}</div>`).join('');
+  }
+  if (r.focus_next_week) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--muted);margin:8px 0 4px;">Next week</div>`;
+    html += `<div style="font-size:13px;padding-left:8px;">${esc(r.focus_next_week)}</div>`;
+  }
+  return html;
 }
 
 function syncFoodLog() {
@@ -4908,6 +5364,11 @@ function renderTrends() {
 
   // Summary row
   renderTrendsSummary(data);
+
+  // AI weekly card visibility
+  const prefs = getDisplayPrefs();
+  const trendAiCard = document.getElementById('trends-ai-card');
+  if (trendAiCard) trendAiCard.style.display = (prefs.adminMode && isAIEnabled()) ? '' : 'none';
   } catch(e) {
     console.error('renderTrends error:', e);
     const summaryEl = document.getElementById('trends-summary');
