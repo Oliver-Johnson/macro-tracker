@@ -1077,7 +1077,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.16</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.17</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -1108,6 +1108,10 @@
           <input type="checkbox" id="pref-admin-mode" onchange="saveDisplayPrefs()">
           <span class="toggle-track"></span>
         </label>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <button class="btn btn-secondary" style="width:100%;font-size:13px;" onclick="restoreTourBackup()">🔄 Restore pre-tour backup</button>
+        <div id="restore-result" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center;display:none;"></div>
       </div>
     </div>
   </div>
@@ -5597,18 +5601,35 @@ function isIOSSafari() {
 // Demo data keys that get cleaned up after the tour
 const TOUR_DEMO_DATA_KEYS = ['mt_logs', 'mt_weight_log', 'mt_water_log'];
 
-function hasExistingUserData() {
-  // Don't show first-run tour if user already has logs or settings
-  const logs = LS.get('mt_logs', []);
-  if (logs.length > 0) return true;
-  const wlog = LS.get('mt_weight_log', []);
-  if (wlog.length > 0) return true;
-  return false;
+function restoreTourBackup() {
+  const keys = ['mt_logs', 'mt_weight_log', 'mt_water_log'];
+  const resultEl = document.getElementById('restore-result');
+  resultEl.style.display = 'block';
+  let restored = 0;
+  keys.forEach(k => {
+    const backup = localStorage.getItem('mt_tour_backup_' + k);
+    if (backup) {
+      localStorage.setItem(k, backup);
+      localStorage.removeItem('mt_tour_backup_' + k);
+      restored++;
+    }
+  });
+  localStorage.removeItem(TOUR_DEMO_KEY);
+  if (restored > 0) {
+    resultEl.style.color = 'var(--accent)';
+    resultEl.textContent = '✓ Restored ' + restored + ' data set(s) — reloading…';
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    resultEl.style.color = 'var(--muted)';
+    resultEl.textContent = 'No backup found. Data may have already been restored or was not backed up.';
+  }
 }
 
 function hasExistingUserData() {
   const logs = LS.get('mt_logs', []);
-  return Array.isArray(logs) && logs.length > 0;
+  if (Array.isArray(logs) && logs.length > 0) return true;
+  const wlog = LS.get('mt_weight_log', []);
+  return Array.isArray(wlog) && wlog.length > 0;
 }
 
 function checkFirstRunTour() {
