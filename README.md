@@ -22,26 +22,6 @@ A mobile-first progressive web app (PWA) for tracking daily calories and macronu
 
 ---
 
-## Deploying (GitHub Pages)
-
-Camera access requires HTTPS. GitHub Pages provides this for free.
-
-1. Fork this repo.
-2. In repo Settings → Pages → Source: `main` branch, root folder.
-3. Your app will be live at `https://YOUR_USERNAME.github.io/macro-tracker/` (or your custom domain if you configure one).
-4. If the repo name differs from `macro-tracker`, update `start_url` and `scope` in `manifest.json` to match.
-
-### Running locally
-
-```bash
-python3 -m http.server 8080
-# open http://localhost:8080
-```
-
-> Note: barcode scanning (camera) requires HTTPS and won't work over plain HTTP on mobile.
-
----
-
 ## Installing as a PWA
 
 On **iOS (Safari):** Share → Add to Home Screen.
