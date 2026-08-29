@@ -1,12 +1,12 @@
 # Macrolog — Project Instructions
 
 ## Overview
-Macrolog (macrolog.co.uk) is a publicly used PWA for tracking daily calories and macronutrients. It is no longer a personal project — real users depend on it.
+Macrolog (macroslog.co.uk) is a publicly used PWA for tracking daily calories and macronutrients. It is no longer a personal project — real users depend on it.
 
 ## Documentation (keep in sync)
 - `docs/index.html` — main docs page with What's New section; update on every session
 - `docs/changelog.html` — full reverse-chronological changelog; add an entry for every meaningful change
-- Both pages are live at macrolog.co.uk/docs/
+- Both pages are live at macroslog.co.uk/docs/
 
 **Rule: whenever you commit changes to index.html or sw.js, update the What's New section and changelog before pushing.**
 
@@ -27,4 +27,4 @@ Macrolog (macrolog.co.uk) is a publicly used PWA for tracking daily calories and
 - `docs/index.html` — documentation page
 - `docs/changelog.html` — changelog page
 - `manifest.json` — PWA manifest
-- `CNAME` — custom domain (macrolog.co.uk)
+- `CNAME` — custom domain (macroslog.co.uk)

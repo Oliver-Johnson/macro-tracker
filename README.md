@@ -2,8 +2,8 @@
 
 A mobile-first progressive web app (PWA) for tracking daily calories and macronutrients. No account, no backend, no app store — install it directly from the browser.
 
-**Live app:** https://macrolog.co.uk/
-**Docs:** https://macrolog.co.uk/docs/
+**Live app:** https://macroslog.co.uk/
+**Docs:** https://macroslog.co.uk/docs/
 
 ---
 
