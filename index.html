@@ -1077,7 +1077,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.15</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.16</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -3855,6 +3855,19 @@ window.addEventListener('resize', fixAppHeight);
 const TOUR_COMPLETE_KEY = 'mt_tour_complete';
 const TOUR_DEMO_KEY = 'mt_tour_demo_active';
 
+// If a previous tour session was abandoned without finishing, restore any backed-up data
+(function restoreTourBackupsIfAbandoned() {
+  const keys = ['mt_logs', 'mt_weight_log', 'mt_water_log'];
+  keys.forEach(k => {
+    const backup = localStorage.getItem('mt_tour_backup_' + k);
+    if (backup) {
+      localStorage.setItem(k, backup);
+      localStorage.removeItem('mt_tour_backup_' + k);
+    }
+  });
+  localStorage.removeItem(TOUR_DEMO_KEY);
+})();
+
 deduplicateLogs();
 recordTodayTargets();
 seedCustomFoods();
@@ -5691,6 +5704,17 @@ function clearTourDemoData() {
   });
   localStorage.removeItem(TOUR_DEMO_KEY);
 }
+
+// If the user leaves mid-tour (app goes to background, tab hidden, page closed),
+// restore backed-up data so it's never stranded.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && localStorage.getItem(TOUR_DEMO_KEY)) {
+    clearTourDemoData();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (localStorage.getItem(TOUR_DEMO_KEY)) clearTourDemoData();
+});
 
 // Tour step definitions: { view, title, body, getTarget }
 // view: the tab to switch to before showing this step (null = no switch)
