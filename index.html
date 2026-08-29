@@ -942,8 +942,9 @@
       <div class="field">
         <label>Sync Server URL</label>
         <input type="url" id="set-sync-url" placeholder="https://your-tunnel.trycloudflare.com">
+        <input type="password" id="set-sync-key" placeholder="API key (optional)" style="margin-top:6px;">
       </div>
-      <button class="btn btn-primary" onclick="saveSyncUrl()">Save Sync URL</button>
+      <button class="btn btn-primary" onclick="saveSyncSettings()">Save</button>
     </div>
     <div class="card" style="margin-top:8px;">
       <div class="card-title" onclick="toggleSavedFoods()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
@@ -1104,7 +1105,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.21</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.22</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -3349,6 +3350,7 @@ function renderSettings() {
   document.getElementById('set-fibre').value = s.fibre || 30;
   document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
+  document.getElementById('set-sync-key').value = localStorage.getItem('syncApiKey') || '';
   populateDisplayPrefToggles();
   applyDisplayPrefs();
 
@@ -3454,10 +3456,23 @@ function getSyncUrl() {
   return localStorage.getItem('syncServerUrl') || '';
 }
 
-function saveSyncUrl() {
+function getSyncKey() {
+  return localStorage.getItem('syncApiKey') || '';
+}
+
+function getSyncHeaders() {
+  const key = getSyncKey();
+  const headers = { 'Content-Type': 'application/json' };
+  if (key) headers['Authorization'] = 'Bearer ' + key;
+  return headers;
+}
+
+function saveSyncSettings() {
   const url = document.getElementById('set-sync-url').value.trim();
+  const key = document.getElementById('set-sync-key').value.trim();
   if (url) { localStorage.setItem('syncServerUrl', url); } else { localStorage.removeItem('syncServerUrl'); }
-  toast(url ? 'Sync URL saved!' : 'Sync URL cleared — sync disabled');
+  if (key) { localStorage.setItem('syncApiKey', key); } else { localStorage.removeItem('syncApiKey'); }
+  toast(url ? 'Sync settings saved!' : 'Sync URL cleared — sync disabled');
 }
 
 function syncFoodLog() {
@@ -3469,10 +3484,13 @@ function syncFoodLog() {
   };
   fetch(syncUrl + '/sync/food-log', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getSyncHeaders(),
     body: JSON.stringify(data)
-  }).then(r => r.json())
-    .then(() => toast('Synced to server'))
+  }).then(r => {
+      if (r.status === 401) { toast('Sync failed — wrong API key'); return null; }
+      return r.json();
+    })
+    .then(res => { if (res) toast('Synced to server'); })
     .catch(() => toast('Sync failed — server offline?'));
 }
 
@@ -3514,8 +3532,11 @@ function seedCustomFoods() {
 function fetchSyncFoodLog() {
   const syncUrl = getSyncUrl();
   if (!syncUrl) return;
-  fetch(syncUrl + '/sync/food-log')
-    .then(r => r.json())
+  fetch(syncUrl + '/sync/food-log', { headers: getSyncHeaders() })
+    .then(r => {
+      if (r.status === 401) { toast('Sync failed — wrong API key'); return null; }
+      return r.json();
+    })
     .then(serverData => {
       if (!serverData || !serverData.logs) return;
       // Build a map of server entries by ID for fast lookup
@@ -3552,8 +3573,11 @@ function fetchSyncFoodLog() {
 function fetchSyncTargets() {
   const syncUrl = getSyncUrl();
   if (!syncUrl) return;
-  fetch(syncUrl + '/sync/targets')
-    .then(r => r.json())
+  fetch(syncUrl + '/sync/targets', { headers: getSyncHeaders() })
+    .then(r => {
+      if (r.status === 401) { toast('Sync failed — wrong API key'); return null; }
+      return r.json();
+    })
     .then(t => {
       if (t && t.date === todayKey()) {
         const s = getSettings();

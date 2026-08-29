@@ -224,13 +224,39 @@
     <h1 class="page-title">Changelog</h1>
     <p class="page-subtitle">A history of every update to Macrolog.</p>
 
-    <!-- ── v2026-08-29 ── -->
+    <!-- ── v2026-08-29 (Secure Sync API) ── -->
     <div class="release">
       <div class="release-dot latest"></div>
       <div class="release-header">
         <span class="release-version">v2026-08-29</span>
         <span class="release-date">29 August 2026</span>
         <span class="release-badge">Latest</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">New features</div>
+          <ul class="changes">
+            <li>Bearer-token authentication for the self-hosted sync server — set <code>SYNC_API_KEY</code> on the server and requests without a matching token are rejected with <code>401</code></li>
+            <li>API key field in Settings → Sync Server; the key is sent as an <code>Authorization: Bearer</code> header on every sync request</li>
+            <li>New <a href="index.html#sync-api">Sync API</a> documentation section — endpoints, request/response format, auth and 2-command reference-server setup</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Improvements</div>
+          <ul class="changes">
+            <li>Sync failures caused by a wrong API key now show a clear <em>“Sync failed — wrong API key”</em> message</li>
+            <li>Reference sync server hardened — request bodies over 5&nbsp;MB rejected and POST payloads validated as JSON with expected keys</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-08-29 ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-08-29</span>
+        <span class="release-date">29 August 2026</span>
       </div>
       <div class="release-body">
         <div class="change-group">
