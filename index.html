@@ -1072,7 +1072,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.8</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-29.9</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -5717,11 +5717,12 @@ function tourShowStep() {
     bodyEl.appendChild(a);
   }
 
-  // Install step: skip or show native/iOS install UI
+  // Install step: skip silently only if already running as installed PWA
   const existingInstallWidget = bodyEl.querySelector('.tour-install-widget');
   if (existingInstallWidget) existingInstallWidget.remove();
   if (step.install) {
-    if (!deferredInstallPrompt && !isIOSSafari()) {
+    const alreadyInstalled = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    if (alreadyInstalled) {
       tourFinish();
       return;
     }
@@ -5729,6 +5730,7 @@ function tourShowStep() {
     widget.className = 'tour-install-widget';
     widget.style.marginTop = '14px';
     if (deferredInstallPrompt) {
+      // Chromium-based: native install button
       const btn = document.createElement('button');
       btn.className = 'btn btn-primary';
       btn.style.cssText = 'width:100%;font-size:15px;padding:10px 14px;margin-bottom:8px;';
@@ -5738,21 +5740,36 @@ function tourShowStep() {
         deferredInstallPrompt.userChoice.then(() => { deferredInstallPrompt = null; });
       };
       widget.appendChild(btn);
-    } else {
+      const later = document.createElement('p');
+      later.style.cssText = 'font-size:11px;color:var(--muted);line-height:1.5;';
+      later.textContent = 'You can also install at any time from your browser\'s menu.';
+      widget.appendChild(later);
+    } else if (isIOSSafari()) {
+      // iOS Safari: Share → Add to Home Screen
       const inst = document.createElement('p');
       inst.style.cssText = 'font-size:13px;line-height:1.6;margin-bottom:8px;';
       inst.innerHTML = 'Tap the <strong>Share</strong> button (<span style="font-size:16px;">&#x2610;&#x2191;</span>) in Safari, then choose <strong>"Add to Home Screen"</strong>.';
       widget.appendChild(inst);
+      const later = document.createElement('p');
+      later.style.cssText = 'font-size:11px;color:var(--muted);line-height:1.5;';
+      later.textContent = 'You can also do this at any time from the Safari Share menu.';
+      widget.appendChild(later);
+    } else {
+      // Unsupported browser (Firefox desktop, etc.)
+      const msg = document.createElement('p');
+      msg.style.cssText = 'font-size:13px;line-height:1.6;margin-bottom:10px;';
+      msg.innerHTML = '<strong>Your browser doesn\'t support installing web apps.</strong> You can keep using Macrolog in your browser, or reopen it in a supported browser to install it.';
+      widget.appendChild(msg);
+      const browsers = document.createElement('div');
+      browsers.style.cssText = 'font-size:12px;color:var(--muted);line-height:1.8;';
+      browsers.innerHTML = '<strong style="color:var(--text);">Supported browsers:</strong><br>Chrome or Edge (Android &amp; desktop) &nbsp;·&nbsp; Samsung Internet &nbsp;·&nbsp; Safari on iOS';
+      widget.appendChild(browsers);
     }
-    const later = document.createElement('p');
-    later.style.cssText = 'font-size:11px;color:var(--muted);line-height:1.5;';
-    later.textContent = 'You can also install at any time from your browser\'s menu.';
-    widget.appendChild(later);
     bodyEl.appendChild(widget);
   }
 
-  const installStepVisible = deferredInstallPrompt || isIOSSafari();
-  const visibleTotal = TOUR_STEPS.length - (installStepVisible ? 0 : 1);
+  const alreadyInstalled = navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  const visibleTotal = TOUR_STEPS.length - (alreadyInstalled ? 1 : 0);
   document.getElementById('tour-tt-counter').textContent = (tourStep + 1) + ' / ' + visibleTotal;
 
   const backBtn = document.getElementById('tour-back-btn');
