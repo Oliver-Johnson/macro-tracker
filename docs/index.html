@@ -1070,7 +1070,7 @@
       margin-top: 2px;
       flex-shrink: 0;
     }
-    .dev-step__body { display: block; }
+    .dev-step__body { display: block; min-width: 0; overflow: hidden; }
     .dev-step__body p {
       margin-bottom: 0.5rem;
       font-size: 0.85rem;
@@ -1078,6 +1078,31 @@
       line-height: 1.5;
     }
     .dev-step__body strong { color: var(--sc-ink); font-weight: 500; }
+
+    /* Copy button */
+    .code-wrap { position: relative; }
+    .code-wrap pre { margin-top: var(--sc-3); overflow-x: auto; max-width: 100%; }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      font-family: var(--sc-font-text);
+      font-weight: 500;
+      background: rgba(108,99,255,0.2);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 4px;
+      color: var(--sc-accent2);
+      cursor: pointer;
+      transition: opacity 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .copy-btn.copied { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+    @media (hover: hover) {
+      .copy-btn { opacity: 0; }
+      .code-wrap:hover .copy-btn { opacity: 1; }
+    }
 
     /* ── Reduced motion ── */
     @media (prefers-reduced-motion: reduce) {
@@ -1608,14 +1633,21 @@
               <div class="dev-step__num">1</div>
               <div class="dev-step__body">
                 <p>Clone the repo and start the Flask server:</p>
-                <pre><code>SYNC_API_KEY=secret flask run</code></pre>
+                <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>SYNC_API_KEY=secret flask run</code></pre></div>
               </div>
             </div>
             <div class="dev-step">
               <div class="dev-step__num">2</div>
               <div class="dev-step__body">
-                <p>Expose the server with a public HTTPS URL:</p>
-                <pre><code>cloudflared tunnel --url localhost:5001</code></pre>
+                <p>Expose the server. Choose one method:</p>
+                <ul style="font-size:0.82rem;color:var(--sc-ink-soft);margin:0 0 0.5rem 1rem;line-height:1.7">
+                  <li><strong style="color:var(--sc-ink)">Quick tunnel</strong> (temp URL, easiest):</li>
+                </ul>
+                <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>cloudflared tunnel --url localhost:5001</code></pre></div>
+                <ul style="font-size:0.82rem;color:var(--sc-ink-soft);margin:0.5rem 0 0 1rem;line-height:1.7">
+                  <li><strong style="color:var(--sc-ink)">Named tunnel</strong> — stable URL, works with your own domain</li>
+                  <li><strong style="color:var(--sc-ink)">LAN only</strong> — use your server's local IP (e.g. <code style="font-size:0.8em">http://192.168.1.x:5001</code>) if your phone and server are on the same network</li>
+                </ul>
               </div>
             </div>
             <div class="dev-step">
@@ -1912,6 +1944,16 @@
 
       steps.forEach(function (step) { obs.observe(step); });
     })();
+  </script>
+  <script>
+    function copyCode(btn) {
+      var code = btn.parentElement.querySelector('code');
+      navigator.clipboard.writeText(code.textContent.trim()).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+      });
+    }
   </script>
 
 </body>
