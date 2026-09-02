@@ -696,7 +696,7 @@
     }
 
     /* ── AI Features ── */
-    #ai-features {
+    #developer {
       background: var(--sc-surface);
       border-top: 1px solid var(--sc-border);
       border-bottom: 1px solid var(--sc-border);
@@ -1056,7 +1056,7 @@
     <nav class="site-nav" role="navigation" aria-label="Main">
       <a class="site-nav__link" href="#whats-new">What's New</a>
       <a class="site-nav__link" href="#features">Features</a>
-      <a class="site-nav__link" href="#ai-features">AI</a>
+      <a class="site-nav__link" href="#developer">Developer</a>
       <a class="site-nav__link" href="#how-to-use">How to Use</a>
       <a class="site-nav__cta" href="https://macroslog.co.uk/" aria-label="Open the Macrolog app">Open App &rarr;</a>
     </nav>
@@ -1338,21 +1338,68 @@
     </section>
 
     <!-- ── 4. AI FEATURES ── -->
-    <section id="ai-features" aria-labelledby="ai-heading">
+    <section id="developer" aria-labelledby="developer-heading">
       <div class="wrap">
         <div class="chapter-marker" aria-hidden="true">
-          <span class="chapter-marker__text">03 — AI Features</span>
+          <span class="chapter-marker__text">04 — Developer Features</span>
           <span class="chapter-marker__rule"></span>
         </div>
 
         <div class="features-header">
-          <h2 id="ai-heading" class="t-display-sm">
-            Your AI assistant, on-device and optional.
+          <h2 id="developer-heading" class="t-display-sm">
+            Self-host, sync, and extend.
           </h2>
           <p class="t-body">
-            Bring your own API key. No data sent to Macrolog servers. Three providers supported: Claude, Gemini, OpenAI.
+            Power-user tools for running your own infrastructure and integrating AI on your own terms.
           </p>
         </div>
+
+        <!-- ── Sync Server subsection ── -->
+        <h3 class="t-display-sm" style="margin-bottom:var(--sc-4);margin-top:var(--sc-8)">Sync Server</h3>
+
+        <div class="ai-grid" id="sync-grid">
+          <article class="ai-card ai-card--primary">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Self-hosted</span>
+            </div>
+            <h3>Your data, your server</h3>
+            <p>The sync server is a lightweight Flask app that lives in the <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">sync-server/</code> subfolder of the repo. Run it anywhere — a Raspberry Pi, a VPS, or a spare laptop. All food log data stays on infrastructure you control.</p>
+          </article>
+
+          <article class="ai-card">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Auth</span>
+            </div>
+            <h3>Bearer token authentication</h3>
+            <p>Set a <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">SYNC_API_KEY</code> environment variable on the server. The app sends this key as a Bearer token on every sync request. No accounts, no OAuth — just a secret you control.</p>
+          </article>
+
+          <article class="ai-card">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">HTTPS</span>
+            </div>
+            <h3>Cloudflare Quick Tunnel</h3>
+            <p>Expose your local server over HTTPS in one command with a Cloudflare quick tunnel. No port-forwarding or cert management required. Suitable for personal use; see the repo README for named-tunnel setup if you want a stable URL.</p>
+          </article>
+
+          <article class="ai-card ai-card--setup">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Setup</span>
+            </div>
+            <h3>How to connect</h3>
+            <ol class="ai-setup-steps">
+              <li>Clone the repo and start the Flask server: <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">SYNC_API_KEY=secret flask run</code></li>
+              <li>Run <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">cloudflared tunnel --url localhost:5001</code> to get a public HTTPS URL</li>
+              <li>In the app, open <strong>Settings → Developer Settings</strong></li>
+              <li>Paste the tunnel URL and your API key into the <strong>Sync Server</strong> fields</li>
+              <li>Tap <strong>Sync now</strong> — your food log will upload immediately</li>
+            </ol>
+            <p style="margin-top:var(--sc-4);font-size:0.85rem;color:var(--sc-ink-soft)">Full setup guide and Docker instructions: <a href="https://github.com/Oliver-Johnson/macro-tracker" style="color:var(--sc-accent)">github.com/Oliver-Johnson/macro-tracker</a></p>
+          </article>
+        </div>
+
+        <!-- ── AI Features subsection ── -->
+        <h3 class="t-display-sm" style="margin-bottom:var(--sc-4);margin-top:var(--sc-10)">AI Features</h3>
 
         <div class="ai-grid" id="ai-grid">
           <article class="ai-card ai-card--primary">
@@ -1400,7 +1447,7 @@
     <section id="how-to-use" aria-labelledby="how-heading">
       <div class="wrap">
         <div class="chapter-marker" aria-hidden="true">
-          <span class="chapter-marker__text">04 — How to Use</span>
+          <span class="chapter-marker__text">03 — How to Use</span>
           <span class="chapter-marker__rule"></span>
         </div>
 
