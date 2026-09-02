@@ -28,9 +28,7 @@ changes only grammar and world will fail it.
 
 | Build | Grammar | Nav treatment | Hero device | Act-sequence shape | Close pattern | Signature move | World | Port |
 |---|---|---|---|---|---|---|---|---|
-
-*(empty: your first build has nothing to clear, so build whatever the interview
-points at. From the second onwards, this table is the constraint.)*
+| docs | chaptered-editorial | top-logo-minimal | wipe-reveal | entry→reveal→stagger→sequential→pin | editorial-close | svg-ring-scroll-animation | dark premium-minimal | macroslog.co.uk/docs/ |
 
 ---
 
