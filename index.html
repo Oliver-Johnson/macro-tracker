@@ -10,7 +10,6 @@
 <title>Macro Tracker</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.svg">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;900&family=Inter:wght@200;300;400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0f0f13;
@@ -583,88 +582,6 @@
     .kofi-mobile-card { display: flex; }
   }
   .kofi-dismissed { display: none !important; }
-
-  /* ─── Selectable visual styles ─────────────────────────────────────── */
-  .big-cal, .bold-pills, .zen-macroline { display: none; }
-
-  /* GRADIENT ─── */
-  html.style-gradient { --accent:#8c6eff; --accent2:#5bd0c0; --kcal:#8c6eff; }
-  html.style-gradient #app { background: linear-gradient(165deg,#2b2260 0%,#1e2a55 40%,#123f4d 100%); min-height:100vh; }
-  html.style-gradient .card, html.style-gradient .water-card, html.style-gradient .exercise-card {
-    background: rgba(255,255,255,.06); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,.12);
-  }
-  html.style-gradient #kcal-ring { stroke: url(#kcalGrad); }
-  html.style-gradient body { font-family: 'Manrope',-apple-system,sans-serif; }
-  html.style-gradient.theme-light #app { background: linear-gradient(165deg,#e8e2ff 0%,#dde8ff 50%,#d2f0f5 100%); }
-  html.style-gradient.theme-light .card,
-  html.style-gradient.theme-light .water-card,
-  html.style-gradient.theme-light .exercise-card { background: rgba(255,255,255,.5); border-color: rgba(150,120,180,.18); }
-  @media (prefers-color-scheme: light) {
-    html.style-gradient.theme-auto #app { background: linear-gradient(165deg,#e8e2ff 0%,#dde8ff 50%,#d2f0f5 100%); }
-    html.style-gradient.theme-auto .card,
-    html.style-gradient.theme-auto .water-card,
-    html.style-gradient.theme-auto .exercise-card { background: rgba(255,255,255,.5); border-color: rgba(150,120,180,.18); }
-  }
-
-  /* ZEN ─── */
-  html.style-zen { --accent:#8ba888; --accent2:#8ba888; --bg:#111112; --bg2:#111112; --bg3:#1a1a1b; --border:#262627; --text:#f2f2f0; --muted:#7a7a78; --kcal:#8ba888; }
-  html.style-zen body { font-family: 'Inter',-apple-system,sans-serif; }
-  html.style-zen #today-ring-row,
-  html.style-zen #macro-bars,
-  html.style-zen .stat-chips,
-  html.style-zen .log-macros,
-  html.style-zen .btn-icon,
-  html.style-zen .meal-subtotal,
-  html.style-zen #dashboard-card .btn { display: none !important; }
-  html.style-zen #dashboard-card { background: none; border: none; padding: 0; }
-  html.style-zen .big-cal { display: block; padding: 32px 0 8px; text-align: center; }
-  html.style-zen .big-cal-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-  html.style-zen .big-cal-val { font-size: 72px; font-weight: 200; line-height: 1; color: var(--text); }
-  html.style-zen .big-cal-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
-  html.style-zen .big-cal-sub b { font-weight: 400; }
-  html.style-zen .zen-macroline { display: flex; justify-content: center; gap: 10px; font-size: 13px; color: var(--muted); padding: 8px 0 24px; }
-  html.style-zen .zen-macroline b { color: var(--text); font-weight: 500; }
-  html.style-zen .zen-macroline .sep { opacity: .4; }
-  html.style-zen .log-entry { border-bottom: 1px solid var(--border); padding: 10px 0; }
-  html.style-zen .log-name { font-size: 14px; font-weight: 300; }
-  html.style-zen .log-kcal { font-size: 14px; font-weight: 300; }
-  html.style-zen.theme-light { --bg:#fafaf8; --bg2:#fafaf8; --bg3:#f0f0ec; --border:#e4e4e0; --text:#1a1a18; --muted:#888884; }
-  @media (prefers-color-scheme: light) {
-    html.style-zen.theme-auto { --bg:#fafaf8; --bg2:#fafaf8; --bg3:#f0f0ec; --border:#e4e4e0; --text:#1a1a18; --muted:#888884; }
-  }
-
-  /* BOLD ─── */
-  html.style-bold { --accent:#c6ff3a; --accent2:#c6ff3a; --bg:#08090c; --bg2:#0f1014; --bg3:#15161b; --border:#16171b; --text:#f5f5f5; --muted:#5a5c63; --kcal:#c6ff3a; }
-  html.style-bold body { font-family: 'Archivo',-apple-system,sans-serif; }
-  html.style-bold #today-ring-row,
-  html.style-bold .stat-chips { display: none !important; }
-  html.style-bold #dashboard-card { background: none; border: none; padding: 0; }
-  html.style-bold .big-cal { display: block; padding: 6px 0 4px; }
-  html.style-bold .big-cal-kicker { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  html.style-bold .big-cal-val { font-size: 80px; font-weight: 900; line-height: 1; color: var(--accent); }
-  html.style-bold .big-cal-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  html.style-bold .big-cal-sub b { font-weight: 700; color: var(--text); }
-  html.style-bold .bold-pills { display: flex; gap: 10px; padding: 12px 0 20px; }
-  html.style-bold .bp { flex: 1; border-radius: 14px; padding: 12px 10px; text-align: center; }
-  html.style-bold .bp-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .8; }
-  html.style-bold .bp-num { font-size: 22px; font-weight: 900; }
-  html.style-bold .bp-goal { font-size: 11px; opacity: .7; margin-top: 4px; }
-  html.style-bold .bp.p { background: #ff5c7a; color: #1a0308; }
-  html.style-bold .bp.c { background: #3a9bff; color: #02101f; }
-  html.style-bold .bp.f { background: #ffb03a; color: #1f1202; }
-  html.style-bold #today-food-log-card { background: none; border: none; padding: 0; }
-  html.style-bold .log-entry { padding: 13px 0; border-bottom: 1px solid var(--border); }
-  html.style-bold .log-name { font-weight: 700; }
-  html.style-bold .log-kcal { font-size: 18px; }
-  html.style-bold nav { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: auto; border-top: none; background: #15161b; border-radius: 28px; padding: 8px 20px; box-shadow: 0 4px 24px rgba(0,0,0,.6); }
-  html.style-bold #view-today, html.style-bold .view { padding-bottom: calc(96px + var(--safe-bottom)); }
-  html.style-bold.theme-light { --accent: #5fbf00; --bg: #f7f7f4; --bg3: #ebebe6; --bg2: #f7f7f4; --border: #e0e0da; --text: #111; --muted: #666; --kcal: #5fbf00; }
-  html.style-bold.theme-light nav { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
-  @media (prefers-color-scheme: light) {
-    html.style-bold.theme-auto { --accent: #5fbf00; --bg: #f7f7f4; --bg3: #ebebe6; --bg2: #f7f7f4; --border: #e0e0da; --text: #111; --muted: #666; --kcal: #5fbf00; }
-    html.style-bold.theme-auto nav { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
-  }
 </style>
 </head>
 <body>
@@ -684,21 +601,9 @@
 
     <!-- Kcal ring -->
     <div class="card" id="dashboard-card" data-section="today-macro-card" onclick="openHistoryScreen()" style="cursor:pointer;">
-      <div class="big-cal" aria-hidden="true">
-        <div class="big-cal-kicker">Calories Today</div>
-        <div class="big-cal-val" id="big-kcal-val">0</div>
-        <div class="big-cal-sub">of <b id="big-kcal-goal">0</b> kcal · <b id="big-kcal-left">0</b> left</div>
-      </div>
-      <div class="bold-pills" aria-hidden="true" id="bold-pills"></div>
-      <div class="zen-macroline" aria-hidden="true" id="zen-macroline"></div>
-      <div id="today-ring-row" style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <div style="position:relative; width:90px; height:90px; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation();showMacroBreakdown('kcal','Calories','kcal')">
           <svg viewBox="0 0 90 90" width="90" height="90">
-            <defs>
-              <linearGradient id="kcalGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#8c6eff"/><stop offset="1" stop-color="#5bd0c0"/>
-              </linearGradient>
-            </defs>
             <circle class="ring-track" cx="45" cy="45" r="38" style="stroke:var(--bg3); stroke-width:8; fill:none;"/>
             <circle id="kcal-ring" cx="45" cy="45" r="38" style="fill:none; stroke:var(--kcal); stroke-width:8; stroke-linecap:round; stroke-dasharray:239; stroke-dashoffset:239; transform:rotate(-90deg); transform-origin:45px 45px; transition: stroke-dashoffset 0.5s ease;"/>
           </svg>
@@ -1168,15 +1073,6 @@
             <button id="theme-btn-auto"  class="btn btn-secondary"  style="flex:1;font-size:13px;" onclick="setTheme('auto')">⚙️ Auto</button>
           </div>
         </div>
-        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Style</div>
-          <div style="display:flex;gap:8px;">
-            <button id="style-btn-current"  class="btn btn-primary"   style="flex:1;font-size:12px;" onclick="setStyle('current')">Current</button>
-            <button id="style-btn-bold"     class="btn btn-secondary" style="flex:1;font-size:12px;" onclick="setStyle('bold')">Bold</button>
-            <button id="style-btn-gradient" class="btn btn-secondary" style="flex:1;font-size:12px;" onclick="setStyle('gradient')">Gradient</button>
-            <button id="style-btn-zen"      class="btn btn-secondary" style="flex:1;font-size:12px;" onclick="setStyle('zen')">Zen</button>
-          </div>
-        </div>
 
       <div class="settings-section-title">Navigation Tabs</div>
       <div class="toggle-row">
@@ -1304,7 +1200,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-09-02.1</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; margin-top:10px;">Version 2026-08-31.1</div>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
@@ -2304,19 +2200,6 @@ function renderToday() {
   document.getElementById('kcal-ring').style.strokeDasharray = circ;
   document.getElementById('kcal-val').textContent = Math.round(totals.kcal);
   document.getElementById('kcal-remaining').textContent = Math.max(0, Math.round(s.kcal - totals.kcal));
-
-  // Big-cal / Bold / Zen theme elements
-  const bcv = document.getElementById('big-kcal-val');
-  if (bcv) bcv.textContent = Math.round(totals.kcal).toLocaleString();
-  const bkg = document.getElementById('big-kcal-goal');
-  if (bkg) bkg.textContent = Math.round(s.kcal).toLocaleString();
-  const bkl = document.getElementById('big-kcal-left');
-  if (bkl) bkl.textContent = Math.max(0, Math.round(s.kcal - totals.kcal)).toLocaleString();
-  const pill = (cls, lbl, val, goal) => `<div class="bp ${cls}"><div class="bp-lbl">${lbl}</div><div class="bp-num">${r1(val)}g</div><div class="bp-goal">/ ${goal}g</div></div>`;
-  const boldPills = document.getElementById('bold-pills');
-  if (boldPills) boldPills.innerHTML = pill('p','Protein',totals.protein,s.protein) + pill('c','Carbs',totals.carbs,s.carbs) + pill('f','Fat',totals.fat,s.fat);
-  const zenLine = document.getElementById('zen-macroline');
-  if (zenLine) zenLine.innerHTML = `Protein <b>${r1(totals.protein)}g</b> <span class="sep">·</span> Carbs <b>${r1(totals.carbs)}g</b> <span class="sep">·</span> Fat <b>${r1(totals.fat)}g</b>`;
 
   // Net kcal (exercise burn)
   const burned = getTodayBurned();
@@ -4790,25 +4673,6 @@ function setTheme(theme) {
   applyTheme(theme);
 }
 applyTheme(localStorage.getItem('mt_theme') || 'dark');
-
-// ─── Visual style (current / bold / gradient / zen) — orthogonal to theme ───
-function applyStyle(style) {
-  style = style || 'current';
-  document.documentElement.classList.remove('style-bold', 'style-gradient', 'style-zen');
-  if (style !== 'current') document.documentElement.classList.add('style-' + style);
-  ['current','bold','gradient','zen'].forEach(s => {
-    const b = document.getElementById('style-btn-' + s);
-    if (!b) return;
-    b.className = s === style ? 'btn btn-primary' : 'btn btn-secondary';
-    b.style.flex = '1';
-    b.style.fontSize = '12px';
-  });
-}
-function setStyle(style) {
-  localStorage.setItem('mt_style', style);
-  applyStyle(style);
-}
-applyStyle(localStorage.getItem('mt_style') || 'current');
 
 // ─── Appearance toggle ───
 function toggleAppearance() {
