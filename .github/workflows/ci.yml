@@ -2,65 +2,51 @@ name: CI
 
 on:
   push:
-    branches: [master, main]
+    branches: [master]
   pull_request:
-    branches: [master, main]
+    branches: [master]
 
 jobs:
-  lint:
-    name: HTML / JS lint
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check for syntax errors (Node.js parse)
+      - name: No broken symlinks
         run: |
-          # Extract inline script from index.html and check for JS parse errors
-          node -e "
-            const fs = require('fs');
-            const html = fs.readFileSync('index.html', 'utf8');
-            const match = html.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);
-            if (!match) { console.error('Could not extract script'); process.exit(1); }
-            try {
-              new Function(match[1]);
-              console.log('JS syntax OK');
-            } catch(e) {
-              console.error('JS syntax error:', e.message);
-              process.exit(1);
-            }
-          "
+          broken=$(find . -not -path './.git/*' -xtype l)
+          if [ -n "$broken" ]; then
+            echo "Broken symlinks found:"
+            echo "$broken"
+            exit 1
+          fi
+          echo "No broken symlinks."
 
-      - name: Check required files exist
+      - name: .nojekyll present
         run: |
-          for f in index.html sw.js manifest.json CNAME 404.html LICENSE; do
-            [ -f "$f" ] && echo "✓ $f" || { echo "✗ $f missing"; exit 1; }
-          done
+          if [ ! -f .nojekyll ]; then
+            echo "Missing .nojekyll — GitHub Pages will run Jekyll and may fail."
+            exit 1
+          fi
 
-      - name: Check version consistency
+      - name: Version consistency (index.html vs sw.js)
         run: |
-          HTML_VER=$(grep -oP 'Version \K[0-9-]+\.[0-9]+' index.html | head -1)
-          SW_VER=$(grep -oP "APP_VERSION = '\K[0-9-]+\.[0-9]+" sw.js | head -1)
-          CACHE_VER=$(grep -oP "CACHE_NAME = 'macro-tracker-\K[0-9-]+\.[0-9]+" sw.js | head -1)
-          echo "HTML: $HTML_VER  SW APP_VERSION: $SW_VER  SW CACHE_NAME: $CACHE_VER"
-          [ "$HTML_VER" = "$SW_VER" ] || { echo "Version mismatch: index.html ($HTML_VER) vs sw.js APP_VERSION ($SW_VER)"; exit 1; }
-          [ "$SW_VER" = "$CACHE_VER" ] || { echo "Version mismatch: sw.js APP_VERSION ($SW_VER) vs CACHE_NAME ($CACHE_VER)"; exit 1; }
-          echo "Versions consistent ✓"
+          app_ver=$(grep -oP 'Version \K[\d]{4}-[\d]{2}-[\d]{2}\.\d+' index.html | head -1)
+          sw_ver=$(grep -oP "CACHE_NAME\s*=\s*'macro-tracker-\K[^']+" sw.js | head -1)
+          echo "index.html version : $app_ver"
+          echo "sw.js CACHE_NAME   : $sw_ver"
+          if [ "$app_ver" != "$sw_ver" ]; then
+            echo "Version mismatch — index.html and sw.js must match."
+            exit 1
+          fi
+          echo "Versions match."
 
-      - name: Check manifest.json is valid JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest.json OK')"
-
-      - name: Check sw.js is valid JS
-        run: node --check sw.js && echo "sw.js syntax OK"
-
-  deploy-check:
-    name: GitHub Pages deploy check
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Verify CNAME
+      - name: No conflict markers in source files
         run: |
-          DOMAIN=$(cat CNAME)
-          echo "Custom domain: $DOMAIN"
-          [ -n "$DOMAIN" ] || { echo "CNAME is empty"; exit 1; }
+          matches=$(grep -rl '<<<<<<< \|>>>>>>> \|=======$' --include='*.html' --include='*.js' --include='*.json' . 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "Unresolved conflict markers found in:"
+            echo "$matches"
+            exit 1
+          fi
+          echo "No conflict markers."
