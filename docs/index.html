@@ -2,720 +2,1695 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Macro Tracker — Documentation</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Macrolog — Precision macro tracking as a PWA</title>
+  <meta name="description" content="A precision macro tracker built as a PWA. Fast, private, and yours. Track daily calories and macros with AI-powered meal logging.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236c63ff'/><text y='22' x='7' font-size='18'>◉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 
+  <style>
+    /* ── Design tokens ── */
     :root {
-      --accent: #6c63ff;
-      --accent-light: #9c94ff;
-      --protein: #4ade80;
-      --carbs: #facc15;
-      --fat: #f97316;
-      --kcal: #e879f9;
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e5e7eb;
-      --text: #111827;
-      --muted: #6b7280;
-      --radius: 12px;
+      --sc-canvas:   #0a0a0e;
+      --sc-surface:  #13131a;
+      --sc-surface2: #1c1c27;
+      --sc-ink:      #f0f0f8;
+      --sc-ink-soft: #8888a8;
+      --sc-accent:   #6c63ff;
+      --sc-accent2:  #9c94ff;
+      --sc-protein:  #4ade80;
+      --sc-carbs:    #facc15;
+      --sc-fat:      #f97316;
+      --sc-kcal:     #e879f9;
+      --sc-border:   rgba(255,255,255,0.08);
+
+      --sc-font-display: 'DM Serif Display', Georgia, serif;
+      --sc-font-text:    'DM Sans', system-ui, sans-serif;
+
+      /* Spacing: 4px base scale */
+      --sc-1:  4px;
+      --sc-2:  8px;
+      --sc-3:  12px;
+      --sc-4:  16px;
+      --sc-5:  20px;
+      --sc-6:  24px;
+      --sc-7:  32px;
+      --sc-8:  40px;
+      --sc-9:  56px;
+      --sc-10: 80px;
+      --sc-11: 120px;
+      --sc-gutter: clamp(24px, 6vw, 80px);
+      --sc-measure: 68ch;
     }
 
-    @media (prefers-color-scheme: dark) {
+    @media (prefers-color-scheme: light) {
       :root {
-        --bg: #0f0f13;
-        --surface: #1a1a24;
-        --border: #2e2e3e;
-        --text: #e8e8f0;
-        --muted: #9090b0;
+        --sc-canvas:   #f8f7f4;
+        --sc-surface:  #eeecea;
+        --sc-surface2: #e4e1dc;
+        --sc-ink:      #0e0e14;
+        --sc-ink-soft: #6666808;
+        --sc-border:   rgba(0,0,0,0.08);
+        --sc-ink-soft: #555570;
       }
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
     }
 
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    body {
+      font-family: var(--sc-font-text);
+      background: var(--sc-canvas);
+      color: var(--sc-ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--sc-accent2);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    a:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    /* ── Typography scale ── */
+    .t-display {
+      font-family: var(--sc-font-display);
+      font-size: clamp(2.6rem, 7vw, 5.4rem);
+      line-height: 1.03;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-display-sm {
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-lead {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+      max-width: 52ch;
+    }
+    .t-body {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--sc-ink-soft);
+      max-width: var(--sc-measure);
+    }
+    .t-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+    }
+    .t-caption {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--sc-ink-soft);
+    }
+
+    /* ── Chapter marker ── */
+    .chapter-marker {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-4);
+      margin-bottom: var(--sc-9);
+    }
+    .chapter-marker__text {
+      font-family: var(--sc-font-text);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+      white-space: nowrap;
+    }
+    .chapter-marker__rule {
+      flex: 1;
+      height: 1px;
+      background: var(--sc-border);
+    }
+
+    /* ── Layout utilities ── */
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding-left: var(--sc-gutter);
+      padding-right: var(--sc-gutter);
+    }
 
     /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 24px;
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--sc-border);
+      padding: var(--sc-4) var(--sc-gutter);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: var(--sc-6);
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    @media (prefers-color-scheme: light) {
+      .site-header {
+        background: rgba(248, 247, 244, 0.88);
+      }
     }
 
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: var(--accent);
-      border-radius: 10px;
+    .site-logo {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 20px;
+      gap: var(--sc-3);
+      text-decoration: none;
+      color: var(--sc-ink);
+    }
+    .site-logo__mark {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+    .site-logo__name {
+      font-family: var(--sc-font-display);
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-6);
+    }
+    .site-nav__link {
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--sc-ink-soft);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .site-nav__link:hover {
+      color: var(--sc-ink);
+      text-decoration: none;
+    }
+    .site-nav__link:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+    .site-nav__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      background: var(--sc-accent);
+      padding: 7px 16px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .site-nav__cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+    .site-nav__cta:focus-visible {
+      outline: 2px solid var(--sc-accent2);
+      outline-offset: 3px;
+    }
+    .site-nav__cta:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+      .site-nav__link { display: none; }
+    }
+
+    /* ── Sections: shared ── */
+    section {
+      padding-top: var(--sc-11);
+      padding-bottom: var(--sc-11);
+    }
+
+    /* ── Hero ── */
+    #hero {
+      padding-top: clamp(80px, 14vw, 160px);
+      padding-bottom: clamp(80px, 14vw, 160px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      background: var(--sc-surface);
+      border: 1px solid var(--sc-border);
+      border-radius: 64px;
+      padding: 6px 14px;
+      margin-bottom: var(--sc-7);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--sc-ink-soft);
+    }
+    .hero__eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--sc-protein);
       flex-shrink: 0;
     }
 
-    .logo-text h1 {
-      font-size: 18px;
-      font-weight: 700;
-      line-height: 1.2;
+    #hero h1 {
+      margin-bottom: var(--sc-6);
     }
 
-    .logo-text p {
-      font-size: 13px;
-      color: var(--muted);
+    #hero .t-lead {
+      margin-bottom: var(--sc-8);
     }
 
-    .header-cta {
+    .hero__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-4);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-family: var(--sc-font-text);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #fff;
+      background: var(--sc-accent);
+      padding: 13px 28px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 0 0 rgba(108, 99, 255, 0);
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.35);
+      text-decoration: none;
+    }
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--sc-accent2);
+      outline-offset: 3px;
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-family: var(--sc-font-text);
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--sc-ink-soft);
+      text-decoration: none;
+      padding: 13px 4px;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover {
+      color: var(--sc-ink);
+      text-decoration: none;
+    }
+    .btn-ghost:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    /* Hero scroll animation */
+    .hero__eyebrow {
+      animation: sc-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+    #hero h1 {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    #hero .t-lead {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    .hero__actions {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+
+    @keyframes sc-fade-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── What's New ── */
+    #whats-new {
+      background: var(--sc-surface);
+      border-top: 1px solid var(--sc-border);
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    #whats-new .inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sc-10);
+      align-items: start;
+    }
+
+    @media (max-width: 760px) {
+      #whats-new .inner {
+        grid-template-columns: 1fr;
+        gap: var(--sc-8);
+      }
+    }
+
+    .whats-new__meta {
+      position: sticky;
+      top: 100px;
+    }
+
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      background: var(--sc-surface2);
+      border: 1px solid var(--sc-border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--sc-ink-soft);
+      font-family: monospace;
+      margin-bottom: var(--sc-5);
+    }
+
+    .whats-new__meta h2 {
+      margin-bottom: var(--sc-4);
+    }
+
+    .whats-new__meta .t-body {
+      margin-bottom: var(--sc-5);
+    }
+
+    .whats-new__changelog-link {
+      font-size: 0.85rem;
+      color: var(--sc-ink-soft);
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: var(--accent);
-      color: #fff;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-      transition: opacity 0.15s;
+      transition: color 0.2s;
+    }
+    .whats-new__changelog-link:hover {
+      color: var(--sc-ink);
+      text-decoration: none;
+    }
+    .whats-new__changelog-link:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
     }
 
-    .header-cta:hover { opacity: 0.85; text-decoration: none; }
-
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
-      color: #fff;
-      padding: 64px 24px;
-      text-align: center;
+    /* Wipe reveal card */
+    .wipe-card {
+      background: var(--sc-surface2);
+      border: 1px solid var(--sc-border);
+      border-radius: 16px;
+      padding: var(--sc-8);
+      clip-path: inset(0 100% 0 0 round 16px);
+      transition: none;
+    }
+    .wipe-card.is-revealed {
+      animation: sc-wipe-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
-    .hero h2 {
-      font-size: clamp(28px, 5vw, 48px);
-      font-weight: 800;
-      margin-bottom: 16px;
-      line-height: 1.15;
+    @keyframes sc-wipe-in {
+      from { clip-path: inset(0 100% 0 0 round 16px); }
+      to   { clip-path: inset(0 0%   0 0 round 16px); }
     }
 
-    .hero p {
-      font-size: clamp(15px, 2vw, 18px);
-      opacity: 0.9;
-      max-width: 560px;
-      margin: 0 auto 32px;
-    }
-
-    .hero-badges {
+    .wipe-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(108, 99, 255, 0.12);
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
+      margin-bottom: var(--sc-5);
+      color: var(--sc-accent2);
     }
 
-    .badge {
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 13px;
+    .wipe-card h3 {
+      font-family: var(--sc-font-display);
+      font-size: 1.5rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: var(--sc-3);
+    }
+
+    .wipe-card .t-body {
+      margin-bottom: var(--sc-5);
+    }
+
+    .wipe-card__detail {
+      padding-top: var(--sc-5);
+      border-top: 1px solid var(--sc-border);
+    }
+    .wipe-card__detail p {
+      font-size: 0.85rem;
+      color: var(--sc-ink-soft);
+      line-height: 1.6;
+    }
+    .wipe-card__detail strong {
+      color: var(--sc-ink);
       font-weight: 500;
     }
 
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #fff;
-      color: var(--accent);
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      transition: transform 0.15s, box-shadow 0.15s;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    /* ── Features ── */
+    #features {
+      background: var(--sc-canvas);
     }
 
-    .hero-cta:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
-      text-decoration: none;
-    }
-
-    /* ── Content ── */
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 48px 24px;
-    }
-
-    section { margin-bottom: 56px; }
-
-    h2.section-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--border);
-    }
-
-    /* ── Feature grid ── */
-    .feature-grid {
+    .features-header {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sc-10);
+      align-items: end;
+      margin-bottom: var(--sc-10);
+    }
+
+    @media (max-width: 760px) {
+      .features-header {
+        grid-template-columns: 1fr;
+        gap: var(--sc-6);
+      }
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--sc-4);
+      margin-bottom: var(--sc-10);
+    }
+
+    @media (max-width: 600px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
+      background: var(--sc-surface);
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      padding: var(--sc-6) var(--sc-7);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  background 0.2s;
+    }
+    .feature-card.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .feature-card:hover {
+      background: var(--sc-surface2);
     }
 
-    .feature-icon {
-      font-size: 28px;
-      margin-bottom: 12px;
+    .feature-card__icon {
+      font-size: 1.25rem;
+      margin-bottom: var(--sc-4);
+      display: block;
+      /* Real SVG icons via inline paths below for non-emoji */
     }
 
     .feature-card h3 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: var(--sc-2);
+      color: var(--sc-ink);
+      line-height: 1.35;
     }
 
     .feature-card p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.5;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--sc-ink-soft);
     }
 
-    /* ── Macro pills ── */
-    .macro-pills {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .pill {
-      display: flex;
+    /* Signature move: macro ring */
+    .ring-showcase {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--sc-10);
       align-items: center;
-      gap: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 14px;
-      font-weight: 600;
+      padding: var(--sc-10) var(--sc-10);
+      background: var(--sc-surface);
+      border: 1px solid var(--sc-border);
+      border-radius: 20px;
+      margin-top: var(--sc-4);
     }
 
-    .pill-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+    @media (max-width: 700px) {
+      .ring-showcase {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: var(--sc-8) var(--sc-6);
+      }
+      .ring-showcase__ring {
+        margin: 0 auto;
+      }
     }
 
-    /* ── Steps ── */
-    .steps { display: flex; flex-direction: column; gap: 20px; }
-
-    .step {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-
-    .step-number {
-      width: 32px;
-      height: 32px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
+    .ring-showcase__ring {
+      position: relative;
+      width: 200px;
+      height: 200px;
       flex-shrink: 0;
     }
 
-    .step h3 {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 4px;
+    .ring-showcase__ring svg {
+      width: 200px;
+      height: 200px;
+      transform: rotate(-90deg);
     }
 
-    .step p {
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    /* ── Tech stack ── */
-    .tech-list {
+    .ring-center-label {
+      position: absolute;
+      inset: 0;
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .tech-tag {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-    }
-
-    /* ── Ko-fi section ── */
-    .kofi-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px 28px;
-      display: flex;
-      gap: 24px;
-      align-items: flex-start;
-    }
-    .kofi-section-icon { font-size: 48px; flex-shrink: 0; line-height: 1; }
-    .kofi-section h3 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .kofi-section p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-    .kofi-cta {
-      display: inline-flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
-      background: var(--accent);
-      color: #fff;
-      padding: 10px 22px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: opacity 0.15s;
+      justify-content: center;
+      pointer-events: none;
     }
-    .kofi-cta:hover { opacity: 0.85; text-decoration: none; }
-    @media (max-width: 480px) {
-      .kofi-section { flex-direction: column; gap: 12px; }
+    .ring-center-label__value {
+      font-family: var(--sc-font-display);
+      font-size: 1.8rem;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--sc-ink);
+    }
+    .ring-center-label__unit {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+      margin-top: 2px;
+    }
+
+    .ring-showcase__info h3 {
+      font-family: var(--sc-font-display);
+      font-size: 1.6rem;
+      letter-spacing: -0.015em;
+      margin-bottom: var(--sc-4);
+      line-height: 1.15;
+    }
+
+    .ring-legend {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-3);
+      margin-top: var(--sc-5);
+    }
+
+    .ring-legend__item {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-3);
+    }
+
+    .ring-legend__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ring-legend__label {
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+
+    .ring-legend__bar-wrap {
+      flex: 1;
+      height: 3px;
+      background: var(--sc-border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .ring-legend__bar {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .ring-legend__bar.is-filled {
+      /* width set by JS per macro */
+    }
+    .ring-legend__value {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      white-space: nowrap;
+    }
+
+    /* ── AI Features ── */
+    #ai-features {
+      background: var(--sc-surface);
+      border-top: 1px solid var(--sc-border);
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    .ai-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sc-4);
+    }
+
+    @media (max-width: 640px) {
+      .ai-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ai-card {
+      background: var(--sc-canvas);
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      padding: var(--sc-7);
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .ai-card.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ai-card--primary {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--sc-6);
+      align-items: start;
+    }
+
+    @media (max-width: 640px) {
+      .ai-card--primary {
+        grid-column: span 1;
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ai-card--primary h3 {
+      font-family: var(--sc-font-display);
+      font-size: 1.35rem;
+      letter-spacing: -0.01em;
+    }
+
+    .ai-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: var(--sc-3);
+      color: var(--sc-ink);
+      line-height: 1.35;
+    }
+
+    .ai-card p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+    }
+
+    .ai-card__eyebrow {
+      margin-bottom: var(--sc-4);
+    }
+
+    .ai-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sc-accent2);
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+    }
+
+    .ai-card--setup {
+      background: var(--sc-surface2);
+    }
+
+    .ai-setup-steps {
+      list-style: none;
+      counter-reset: step-counter;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-3);
+      margin-top: var(--sc-3);
+    }
+    .ai-setup-steps li {
+      counter-increment: step-counter;
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: var(--sc-3);
+      font-size: 0.85rem;
+      color: var(--sc-ink-soft);
+      line-height: 1.5;
+      align-items: start;
+    }
+    .ai-setup-steps li::before {
+      content: counter(step-counter);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--sc-accent2);
+      background: rgba(108, 99, 255, 0.12);
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .ai-setup-steps strong {
+      color: var(--sc-ink);
+      font-weight: 500;
+    }
+
+    /* ── How to Use ── */
+    #how-to-use {
+      background: var(--sc-surface);
+      border-top: 1px solid var(--sc-border);
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    #how-to-use .inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sc-10);
+      align-items: start;
+    }
+
+    @media (max-width: 760px) {
+      #how-to-use .inner {
+        grid-template-columns: 1fr;
+        gap: var(--sc-7);
+      }
+    }
+
+    .how-header {
+      position: sticky;
+      top: 100px;
+    }
+
+    .how-header h2 {
+      margin-bottom: var(--sc-4);
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-2);
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: var(--sc-5);
+      padding: var(--sc-6) 0;
+      border-bottom: 1px solid var(--sc-border);
+      opacity: 0;
+      transform: translateX(-12px);
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .step:last-child {
+      border-bottom: none;
+    }
+    .step.is-visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .step__num {
+      font-family: var(--sc-font-display);
+      font-size: 2rem;
+      line-height: 1;
+      color: var(--sc-border);
+      color: rgba(255,255,255,0.1);
+      font-style: italic;
+      padding-top: 3px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .step__num {
+        color: rgba(0,0,0,0.1);
+      }
+    }
+
+    .step__content h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--sc-ink);
+      margin-bottom: var(--sc-2);
+      line-height: 1.35;
+    }
+
+    .step__content p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--sc-ink-soft);
+    }
+
+    .step__content a {
+      color: var(--sc-accent2);
+    }
+
+    /* ── Open / CTA ── */
+    #open {
+      background: var(--sc-canvas);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #open .t-lead {
+      margin: var(--sc-5) auto var(--sc-8);
+    }
+
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sc-4);
+    }
+
+    .cta-beta {
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+    .cta-beta a {
+      color: var(--sc-ink-soft);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .cta-beta a:hover {
+      color: var(--sc-ink);
+    }
+    .cta-beta a:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* CTA section entrance animations */
+    #open h2 {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    #open .t-lead {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    .cta-group {
+      animation: sc-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
     }
 
     /* ── Footer ── */
     footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 32px 24px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--muted);
+      border-top: 1px solid var(--sc-border);
+      padding: var(--sc-8) var(--sc-gutter);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sc-4);
     }
 
-    footer a { color: var(--accent-light); }
+    .footer__links {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-5);
+      flex-wrap: wrap;
+    }
 
-    @media (max-width: 480px) {
-      .hero { padding: 48px 16px; }
-      .container { padding: 36px 16px; }
-      .step { flex-direction: column; gap: 12px; }
+    .footer__links a {
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+      text-decoration: none;
+    }
+    .footer__links a:hover {
+      color: var(--sc-ink);
+    }
+    .footer__links a:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .footer__copy {
+      font-size: 0.78rem;
+      color: var(--sc-ink-soft);
+    }
+
+    .footer__sep {
+      color: var(--sc-border);
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      .feature-card,
+      .step,
+      .wipe-card {
+        opacity: 1 !important;
+        transform: none !important;
+        clip-path: none !important;
+      }
+    }
+
+    /* ── SVG ring arc base styles ── */
+    .ring-arc {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 18;
+      transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .ring-track {
+      fill: none;
+      stroke: var(--sc-border);
+      stroke-width: 18;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">
-      <div class="logo-icon">&#9679;</div>
-      <div class="logo-text">
-        <h1>Macro Tracker</h1>
-        <p>Nutrition PWA</p>
-      </div>
-    </div>
-    <a class="header-cta" href="https://macroslog.co.uk/">
-      Open App &rarr;
+  <!-- ── Header ── -->
+  <header class="site-header" role="banner">
+    <a class="site-logo" href="https://macroslog.co.uk/" aria-label="Macrolog home">
+      <svg class="site-logo__mark" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#6c63ff"/>
+        <circle cx="15" cy="15" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
+        <path d="M15 7 A8 8 0 0 1 21.93 19" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M21.93 19 A8 8 0 0 1 10.5 22.4" fill="none" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5 22.4 A8 8 0 0 1 15 7" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="15" cy="15" r="5" fill="#6c63ff"/>
+      </svg>
+      <span class="site-logo__name">Macrolog</span>
     </a>
+
+    <nav class="site-nav" role="navigation" aria-label="Main">
+      <a class="site-nav__link" href="#whats-new">What's New</a>
+      <a class="site-nav__link" href="#features">Features</a>
+      <a class="site-nav__link" href="#ai-features">AI</a>
+      <a class="site-nav__link" href="#how-to-use">How to Use</a>
+      <a class="site-nav__cta" href="https://macroslog.co.uk/" aria-label="Open the Macrolog app">Open App &rarr;</a>
+    </nav>
   </header>
 
-  <div class="hero">
-    <h2>Track your macros,<br>not your patience.</h2>
-    <p>A fast, offline-capable progressive web app for tracking daily nutrition. Install it like a native app — no App Store required.</p>
-    <div class="hero-badges">
-      <span class="badge">No account needed</span>
-      <span class="badge">Works offline</span>
-      <span class="badge">Installs on iPhone &amp; Android</span>
-      <span class="badge">Free &amp; open source</span>
+  <main>
+
+    <!-- ── 1. HERO ── -->
+    <section id="hero" aria-labelledby="hero-heading">
+      <div class="wrap">
+        <div class="hero__eyebrow" aria-hidden="true">
+          <span class="hero__eyebrow-dot"></span>
+          Nutrition PWA
+        </div>
+
+        <h1 id="hero-heading" class="t-display">
+          Track your macros.<br>Know your body.
+        </h1>
+
+        <p class="t-lead">
+          A precision macro tracker built as a PWA: fast, private, and yours.
+        </p>
+
+        <div class="hero__actions">
+          <a class="btn-primary" href="https://macroslog.co.uk/">
+            Open Macrolog &rarr;
+          </a>
+          <a class="btn-ghost" href="#features">
+            See what it does
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. WHAT'S NEW ── -->
+    <section id="whats-new" aria-labelledby="whats-new-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">01 — What's New</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="inner">
+          <div class="whats-new__meta">
+            <div class="version-badge">v2026-08-31.1 &middot; 31 Aug 2026</div>
+
+            <h2 id="whats-new-heading" class="t-display-sm">
+              The latest update.
+            </h2>
+
+            <p class="t-body">
+              Every release is driven by real use. This one adds a long-requested control for sugar tracking.
+            </p>
+
+            <a class="whats-new__changelog-link" href="changelog.html">
+              Full changelog &rarr;
+            </a>
+          </div>
+
+          <div>
+            <article class="wipe-card" aria-label="Feature: Configurable Sugar Limit">
+              <div class="wipe-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+
+              <h3>Configurable Sugar Limit</h3>
+
+              <p class="t-body">
+                Set your own daily sugar target in Settings. The warning threshold is automatically configured to 75% of your limit, so you get an early heads-up before you go over.
+              </p>
+
+              <div class="wipe-card__detail">
+                <p>
+                  <strong>Default:</strong> 60g per day.
+                  Find the new field under Settings, next to your other macro targets.
+                  The warning level updates automatically when you change the limit.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. FEATURES ── -->
+    <section id="features" aria-labelledby="features-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">02 — Features</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="features-header">
+          <h2 id="features-heading" class="t-display-sm">
+            Everything you need to stay on track.
+          </h2>
+          <p class="t-body">
+            Built for daily use. No subscription, no account required. Your data stays on your device.
+          </p>
+        </div>
+
+        <div class="features-grid" id="features-grid">
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </span>
+            <h3>Daily calorie and macro tracking</h3>
+            <p>Log every meal against your protein, carbohydrate, fat, and calorie targets. The ring shows your progress at a glance.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 1 0 0 20"/>
+                <path d="M12 8v4l2 2"/>
+                <path d="M19 19l-1.5-1.5M22 22l-1.5-1.5"/>
+                <circle cx="19.5" cy="19.5" r="2.5"/>
+              </svg>
+            </span>
+            <h3>AI meal description</h3>
+            <p>Describe a meal in plain language. Claude, Gemini, or OpenAI estimates the macros and adds the entry for you.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+            </span>
+            <h3>AI daily and weekly summaries</h3>
+            <p>Get a plain-language summary of your day or week: how close you stayed to targets, and where to adjust.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+            </span>
+            <h3>Garmin Connect sync</h3>
+            <p>Nutrition data flows directly into Garmin Connect, keeping your activity and food logs in one place.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+              </svg>
+            </span>
+            <h3>Self-hosted sync server</h3>
+            <p>Run the optional sync server on your own hardware. Authenticated, private, no third-party storage.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-card__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </span>
+            <h3>Trends and history</h3>
+            <p>Review your past seven or thirty days. Spot patterns across calories, protein, carbs, and fat over time.</p>
+          </article>
+        </div>
+
+        <!-- Signature move: macro ring -->
+        <div class="ring-showcase" id="ring-showcase" aria-label="Today's macros ring preview">
+          <div class="ring-showcase__ring">
+            <svg viewBox="0 0 200 200" aria-hidden="true">
+              <!-- Tracks (background) -->
+              <circle class="ring-track" cx="100" cy="100" r="82"/>
+
+              <!--
+                Circumference of r=82: 2*pi*82 = 515.2
+                Protein (35%):  515.2 * 0.35 = 180.3  starts at 0
+                Carbs   (45%):  515.2 * 0.45 = 231.8  starts after protein + gap
+                Fat     (20%):  515.2 * 0.20 = 103.0  starts after carbs + gap
+
+                Gap between segments: 8 units
+                Total arc: 515.2 - 3 gaps = 515.2 - 24 = 491.2
+
+                Protein: 491.2 * 0.35 = 171.9
+                Carbs:   491.2 * 0.45 = 221.0
+                Fat:     491.2 * 0.20 = 98.2
+
+                stroke-dasharray = [segment, circumference - segment]
+                stroke-dashoffset starts at circumference (hidden), animates to offset
+
+                Offsets (clockwise from top = rotation -90deg already applied):
+                Protein start: 0, so offset = 0
+                Carbs start: 171.9 + 8 = 179.9, so offset = -(circumference - 179.9) => dashoffset = circumference - 179.9 = 335.3
+                  Actually: to position a segment, dashoffset = -(start)
+                  stroke-dasharray = [length gap rest]
+                  Simpler: each arc uses dasharray = [length, 515.2] and dashoffset = -start
+              -->
+
+              <!-- Protein arc (green) -->
+              <circle class="ring-arc" id="arc-protein" cx="100" cy="100" r="82"
+                stroke="var(--sc-protein)"
+                stroke-dasharray="171.9 515.2"
+                stroke-dashoffset="515.2"/>
+
+              <!-- Carbs arc (yellow) -->
+              <circle class="ring-arc" id="arc-carbs" cx="100" cy="100" r="82"
+                stroke="var(--sc-carbs)"
+                stroke-dasharray="221.0 515.2"
+                stroke-dashoffset="335.3"/>
+
+              <!-- Fat arc (orange) -->
+              <circle class="ring-arc" id="arc-fat" cx="100" cy="100" r="82"
+                stroke="var(--sc-fat)"
+                stroke-dasharray="98.2 515.2"
+                stroke-dashoffset="114.3"/>
+            </svg>
+
+            <div class="ring-center-label" aria-hidden="true">
+              <span class="ring-center-label__value" id="ring-kcal">0</span>
+              <span class="ring-center-label__unit">kcal</span>
+            </div>
+          </div>
+
+          <div class="ring-showcase__info">
+            <h3>Today's Macros</h3>
+            <p class="t-body">
+              The ring at the heart of the app. Each segment fills as you log meals throughout the day, giving you an immediate read on where you stand.
+            </p>
+
+            <div class="ring-legend" role="list">
+              <div class="ring-legend__item" role="listitem">
+                <div class="ring-legend__dot" style="background:var(--sc-protein)"></div>
+                <span class="ring-legend__label">Protein</span>
+                <div class="ring-legend__bar-wrap">
+                  <div class="ring-legend__bar" id="bar-protein" style="background:var(--sc-protein)"></div>
+                </div>
+                <span class="ring-legend__value" id="val-protein">0g</span>
+              </div>
+
+              <div class="ring-legend__item" role="listitem">
+                <div class="ring-legend__dot" style="background:var(--sc-carbs)"></div>
+                <span class="ring-legend__label">Carbs</span>
+                <div class="ring-legend__bar-wrap">
+                  <div class="ring-legend__bar" id="bar-carbs" style="background:var(--sc-carbs)"></div>
+                </div>
+                <span class="ring-legend__value" id="val-carbs">0g</span>
+              </div>
+
+              <div class="ring-legend__item" role="listitem">
+                <div class="ring-legend__dot" style="background:var(--sc-fat)"></div>
+                <span class="ring-legend__label">Fat</span>
+                <div class="ring-legend__bar-wrap">
+                  <div class="ring-legend__bar" id="bar-fat" style="background:var(--sc-fat)"></div>
+                </div>
+                <span class="ring-legend__value" id="val-fat">0g</span>
+              </div>
+
+              <div class="ring-legend__item" role="listitem">
+                <div class="ring-legend__dot" style="background:var(--sc-kcal)"></div>
+                <span class="ring-legend__label">Calories</span>
+                <div class="ring-legend__bar-wrap">
+                  <div class="ring-legend__bar" id="bar-kcal" style="background:var(--sc-kcal)"></div>
+                </div>
+                <span class="ring-legend__value" id="val-kcal">0 kcal</span>
+              </div>
+            </div>
+
+            <p class="t-caption" style="margin-top: var(--sc-5);">
+              Example values: 165g protein, 230g carbs, 72g fat (2,211 kcal). Targets set by you in Settings.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 4. AI FEATURES ── -->
+    <section id="ai-features" aria-labelledby="ai-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">03 — AI Features</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="features-header">
+          <h2 id="ai-heading" class="t-display-sm">
+            Your AI assistant, on-device and optional.
+          </h2>
+          <p class="t-body">
+            Bring your own API key. No data sent to Macrolog servers. Three providers supported: Claude, Gemini, OpenAI.
+          </p>
+        </div>
+
+        <div class="ai-grid" id="ai-grid">
+          <article class="ai-card ai-card--primary">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Describe tab</span>
+            </div>
+            <h3>AI meal description</h3>
+            <p>Open the Describe tab in Log Food and type what you ate in plain language: "chicken tikka masala with rice, restaurant portion". The AI returns a name, estimated weight, calories, protein, carbohydrates, fat, and fibre, along with a confidence indicator and the assumptions it made. Review and edit the values before adding to your log.</p>
+          </article>
+
+          <article class="ai-card">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Today page</span>
+            </div>
+            <h3>AI Daily Summary</h3>
+            <p>Tap the summary button on the Today page for a personalised review of the day: what went well, where you drifted from targets, and one concrete focus for tomorrow. Cached per day so it does not re-run on every tap.</p>
+          </article>
+
+          <article class="ai-card">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Trends page</span>
+            </div>
+            <h3>AI Weekly Review</h3>
+            <p>On the Trends page, the weekly review analyses all seven days of logs and returns patterns across macros, consistency scores, and a specific focus for the coming week. Useful for adjusting targets that are consistently over or under.</p>
+          </article>
+
+          <article class="ai-card ai-card--setup">
+            <div class="ai-card__eyebrow">
+              <span class="ai-tag">Setup</span>
+            </div>
+            <h3>How to enable AI</h3>
+            <ol class="ai-setup-steps">
+              <li>Open <strong>Settings</strong> and enable <strong>Developer Mode</strong></li>
+              <li>Find the <strong>AI</strong> card and toggle it on</li>
+              <li>Pick a provider: Claude, Gemini, or OpenAI</li>
+              <li>Paste your API key (stored on-device only, never sent to Macrolog servers)</li>
+              <li>Optionally override the model name for your chosen provider</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. HOW TO USE ── -->
+    <section id="how-to-use" aria-labelledby="how-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">04 — How to Use</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="inner">
+          <div class="how-header">
+            <h2 id="how-heading" class="t-display-sm">
+              Up and running in minutes.
+            </h2>
+            <p class="t-body">
+              Five steps from install to your first logged meal.
+            </p>
+          </div>
+
+          <ol class="steps" id="steps-list" aria-label="How to get started">
+            <li class="step">
+              <span class="step__num" aria-hidden="true">1</span>
+              <div class="step__content">
+                <h3>Install as a PWA</h3>
+                <p>Open <a href="https://macroslog.co.uk/">macroslog.co.uk</a> in Safari or Chrome. Tap "Add to Home Screen" (iOS) or "Install app" (Android/Chrome) to install it as a native-feeling app, no app store required.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">2</span>
+              <div class="step__content">
+                <h3>Set your targets in Settings</h3>
+                <p>Enter your daily calorie goal, protein, carbohydrate, fat, and sugar limits. Macrolog stores them locally on your device.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">3</span>
+              <div class="step__content">
+                <h3>Log meals manually or with AI Describe</h3>
+                <p>Type a food item and its macros, or tap "AI Describe" and write a plain-language description: "chicken breast, rice, broccoli, about 400g". The AI estimates the split and adds the entry.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">4</span>
+              <div class="step__content">
+                <h3>Check the Today ring for progress</h3>
+                <p>The macro ring updates as you log. Tap any segment to see the breakdown. A warning indicator appears if you approach your sugar limit.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">5</span>
+              <div class="step__content">
+                <h3>Review Trends weekly</h3>
+                <p>Open the Trends tab on any day to see your last 7 or 30 days at a glance. Use the AI weekly summary to get a plain-language read on your consistency.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. OPEN APP CTA ── -->
+    <section id="open" aria-labelledby="open-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">Open</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <h2 id="open-heading" class="t-display">
+          Ready to start?
+        </h2>
+
+        <p class="t-lead">
+          Macrolog is free to use. Open it now and log your first meal in under a minute.
+        </p>
+
+        <div class="cta-group">
+          <a class="btn-primary" href="https://macroslog.co.uk/" style="font-size:1.05rem; padding: 16px 36px;">
+            Open Macrolog &rarr;
+          </a>
+          <p class="cta-beta">
+            Trying new features early? Use the <a href="https://beta.macroslog.co.uk">beta build</a> instead.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer role="contentinfo">
+    <div class="footer__links">
+      <a href="https://macroslog.co.uk/">macroslog.co.uk</a>
+      <span class="footer__sep">&middot;</span>
+      <a href="changelog.html">Changelog</a>
+      <span class="footer__sep">&middot;</span>
+      <a href="https://beta.macroslog.co.uk">Beta</a>
     </div>
-    <a class="hero-cta" href="https://macroslog.co.uk/">
-      Launch Macro Tracker
-    </a>
-  </div>
-
-  <div class="container">
-
-    <section>
-      <h2 class="section-title">What's New</h2>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-09-02 — Beta with 7 UI Themes</span>
-            <span style="font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px 10px;">Latest</span>
-          </div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li><strong><a href="/beta/" style="color:var(--accent);">Beta build</a></strong> now live at <code>/beta/</code> — try 7 visual styles: Current, Bold, Gradient, Zen, Soft, Editorial, and Retro</li>
-            <li>Style selector in Settings → Appearance; persists across reloads; fully compatible with dark/light/auto modes</li>
-          </ul>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-08-31 — Configurable Sugar Limit</span>
-          </div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li><strong>Sugar limit setting</strong> — set your own daily sugar limit in Settings; the warning threshold automatically adjusts to 75% of your limit (default remains 60g)</li>
-          </ul>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-08-29 — AI Features</span>
-          </div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li><strong>✨ Describe tab</strong> in Log Food — describe a meal in plain text and get instant macro estimates with an editable review card</li>
-            <li><strong>AI Daily Summary</strong> on the Today page — personalised wins, improvements, and tomorrow's focus (button-triggered, cached per day)</li>
-            <li><strong>AI Weekly Review</strong> on the Trends page — pattern analysis and recommendations across the week</li>
-            <li>Works with Claude, Gemini, and OpenAI — configure your key in Settings → Developer Mode → AI Features</li>
-          </ul>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-08-29 — Secure Sync API</span>
-          </div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li>Optional Bearer-token authentication for the bring-your-own-backend sync server</li>
-            <li>New API key field in Settings → Sync Server, sent automatically with every sync request</li>
-            <li>Clear <em>“wrong API key”</em> feedback on failed sync</li>
-            <li>New <a href="#sync-api">Sync API</a> docs section covering endpoints, auth and reference-server setup</li>
-          </ul>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-            <span style="font-weight:700;font-size:15px;">v2026-08-29 — Setup &amp; Onboarding Overhaul</span>
-          </div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li>Dark / Light / Auto theme toggle in Settings → Appearance</li>
-            <li>TDEE wizard now asks for biological sex and diet style (Standard, High Protein, Carb Heavy, Low Carb, Keto)</li>
-            <li>Onboarding tour navigates to each section — Log Food, Recipes, Trends, Fasting — as it describes them</li>
-            <li>Tour includes a PWA install step with browser-specific guidance</li>
-            <li>Several data-safety bug fixes in the tour (retaking the tour no longer risks overwriting real data)</li>
-            <li>Changelog and Supported Browsers docs pages added</li>
-          </ul>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:8px;">v2026-08-28 — Major feature release</div>
-          <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:4px;">
-            <li>Custom domain <strong>macroslog.co.uk</strong> — app now a proper installable PWA</li>
-            <li>First-run onboarding tour with live demo data</li>
-            <li>Settings page with per-tab and per-section visibility toggles</li>
-            <li>Ko-fi support integration across app and docs</li>
-            <li>GPL v3 open-source licence</li>
-            <li>Custom date picker with dot indicators on the History screen</li>
-            <li>Data export now includes all 14 keys; import validates types</li>
-          </ul>
-        </div>
-      </div>
-      <p style="margin-top:16px;font-size:14px;">
-        <a href="changelog.html">Full changelog →</a>
-      </p>
-    </section>
-
-    <section>
-      <h2 class="section-title">What it tracks</h2>
-      <p style="color: var(--muted); margin-bottom: 20px;">Set your daily targets for each macro and watch progress rings fill as you log meals throughout the day.</p>
-      <div class="macro-pills">
-        <div class="pill"><span class="pill-dot" style="background:#e879f9"></span>Calories</div>
-        <div class="pill"><span class="pill-dot" style="background:#4ade80"></span>Protein</div>
-        <div class="pill"><span class="pill-dot" style="background:#facc15"></span>Carbohydrates</div>
-        <div class="pill"><span class="pill-dot" style="background:#f97316"></span>Fat</div>
-        <div class="pill"><span class="pill-dot" style="background:#1ABC9C"></span>Fibre</div>
-        <div class="pill"><span class="pill-dot" style="background:#f59e0b"></span>Sugar (warning)</div>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="section-title">Features</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">&#128247;</div>
-          <h3>Barcode Scanning</h3>
-          <p>Point your camera at any product barcode. Nutrition data is pulled automatically from Open Food Facts.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128269;</div>
-          <h3>Food Search</h3>
-          <p>Search millions of products by name using the Open Food Facts database — no API key required.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#9998;</div>
-          <h3>Manual Entry</h3>
-          <p>Add custom foods to your personal database with full macro data. Great for home cooking and staples.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#127859;</div>
-          <h3>Recipe Builder</h3>
-          <p>Compose recipes from individual ingredients. Log by total weight or serving portion.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128200;</div>
-          <h3>Daily Dashboard</h3>
-          <p>Progress rings and bars show calories, protein, carbs, fat and fibre versus your targets at a glance.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128337;</div>
-          <h3>History View</h3>
-          <p>Browse any past day's food log. Useful for reviewing patterns and seeing what worked.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#9889;</div>
-          <h3>Offline-First</h3>
-          <p>All data is stored locally. Barcode lookups are cached after first scan. Works without internet.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128229;</div>
-          <h3>Data Export</h3>
-          <p>Export your entire food log as JSON at any time. Your data is yours.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="section-title">How to use it</h2>
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <div>
-            <h3>Open the app</h3>
-            <p>Visit <a href="https://macroslog.co.uk/">macroslog.co.uk</a> in Safari (iOS) or Chrome (Android). Camera access requires HTTPS — macroslog.co.uk serves over HTTPS automatically.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div>
-            <h3>Install to your home screen (optional)</h3>
-            <p><strong>Chrome or Edge</strong> — tap the browser menu and select "Install app" or "Add to Home Screen". A prompt may appear automatically. <strong>iOS Safari</strong> — tap the Share button (&#x2610;&#x2191;), then "Add to Home Screen". Other browsers may not support installation — see the <a href="#supported-browsers">supported browsers</a> section below. You can always use Macrolog directly in your browser without installing.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div>
-            <h3>Set your targets</h3>
-            <p>Go to the Settings tab and enter your daily calorie and macro targets. These are stored locally — no account needed.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div>
-            <h3>Log meals</h3>
-            <p>Tap "+" to add a food. Scan a barcode, search by name, pick from your recent foods, or enter custom macros manually. Adjust the weight and confirm.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-number">5</div>
-          <div>
-            <h3>Watch your progress</h3>
-            <p>The dashboard updates in real time. Progress rings fill as you get closer to each target. Check back throughout the day.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="supported-browsers">
-      <h2 class="section-title">Supported Browsers</h2>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:20px;">Macrolog works in any modern browser, but only some support full PWA installation (home screen icon, offline mode, standalone launch).</p>
-      <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        <thead>
-          <tr style="border-bottom:2px solid var(--border);">
-            <th style="text-align:left;padding:10px 12px;font-weight:600;">Browser</th>
-            <th style="text-align:center;padding:10px 12px;font-weight:600;">Platform</th>
-            <th style="text-align:center;padding:10px 12px;font-weight:600;">Install support</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Chrome</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Android &amp; desktop</td>
-            <td style="padding:10px 12px;text-align:center;">✅ Full</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Edge</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Windows &amp; Mac</td>
-            <td style="padding:10px 12px;text-align:center;">✅ Full</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Samsung Internet</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Android</td>
-            <td style="padding:10px 12px;text-align:center;">✅ Full</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Safari</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">iOS &amp; iPadOS</td>
-            <td style="padding:10px 12px;text-align:center;">⚠️ Via Share menu</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Firefox</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Desktop</td>
-            <td style="padding:10px 12px;text-align:center;">❌ Browser only</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:10px 12px;">Opera</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Android</td>
-            <td style="padding:10px 12px;text-align:center;">✅ Full</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 12px;">Brave, Arc, Firefox</td>
-            <td style="padding:10px 12px;text-align:center;color:var(--muted);">Desktop</td>
-            <td style="padding:10px 12px;text-align:center;">❌ Browser only</td>
-          </tr>
-        </tbody>
-      </table>
-      <p style="font-size:13px;color:var(--muted);margin-top:14px;">No install? No problem — Macrolog works fully in any browser. Installation just adds an icon and removes the browser bar.</p>
-    </section>
-
-    <section>
-      <h2 class="section-title">Tech stack</h2>
-      <div class="tech-list">
-        <span class="tech-tag">Vanilla HTML/CSS/JS</span>
-        <span class="tech-tag">Progressive Web App (PWA)</span>
-        <span class="tech-tag">Service Worker</span>
-        <span class="tech-tag">IndexedDB / localStorage</span>
-        <span class="tech-tag">Web App Manifest</span>
-        <span class="tech-tag">Open Food Facts API</span>
-        <span class="tech-tag">Camera / MediaDevices API</span>
-        <span class="tech-tag">Cloudflare / Custom domain</span>
-      </div>
-      <p style="margin-top: 16px; font-size: 14px; color: var(--muted);">Zero npm dependencies. No build step. The entire app ships as a single <code>index.html</code> file plus a service worker — fast to load, easy to audit.</p>
-    </section>
-
-    <section>
-      <h2 class="section-title">Support the project</h2>
-      <div class="kofi-section">
-        <div class="kofi-section-icon">&#9749;</div>
-        <div>
-          <h3>Macrolog is completely free</h3>
-          <p>No ads. No accounts. No subscription. The app is built and maintained by one person in their spare time. If it saves you time or helps you hit your goals, buying me a coffee is a lovely way to say thanks — and it helps keep the project alive.</p>
-          <a class="kofi-cta" href="https://ko-fi.com/oliver_johnson" target="_blank" rel="noopener">&#9749; Buy me a coffee</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="sync-api">
-      <h2 class="section-title">Sync API</h2>
-      <p style="color: var(--muted); margin-bottom: 16px;">
-        Macrolog can optionally sync your food log and macro targets with a small
-        server that <strong>you</strong> host. There are no Macrolog accounts and no
-        central database — your data stays on a machine you control. This is a
-        bring-your-own-backend feature aimed at power users who want to bridge the app
-        with their own scripts or fitness tooling.
-      </p>
-
-      <h3 style="font-size:15px;margin:20px 0 8px;">Endpoints</h3>
-      <p style="color: var(--muted); margin-bottom: 12px;">All requests are made against the server URL you configure. Four operations across two resources:</p>
-      <ul style="font-size:14px;color:var(--muted);padding-left:18px;display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-        <li><code>GET&nbsp;/sync/food-log</code> — fetch the stored food log, recipes, custom foods and settings</li>
-        <li><code>POST&nbsp;/sync/food-log</code> — push the current food log to the server</li>
-        <li><code>GET&nbsp;/sync/targets</code> — fetch today's macro targets</li>
-        <li><code>POST&nbsp;/sync/targets</code> — push macro targets to the server</li>
-      </ul>
-
-      <h3 style="font-size:15px;margin:20px 0 8px;">Authentication</h3>
-      <p style="color: var(--muted); margin-bottom: 12px;">
-        If the server is started with a <code>SYNC_API_KEY</code>, every request must send a
-        matching bearer token. Macrolog adds it automatically from the API key you enter in Settings:
-      </p>
-      <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.5;margin-bottom:16px;"><code>Authorization: Bearer YOUR_API_KEY
-Content-Type: application/json</code></pre>
-      <p style="color: var(--muted); margin-bottom: 16px;">
-        A wrong or missing key returns <code>401 Unauthorized</code>, and the app shows
-        <em>“Sync failed — wrong API key”</em>. If the server is started without a key, auth is
-        skipped (fine for a private LAN, not recommended over the public internet).
-      </p>
-
-      <h3 style="font-size:15px;margin:20px 0 8px;">Request &amp; response format</h3>
-      <p style="color: var(--muted); margin-bottom: 12px;">Bodies are JSON. A food-log push looks like:</p>
-      <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.5;margin-bottom:12px;"><code>POST /sync/food-log
-{
-  "logs": [ { "date": "2026-08-29", "entries": [ /* ... */ ] } ],
-  "recipes": [ /* ... */ ],
-  "customFoods": [ /* ... */ ],
-  "settings": { /* ... */ }
-}
-
-→ { "status": "saved" }</code></pre>
-      <p style="color: var(--muted); margin-bottom: 12px;">And a targets response:</p>
-      <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.5;margin-bottom:16px;"><code>GET /sync/targets
-→ {
-  "date": "2026-08-29",
-  "day_type": "rest",
-  "kcal": 2400, "protein": 170, "carbs": 285, "fat": 70
-}</code></pre>
-      <p style="color: var(--muted); margin-bottom: 16px;">Request bodies larger than 5&nbsp;MB are rejected.</p>
-
-      <h3 style="font-size:15px;margin:20px 0 8px;">Running the reference server</h3>
-      <p style="color: var(--muted); margin-bottom: 12px;">A small Flask reference server is available on GitHub. Two-command setup:</p>
-      <pre style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.5;margin-bottom:12px;"><code>git clone https://github.com/oliver-johnson/macrolog-sync-server
-cd macrolog-sync-server &amp;&amp; pip install -r requirements.txt
-
-SYNC_API_KEY="$(openssl rand -hex 24)" python server.py</code></pre>
-      <p style="color: var(--muted); margin-bottom: 16px;">
-        The server listens on port <code>5001</code>. Expose it however you like — a
-        reverse proxy, a Cloudflare Tunnel, or Tailscale — and use that public URL in Macrolog.
-        Keep the generated key secret. See the
-        <a href="https://github.com/oliver-johnson/macrolog-sync-server">reference server on GitHub</a>
-        for full setup notes.
-      </p>
-
-      <h3 style="font-size:15px;margin:20px 0 8px;">Connecting Macrolog</h3>
-      <p style="color: var(--muted);">
-        Enable <strong>Developer Mode</strong>, then open <strong>Settings → Sync Server</strong>.
-        Enter your server URL and (if set) the API key, and tap <strong>Save</strong>. Macrolog
-        will sync targets and food-log enrichment data automatically, and you can push manually
-        with the <em>Sync to Server</em> button.
-      </p>
-    </section>
-
-  </div>
-
-  <footer>
-    <p style="margin-bottom: 8px;">
-      <a href="https://macroslog.co.uk/">Open Macro Tracker</a>
-      &nbsp;&middot;&nbsp;
-      <a href="https://github.com/oliver-johnson/macro-tracker">GitHub</a>
-    </p>
-    <p>Nutrition data provided by <a href="https://world.openfoodfacts.org/">Open Food Facts</a> (CC BY-SA). No warranties expressed or implied.</p>
-    <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">Macro Tracker is free software licensed under the <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU General Public License v3</a> (or later). Copyright &copy; 2026 Oliver Johnson.</p>
+    <span class="footer__copy">&copy; 2026 Macrolog</span>
   </footer>
+
+  <script>
+    // ── Intersection Observer: wipe-reveal for What's New card ──
+    (function () {
+      var card = document.querySelector('.wipe-card');
+      if (!card) return;
+
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      obs.observe(card);
+    })();
+
+    // ── Feature cards: stagger fade-up ──
+    (function () {
+      var cards = document.querySelectorAll('.feature-card');
+      if (!cards.length) return;
+
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var idx = Array.from(cards).indexOf(entry.target);
+            setTimeout(function () {
+              entry.target.classList.add('is-visible');
+            }, idx * 80);
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+      cards.forEach(function (card) { obs.observe(card); });
+    })();
+
+    // ── SIGNATURE MOVE: Macro ring fill on scroll entry ──
+    (function () {
+      var showcase = document.getElementById('ring-showcase');
+      if (!showcase) return;
+
+      var circum = 515.2;
+
+      // Target values (example, clearly labelled in caption)
+      var targets = {
+        protein: { g: 165, target: 180, color: 'var(--sc-protein)' },
+        carbs:   { g: 230, target: 250, color: 'var(--sc-carbs)' },
+        fat:     { g: 72,  target: 80,  color: 'var(--sc-fat)' },
+        kcal:    { val: 2211, target: 2400 }
+      };
+
+      var arcProtein = document.getElementById('arc-protein');
+      var arcCarbs   = document.getElementById('arc-carbs');
+      var arcFat     = document.getElementById('arc-fat');
+      var ringKcal   = document.getElementById('ring-kcal');
+
+      // Legend bars and values
+      var barProtein = document.getElementById('bar-protein');
+      var barCarbs   = document.getElementById('bar-carbs');
+      var barFat     = document.getElementById('bar-fat');
+      var barKcal    = document.getElementById('bar-kcal');
+      var valProtein = document.getElementById('val-protein');
+      var valCarbs   = document.getElementById('val-carbs');
+      var valFat     = document.getElementById('val-fat');
+      var valKcal    = document.getElementById('val-kcal');
+
+      function animateRing() {
+        // The arc dashoffset values at "0%" are the starting positions for each segment
+        // (calculated in the SVG comment above). We animate TO these from circumference (fully hidden).
+
+        // Protein: dashoffset starts at circum (hidden), animates to 0 (the positioning offset)
+        // Because we set stroke-dashoffset=0 to show the full segment at its start position,
+        // the trick is: the segment is "at" dashoffset = -(start_angle_in_units)
+        // But we already baked those into the SVG. So:
+        // To SHOW a segment: set dashoffset = [its positioning offset]
+        // To HIDE a segment: set dashoffset = circum (fully pushed off)
+
+        var proteinOffset = 0;          // protein starts at angle 0
+        var carbsOffset   = circum - (171.9 + 8);   // = 335.3
+        var fatOffset     = circum - (171.9 + 8 + 221.0 + 8); // = 114.3
+
+        // Start hidden
+        arcProtein.style.strokeDashoffset = circum;
+        arcCarbs.style.strokeDashoffset   = circum;
+        arcFat.style.strokeDashoffset     = circum;
+
+        // Remove transition briefly to snap to start state, then restore
+        arcProtein.style.transition = 'none';
+        arcCarbs.style.transition   = 'none';
+        arcFat.style.transition     = 'none';
+
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            arcProtein.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1)';
+            arcCarbs.style.transition   = 'stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s';
+            arcFat.style.transition     = 'stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s';
+
+            arcProtein.style.strokeDashoffset = proteinOffset;
+            arcCarbs.style.strokeDashoffset   = carbsOffset;
+            arcFat.style.strokeDashoffset     = fatOffset;
+          });
+        });
+
+        // Animate legend bars
+        setTimeout(function () {
+          barProtein.style.width = ((targets.protein.g / targets.protein.target) * 100).toFixed(1) + '%';
+          barCarbs.style.width   = ((targets.carbs.g   / targets.carbs.target)   * 100).toFixed(1) + '%';
+          barFat.style.width     = ((targets.fat.g     / targets.fat.target)     * 100).toFixed(1) + '%';
+          barKcal.style.width    = ((targets.kcal.val  / targets.kcal.target)    * 100).toFixed(1) + '%';
+        }, 200);
+
+        // Animate label values (count-up)
+        var duration = 1400;
+        var start = performance.now();
+
+        function tick(now) {
+          var elapsed = now - start;
+          var progress = Math.min(elapsed / duration, 1);
+          // ease-out cubic
+          var eased = 1 - Math.pow(1 - progress, 3);
+
+          ringKcal.textContent  = Math.round(targets.kcal.val * eased);
+          valProtein.textContent = Math.round(targets.protein.g * eased) + 'g';
+          valCarbs.textContent   = Math.round(targets.carbs.g   * eased) + 'g';
+          valFat.textContent     = Math.round(targets.fat.g     * eased) + 'g';
+          valKcal.textContent    = Math.round(targets.kcal.val  * eased) + ' kcal';
+
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          }
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      var triggered = false;
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !triggered) {
+            triggered = true;
+            animateRing();
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      obs.observe(showcase);
+    })();
+
+    // ── AI cards: stagger fade-up ──
+    (function () {
+      var cards = document.querySelectorAll('.ai-card');
+      if (!cards.length) return;
+
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var idx = Array.from(cards).indexOf(entry.target);
+            setTimeout(function () {
+              entry.target.classList.add('is-visible');
+            }, idx * 100);
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+      cards.forEach(function (card) { obs.observe(card); });
+    })();
+
+    // ── Steps: sequential reveal ──
+    (function () {
+      var steps = document.querySelectorAll('.step');
+      if (!steps.length) return;
+
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var idx = Array.from(steps).indexOf(entry.target);
+            setTimeout(function () {
+              entry.target.classList.add('is-visible');
+            }, idx * 100);
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+
+      steps.forEach(function (step) { obs.observe(step); });
+    })();
+  </script>
 
 </body>
 </html>
