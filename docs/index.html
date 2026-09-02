@@ -845,8 +845,7 @@
     }
 
     .how-header {
-      position: sticky;
-      top: 100px;
+      /* previously sticky — removed to prevent z-index overlap with steps */
     }
 
     .how-header h2 {
@@ -1056,8 +1055,8 @@
     <nav class="site-nav" role="navigation" aria-label="Main">
       <a class="site-nav__link" href="#whats-new">What's New</a>
       <a class="site-nav__link" href="#features">Features</a>
-      <a class="site-nav__link" href="#developer">Developer</a>
       <a class="site-nav__link" href="#how-to-use">How to Use</a>
+      <a class="site-nav__link" href="#developer">Developer</a>
       <a class="site-nav__cta" href="https://macroslog.co.uk/" aria-label="Open the Macrolog app">Open App &rarr;</a>
     </nav>
   </header>
@@ -1337,11 +1336,101 @@
       </div>
     </section>
 
-    <!-- ── 4. AI FEATURES ── -->
+    <!-- ── 4. HOW TO USE ── -->
+    <section id="how-to-use" aria-labelledby="how-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">03 — How to Use</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="inner">
+          <div class="how-header">
+            <h2 id="how-heading" class="t-display-sm">
+              Up and running in minutes.
+            </h2>
+            <p class="t-body">
+              Five steps from install to your first logged meal.
+            </p>
+          </div>
+
+          <ol class="steps" id="steps-list" aria-label="How to get started">
+            <li class="step">
+              <span class="step__num" aria-hidden="true">1</span>
+              <div class="step__content">
+                <h3>Install as a PWA</h3>
+                <p>Open <a href="https://macroslog.co.uk/">macroslog.co.uk</a> in Safari or Chrome. Tap "Add to Home Screen" (iOS) or "Install app" (Android/Chrome) to install it as a native-feeling app, no app store required.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">2</span>
+              <div class="step__content">
+                <h3>Set your targets in Settings</h3>
+                <p>Enter your daily calorie goal, protein, carbohydrate, fat, and sugar limits. Macrolog stores them locally on your device.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">3</span>
+              <div class="step__content">
+                <h3>Log meals manually or with AI Describe</h3>
+                <p>Type a food item and its macros, or tap "AI Describe" and write a plain-language description: "chicken breast, rice, broccoli, about 400g". The AI estimates the split and adds the entry.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">4</span>
+              <div class="step__content">
+                <h3>Check the Today ring for progress</h3>
+                <p>The macro ring updates as you log. Tap any segment to see the breakdown. A warning indicator appears if you approach your sugar limit.</p>
+              </div>
+            </li>
+
+            <li class="step">
+              <span class="step__num" aria-hidden="true">5</span>
+              <div class="step__content">
+                <h3>Review Trends weekly</h3>
+                <p>Open the Trends tab on any day to see your last 7 or 30 days at a glance. Use the AI weekly summary to get a plain-language read on your consistency.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. OPEN APP CTA ── -->
+    <section id="open" aria-labelledby="open-heading">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">Open</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <h2 id="open-heading" class="t-display">
+          Ready to start?
+        </h2>
+
+        <p class="t-lead">
+          Macrolog is free to use. Open it now and log your first meal in under a minute.
+        </p>
+
+        <div class="cta-group">
+          <a class="btn-primary" href="https://macroslog.co.uk/" style="font-size:1.05rem; padding: 16px 36px;">
+            Open Macrolog &rarr;
+          </a>
+          <p class="cta-beta">
+            Trying new features early? Use the <a href="https://beta.macroslog.co.uk">beta build</a> instead.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Developer Features ── -->
     <section id="developer" aria-labelledby="developer-heading">
       <div class="wrap">
         <div class="chapter-marker" aria-hidden="true">
-          <span class="chapter-marker__text">04 — Developer Features</span>
+          <span class="chapter-marker__text">Developer Features</span>
           <span class="chapter-marker__rule"></span>
         </div>
 
@@ -1439,96 +1528,6 @@
               <li>Optionally override the model name for your chosen provider</li>
             </ol>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── 5. HOW TO USE ── -->
-    <section id="how-to-use" aria-labelledby="how-heading">
-      <div class="wrap">
-        <div class="chapter-marker" aria-hidden="true">
-          <span class="chapter-marker__text">03 — How to Use</span>
-          <span class="chapter-marker__rule"></span>
-        </div>
-
-        <div class="inner">
-          <div class="how-header">
-            <h2 id="how-heading" class="t-display-sm">
-              Up and running in minutes.
-            </h2>
-            <p class="t-body">
-              Five steps from install to your first logged meal.
-            </p>
-          </div>
-
-          <ol class="steps" id="steps-list" aria-label="How to get started">
-            <li class="step">
-              <span class="step__num" aria-hidden="true">1</span>
-              <div class="step__content">
-                <h3>Install as a PWA</h3>
-                <p>Open <a href="https://macroslog.co.uk/">macroslog.co.uk</a> in Safari or Chrome. Tap "Add to Home Screen" (iOS) or "Install app" (Android/Chrome) to install it as a native-feeling app, no app store required.</p>
-              </div>
-            </li>
-
-            <li class="step">
-              <span class="step__num" aria-hidden="true">2</span>
-              <div class="step__content">
-                <h3>Set your targets in Settings</h3>
-                <p>Enter your daily calorie goal, protein, carbohydrate, fat, and sugar limits. Macrolog stores them locally on your device.</p>
-              </div>
-            </li>
-
-            <li class="step">
-              <span class="step__num" aria-hidden="true">3</span>
-              <div class="step__content">
-                <h3>Log meals manually or with AI Describe</h3>
-                <p>Type a food item and its macros, or tap "AI Describe" and write a plain-language description: "chicken breast, rice, broccoli, about 400g". The AI estimates the split and adds the entry.</p>
-              </div>
-            </li>
-
-            <li class="step">
-              <span class="step__num" aria-hidden="true">4</span>
-              <div class="step__content">
-                <h3>Check the Today ring for progress</h3>
-                <p>The macro ring updates as you log. Tap any segment to see the breakdown. A warning indicator appears if you approach your sugar limit.</p>
-              </div>
-            </li>
-
-            <li class="step">
-              <span class="step__num" aria-hidden="true">5</span>
-              <div class="step__content">
-                <h3>Review Trends weekly</h3>
-                <p>Open the Trends tab on any day to see your last 7 or 30 days at a glance. Use the AI weekly summary to get a plain-language read on your consistency.</p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── 5. OPEN APP CTA ── -->
-    <section id="open" aria-labelledby="open-heading">
-      <div class="wrap">
-        <div class="chapter-marker" aria-hidden="true">
-          <span class="chapter-marker__text">Open</span>
-          <span class="chapter-marker__rule"></span>
-        </div>
-
-        <h2 id="open-heading" class="t-display">
-          Ready to start?
-        </h2>
-
-        <p class="t-lead">
-          Macrolog is free to use. Open it now and log your first meal in under a minute.
-        </p>
-
-        <div class="cta-group">
-          <a class="btn-primary" href="https://macroslog.co.uk/" style="font-size:1.05rem; padding: 16px 36px;">
-            Open Macrolog &rarr;
-          </a>
-          <p class="cta-beta">
-            Trying new features early? Use the <a href="https://beta.macroslog.co.uk">beta build</a> instead.
-          </p>
         </div>
       </div>
     </section>
