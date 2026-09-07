@@ -590,6 +590,38 @@
       letter-spacing: 0.03em;
     }
 
+    /* Linked feature cards (tiles that navigate to a subpage) */
+    a.feature-card {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+    a.feature-card:hover {
+      text-decoration: none;
+      border-color: rgba(108, 99, 255, 0.35);
+      transform: translateY(-3px);
+    }
+    a.feature-card.is-visible:hover {
+      transform: translateY(-3px);
+    }
+    a.feature-card:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+    }
+    .feature-card__more {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: var(--sc-4);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--sc-accent2);
+      transition: gap 0.2s ease;
+    }
+    a.feature-card:hover .feature-card__more {
+      gap: 9px;
+    }
+
     /* Signature move: macro ring */
     .ring-showcase {
       display: grid;
@@ -1267,7 +1299,7 @@
             <p>Log meals and track kcal, protein, carbs, fat, fibre, and sugar against your daily targets.</p>
           </article>
 
-          <article class="feature-card">
+          <a class="feature-card" href="barcode-scanner.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="4" width="20" height="16" rx="2"/>
@@ -1276,9 +1308,10 @@
             </span>
             <h3>Barcode scanner</h3>
             <p>Scan any food barcode to pull up nutrition data instantly — no manual entry needed.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
+          <a class="feature-card" href="nutrition-label.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -1287,9 +1320,10 @@
             </span>
             <h3>Nutrition label parser</h3>
             <p>Point the camera at any nutrition label to read off the values automatically.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
+          <a class="feature-card" href="recipes.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10"/>
@@ -1300,9 +1334,10 @@
             </span>
             <h3>Recipes</h3>
             <p>Build and save multi-ingredient recipes; log them as a single entry.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
+          <a class="feature-card" href="custom-foods.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
@@ -1310,9 +1345,10 @@
             </span>
             <h3>Custom foods</h3>
             <p>Save your own foods with custom macros for quick relogging.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
+          <a class="feature-card" href="trends.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -1320,21 +1356,10 @@
             </span>
             <h3>Graphs and trends</h3>
             <p>Weekly and monthly charts for all macros, body weight, and calorie balance over time.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
-            <span class="feature-card__icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 6v6l4 2"/>
-                <path d="M16 16l2 2"/>
-              </svg>
-            </span>
-            <h3>Interval timer</h3>
-            <p>Built-in rest/interval timer for workouts, with customisable durations.</p>
-          </article>
-
-          <article class="feature-card">
+          <a class="feature-card" href="appearance.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4"/>
@@ -1343,9 +1368,10 @@
             </span>
             <h3>Appearance</h3>
             <p>Light, dark, and auto modes. New visual themes launching via the beta channel.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
-          <article class="feature-card">
+          <a class="feature-card" href="install.html">
             <span class="feature-card__icon" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a5 5 0 0 1 5 5v3H7V7a5 5 0 0 1 5-5z"/>
@@ -1354,7 +1380,8 @@
             </span>
             <h3>Installable PWA</h3>
             <p>Installs directly from the browser on any device — no app store required, works offline.</p>
-          </article>
+            <span class="feature-card__more" aria-hidden="true">View details &rarr;</span>
+          </a>
 
           <article class="feature-card">
             <span class="feature-card__icon" aria-hidden="true">
@@ -1590,150 +1617,11 @@
             Self-host, sync, and extend.
           </h2>
           <p class="t-body">
-            Power-user tools for running your own infrastructure and integrating AI on your own terms.
+            Run your own lightweight Flask sync server to keep every entry on infrastructure you control, and plug in your own AI provider (Claude, Gemini, or OpenAI) for meal descriptions and summaries — your API key stays on-device. Both are optional and off by default.
           </p>
-        </div>
-
-        <!-- ── Sync Server subsection ── -->
-        <h3 class="t-display-sm" style="margin-bottom:var(--sc-4);margin-top:var(--sc-8)">Sync Server</h3>
-
-        <div class="ai-grid" id="sync-grid">
-          <article class="ai-card ai-card--primary">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Self-hosted</span>
-            </div>
-            <h3>Your data, your server</h3>
-            <p>The sync server is a lightweight Flask app that lives in the <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">sync-server/</code> subfolder of the repo. Run it anywhere — a Raspberry Pi, a VPS, or a spare laptop. All food log data stays on infrastructure you control.</p>
-          </article>
-
-          <article class="ai-card">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Auth</span>
-            </div>
-            <h3>Bearer token authentication</h3>
-            <p>Set a <code style="font-family:monospace;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:4px;padding:2px 6px">SYNC_API_KEY</code> environment variable on the server. The app sends this key as a Bearer token on every sync request. No accounts, no OAuth — just a secret you control.</p>
-          </article>
-
-          <article class="ai-card">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">HTTPS</span>
-            </div>
-            <h3>Cloudflare Quick Tunnel</h3>
-            <p>Expose your local server over HTTPS in one command with a Cloudflare quick tunnel. No port-forwarding or cert management required. Suitable for personal use; see the repo README for named-tunnel setup if you want a stable URL.</p>
-          </article>
-
-          <article class="ai-card ai-card--setup">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Setup</span>
-            </div>
-            <h3>How to connect</h3>
-            <div class="dev-step">
-              <div class="dev-step__num">1</div>
-              <div class="dev-step__body">
-                <p>Clone the repo and start the Flask server:</p>
-                <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>SYNC_API_KEY=secret flask run</code></pre></div>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">2</div>
-              <div class="dev-step__body">
-                <p>Expose the server. Choose one method:</p>
-                <ul style="font-size:0.82rem;color:var(--sc-ink-soft);margin:0 0 0.5rem 1rem;line-height:1.7">
-                  <li><strong style="color:var(--sc-ink)">Quick tunnel</strong> (temp URL, easiest):</li>
-                </ul>
-                <div class="code-wrap"><button class="copy-btn" onclick="copyCode(this)">Copy</button><pre><code>cloudflared tunnel --url localhost:5001</code></pre></div>
-                <ul style="font-size:0.82rem;color:var(--sc-ink-soft);margin:0.5rem 0 0 1rem;line-height:1.7">
-                  <li><strong style="color:var(--sc-ink)">Named tunnel</strong> — stable URL, works with your own domain</li>
-                  <li><strong style="color:var(--sc-ink)">LAN only</strong> — use your server's local IP (e.g. <code style="font-size:0.8em">http://192.168.1.x:5001</code>) if your phone and server are on the same network</li>
-                </ul>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">3</div>
-              <div class="dev-step__body">
-                <p>In the app, open <strong>Settings</strong>, then <strong>Developer Settings</strong>.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">4</div>
-              <div class="dev-step__body">
-                <p>Paste the tunnel URL and your API key into the Sync Server fields.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">5</div>
-              <div class="dev-step__body">
-                <p>Tap <strong>Sync now</strong> — your food log will upload immediately.</p>
-              </div>
-            </div>
-            <p style="margin-top:var(--sc-4);font-size:0.85rem;color:var(--sc-ink-soft)">Full setup guide and Docker instructions: <a href="https://github.com/Oliver-Johnson/macro-tracker" style="color:var(--sc-accent)">github.com/Oliver-Johnson/macro-tracker</a></p>
-          </article>
-        </div>
-
-        <!-- ── AI Features subsection ── -->
-        <h3 class="t-display-sm" style="margin-bottom:var(--sc-4);margin-top:var(--sc-10)">AI Features</h3>
-
-        <div class="ai-grid" id="ai-grid">
-          <article class="ai-card ai-card--primary">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Describe tab</span>
-            </div>
-            <h3>AI meal description</h3>
-            <p>Open the Describe tab in Log Food and type what you ate in plain language: "chicken tikka masala with rice, restaurant portion". The AI returns a name, estimated weight, calories, protein, carbohydrates, fat, and fibre, along with a confidence indicator and the assumptions it made. Review and edit the values before adding to your log.</p>
-          </article>
-
-          <article class="ai-card">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Today page</span>
-            </div>
-            <h3>AI Daily Summary</h3>
-            <p>Tap the summary button on the Today page for a personalised review of the day: what went well, where you drifted from targets, and one concrete focus for tomorrow. Cached per day so it does not re-run on every tap.</p>
-          </article>
-
-          <article class="ai-card">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Trends page</span>
-            </div>
-            <h3>AI Weekly Review</h3>
-            <p>On the Trends page, the weekly review analyses all seven days of logs and returns patterns across macros, consistency scores, and a specific focus for the coming week. Useful for adjusting targets that are consistently over or under.</p>
-          </article>
-
-          <article class="ai-card ai-card--setup">
-            <div class="ai-card__eyebrow">
-              <span class="ai-tag">Setup</span>
-            </div>
-            <h3>How to enable AI</h3>
-            <div class="dev-step">
-              <div class="dev-step__num">1</div>
-              <div class="dev-step__body">
-                <p>Open <strong>Settings</strong>, then <strong>Developer Settings</strong>, and enable Developer Mode.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">2</div>
-              <div class="dev-step__body">
-                <p>Find the <strong>AI</strong> card and toggle it on.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">3</div>
-              <div class="dev-step__body">
-                <p>Pick a provider: Claude, Gemini, or OpenAI.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">4</div>
-              <div class="dev-step__body">
-                <p>Paste your API key — stored on-device only, never sent to Macrolog servers.</p>
-              </div>
-            </div>
-            <div class="dev-step">
-              <div class="dev-step__num">5</div>
-              <div class="dev-step__body">
-                <p>Optionally override the model name for your chosen provider.</p>
-              </div>
-            </div>
-          </article>
+          <p class="t-body">
+            Full setup, Docker instructions, and the sync server source live in the repo: <a href="https://github.com/Oliver-Johnson/macro-tracker" style="color:var(--sc-accent)">github.com/Oliver-Johnson/macro-tracker</a>.
+          </p>
         </div>
       </div>
     </section>

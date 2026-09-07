@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Foods & Quick Add — Macrolog</title>
+  <meta name="description" content="Build your own food library in Macrolog. Manually logged foods are saved automatically, and Quick Add lets you log macros directly with no food name.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236c63ff'/><text y='22' x='7' font-size='18'>◉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --sc-canvas: #0a0a0e;
+      --sc-surface: #13131a;
+      --sc-surface2: #1c1c27;
+      --sc-ink: #f0f0f8;
+      --sc-ink-soft: #8888a8;
+      --sc-accent: #6c63ff;
+      --sc-accent2: #9c94ff;
+      --sc-protein: #4ade80;
+      --sc-carbs: #facc15;
+      --sc-fat: #f97316;
+      --sc-kcal: #e879f9;
+      --sc-border: rgba(255,255,255,0.08);
+
+      --sc-font-display: 'DM Serif Display', Georgia, serif;
+      --sc-font-text:    'DM Sans', system-ui, sans-serif;
+
+      --sc-1:  4px;
+      --sc-2:  8px;
+      --sc-3:  12px;
+      --sc-4:  16px;
+      --sc-5:  20px;
+      --sc-6:  24px;
+      --sc-7:  32px;
+      --sc-8:  40px;
+      --sc-9:  56px;
+      --sc-10: 80px;
+      --sc-11: 120px;
+      --sc-gutter: clamp(24px, 6vw, 80px);
+      --sc-measure: 68ch;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --sc-canvas:   #f8f7f4;
+        --sc-surface:  #eeecea;
+        --sc-surface2: #e4e1dc;
+        --sc-ink:      #0e0e14;
+        --sc-border:   rgba(0,0,0,0.08);
+        --sc-ink-soft: #555570;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sc-font-text);
+      background: var(--sc-canvas);
+      color: var(--sc-ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--sc-accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 3px; border-radius: 2px; }
+    img { display: block; max-width: 100%; }
+
+    .t-display-sm {
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance;
+    }
+    .t-lead {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.65; color: var(--sc-ink-soft); max-width: 52ch;
+    }
+    .t-body { font-size: 1rem; line-height: 1.7; color: var(--sc-ink-soft); max-width: var(--sc-measure); }
+    .t-label {
+      font-size: 0.75rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--sc-ink-soft);
+    }
+
+    .chapter-marker { display: flex; align-items: center; gap: var(--sc-4); margin-bottom: var(--sc-7); }
+    .chapter-marker__text {
+      font-family: var(--sc-font-text); font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--sc-ink-soft); white-space: nowrap;
+    }
+    .chapter-marker__rule { flex: 1; height: 1px; background: var(--sc-border); }
+
+    .wrap { max-width: 1160px; margin: 0 auto; padding-left: var(--sc-gutter); padding-right: var(--sc-gutter); }
+
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--sc-border);
+      padding: var(--sc-4) var(--sc-gutter);
+      display: flex; align-items: center; justify-content: space-between; gap: var(--sc-6);
+    }
+    @media (prefers-color-scheme: light) { .site-header { background: rgba(248, 247, 244, 0.88); } }
+    .site-logo { display: flex; align-items: center; gap: var(--sc-3); text-decoration: none; color: var(--sc-ink); }
+    .site-logo__mark { width: 30px; height: 30px; flex-shrink: 0; }
+    .site-logo__name { font-family: var(--sc-font-display); font-size: 1.1rem; letter-spacing: -0.01em; }
+    .site-nav { display: flex; align-items: center; gap: var(--sc-6); }
+    .site-nav__cta {
+      display: inline-flex; align-items: center; gap: var(--sc-2);
+      font-size: 0.85rem; font-weight: 500; color: var(--sc-ink);
+      background: var(--sc-accent); padding: 7px 16px; border-radius: 64px;
+      text-decoration: none; transition: opacity 0.2s, transform 0.15s;
+    }
+    .site-nav__cta:hover { opacity: 0.88; text-decoration: none; transform: translateY(-1px); }
+    .site-nav__cta:focus-visible { outline: 2px solid var(--sc-accent2); outline-offset: 3px; }
+    .site-nav__cta:active { transform: translateY(0); }
+
+    .breadcrumb {
+      max-width: 1160px; margin: 0 auto;
+      padding: var(--sc-6) var(--sc-gutter) 0;
+      font-size: 0.8rem; color: var(--sc-ink-soft);
+    }
+    .breadcrumb a { color: var(--sc-ink-soft); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--sc-ink); text-decoration: none; }
+    .breadcrumb__sep { margin: 0 8px; opacity: 0.5; }
+
+    .page-hero { padding-top: var(--sc-9); padding-bottom: var(--sc-8); }
+    .page-hero .t-label { display: block; margin-bottom: var(--sc-4); }
+    .page-hero h1 { margin-bottom: var(--sc-5); }
+
+    section { padding-top: var(--sc-9); padding-bottom: var(--sc-9); }
+    .section-alt {
+      background: var(--sc-surface);
+      border-top: 1px solid var(--sc-border);
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    footer {
+      border-top: 1px solid var(--sc-border);
+      padding: var(--sc-8) var(--sc-gutter);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sc-4);
+    }
+    .footer__links { display: flex; align-items: center; gap: var(--sc-5); flex-wrap: wrap; }
+    .footer__links a { font-size: 0.82rem; color: var(--sc-ink-soft); text-decoration: none; }
+    .footer__links a:hover { color: var(--sc-ink); }
+    .footer__copy { font-size: 0.78rem; color: var(--sc-ink-soft); }
+
+    /* ══ Custom foods: point list ══ */
+    .point-list { display: flex; flex-direction: column; gap: var(--sc-2); max-width: 720px; }
+    .point {
+      display: grid; grid-template-columns: 24px 1fr; gap: var(--sc-4);
+      padding: var(--sc-5) 0; border-bottom: 1px solid var(--sc-border);
+      align-items: start;
+    }
+    .point:last-child { border-bottom: none; }
+    .point__mark { color: var(--sc-accent2); font-size: 1rem; line-height: 1.5; }
+    .point p { font-size: 0.92rem; line-height: 1.6; color: var(--sc-ink-soft); }
+    .point strong { color: var(--sc-ink); font-weight: 500; }
+
+    .chip {
+      display: inline-block;
+      font-size: 0.78rem; font-weight: 500;
+      color: var(--sc-ink); background: var(--sc-surface2);
+      border: 1px solid var(--sc-border); border-radius: 6px;
+      padding: 1px 7px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" role="banner">
+    <a class="site-logo" href="index.html" aria-label="Macrolog docs home">
+      <svg class="site-logo__mark" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#6c63ff"/>
+        <circle cx="15" cy="15" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
+        <path d="M15 7 A8 8 0 0 1 21.93 19" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M21.93 19 A8 8 0 0 1 10.5 22.4" fill="none" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5 22.4 A8 8 0 0 1 15 7" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="15" cy="15" r="5" fill="#6c63ff"/>
+      </svg>
+      <span class="site-logo__name">Macrolog</span>
+    </a>
+    <nav class="site-nav" role="navigation" aria-label="Main">
+      <a class="site-nav__cta" href="https://macroslog.co.uk/" aria-label="Open the Macrolog app">Open App &rarr;</a>
+    </nav>
+  </header>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">Docs</a><span class="breadcrumb__sep">/</span>Custom Foods & Quick Add
+  </nav>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <span class="t-label">Faster Logging</span>
+        <h1 class="t-display-sm">Custom Foods & Quick Add</h1>
+        <p class="t-lead">Log a food once and Macrolog remembers it. Build a personal library over time, or skip the search entirely and enter macros directly.</p>
+      </div>
+    </section>
+
+    <!-- Chapter 01 -->
+    <section style="padding-top: 0;">
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Chapter 01 — Saving Custom Foods</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="point-list">
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>When you log a food manually, it's <strong>automatically saved to My Foods</strong> — no extra step.</p>
+          </div>
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>Next time you search for it, it appears <strong>at the top of your results</strong> for quick re-logging.</p>
+          </div>
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>Edit or delete saved foods any time from the <strong>My Foods list in Settings</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 02 -->
+    <section class="section-alt">
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Chapter 02 — Quick Add</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="point-list">
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>The <span class="chip">Quick</span> tab in Log Food lets you enter <strong>calories and macros directly</strong> — no food name needed.</p>
+          </div>
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>Useful for <strong>rough estimates</strong> or foods you only track by macros.</p>
+          </div>
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>Quick-add entries appear in your food log <strong>like any other entry</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chapter 03 -->
+    <section>
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Chapter 03 — Tips</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="point-list">
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p>Build up your <strong>My Foods library</strong> over time for faster logging every day.</p>
+          </div>
+          <div class="point">
+            <span class="point__mark" aria-hidden="true">▸</span>
+            <p><strong>Recipes you save</strong> also appear in search, making portion logging easy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer__links">
+      <a href="index.html">Docs</a>
+      <a href="https://macroslog.co.uk/">Open App</a>
+      <a href="changelog.html">Changelog</a>
+    </div>
+    <div class="footer__copy">Macrolog — precision macro tracking, private and yours.</div>
+  </footer>
+
+</body>
+</html>

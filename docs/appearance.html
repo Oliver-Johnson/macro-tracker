@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Themes & Appearance — Macrolog</title>
+  <meta name="description" content="Customise how Macrolog looks: dark, light or auto display modes, plus seven hand-crafted themes from the classic purple to Matrix-green Retro.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236c63ff'/><text y='22' x='7' font-size='18'>◉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --sc-canvas: #0a0a0e;
+      --sc-surface: #13131a;
+      --sc-surface2: #1c1c27;
+      --sc-ink: #f0f0f8;
+      --sc-ink-soft: #8888a8;
+      --sc-accent: #6c63ff;
+      --sc-accent2: #9c94ff;
+      --sc-protein: #4ade80;
+      --sc-carbs: #facc15;
+      --sc-fat: #f97316;
+      --sc-kcal: #e879f9;
+      --sc-border: rgba(255,255,255,0.08);
+
+      --sc-font-display: 'DM Serif Display', Georgia, serif;
+      --sc-font-text:    'DM Sans', system-ui, sans-serif;
+
+      --sc-1:  4px;
+      --sc-2:  8px;
+      --sc-3:  12px;
+      --sc-4:  16px;
+      --sc-5:  20px;
+      --sc-6:  24px;
+      --sc-7:  32px;
+      --sc-8:  40px;
+      --sc-9:  56px;
+      --sc-10: 80px;
+      --sc-11: 120px;
+      --sc-gutter: clamp(24px, 6vw, 80px);
+      --sc-measure: 68ch;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --sc-canvas:   #f8f7f4;
+        --sc-surface:  #eeecea;
+        --sc-surface2: #e4e1dc;
+        --sc-ink:      #0e0e14;
+        --sc-border:   rgba(0,0,0,0.08);
+        --sc-ink-soft: #555570;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sc-font-text);
+      background: var(--sc-canvas);
+      color: var(--sc-ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--sc-accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible { outline: 2px solid var(--sc-accent); outline-offset: 3px; border-radius: 2px; }
+    img { display: block; max-width: 100%; }
+
+    .t-display-sm {
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-lead {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+      max-width: 52ch;
+    }
+    .t-body { font-size: 1rem; line-height: 1.7; color: var(--sc-ink-soft); max-width: var(--sc-measure); }
+    .t-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+    }
+
+    .chapter-marker { display: flex; align-items: center; gap: var(--sc-4); margin-bottom: var(--sc-9); }
+    .chapter-marker__text {
+      font-family: var(--sc-font-text);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+      white-space: nowrap;
+    }
+    .chapter-marker__rule { flex: 1; height: 1px; background: var(--sc-border); }
+
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding-left: var(--sc-gutter);
+      padding-right: var(--sc-gutter);
+    }
+
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--sc-border);
+      padding: var(--sc-4) var(--sc-gutter);
+      display: flex; align-items: center; justify-content: space-between; gap: var(--sc-6);
+    }
+    @media (prefers-color-scheme: light) { .site-header { background: rgba(248, 247, 244, 0.88); } }
+    .site-logo { display: flex; align-items: center; gap: var(--sc-3); text-decoration: none; color: var(--sc-ink); }
+    .site-logo__mark { width: 30px; height: 30px; flex-shrink: 0; }
+    .site-logo__name { font-family: var(--sc-font-display); font-size: 1.1rem; letter-spacing: -0.01em; }
+    .site-nav { display: flex; align-items: center; gap: var(--sc-6); }
+    .site-nav__cta {
+      display: inline-flex; align-items: center; gap: var(--sc-2);
+      font-size: 0.85rem; font-weight: 500; color: var(--sc-ink);
+      background: var(--sc-accent); padding: 7px 16px; border-radius: 64px;
+      text-decoration: none; transition: opacity 0.2s, transform 0.15s;
+    }
+    .site-nav__cta:hover { opacity: 0.88; text-decoration: none; transform: translateY(-1px); }
+    .site-nav__cta:focus-visible { outline: 2px solid var(--sc-accent2); outline-offset: 3px; }
+    .site-nav__cta:active { transform: translateY(0); }
+
+    .breadcrumb {
+      max-width: 1160px; margin: 0 auto;
+      padding: var(--sc-6) var(--sc-gutter) 0;
+      font-size: 0.8rem; color: var(--sc-ink-soft);
+    }
+    .breadcrumb a { color: var(--sc-ink-soft); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--sc-ink); text-decoration: none; }
+    .breadcrumb__sep { margin: 0 8px; opacity: 0.5; }
+
+    .page-hero { padding-top: var(--sc-9); padding-bottom: var(--sc-8); }
+    .page-hero .t-label { display: block; margin-bottom: var(--sc-4); }
+    .page-hero h1 { margin-bottom: var(--sc-5); }
+
+    section { padding-top: var(--sc-9); padding-bottom: var(--sc-9); }
+    .section-alt {
+      background: var(--sc-surface);
+      border-top: 1px solid var(--sc-border);
+      border-bottom: 1px solid var(--sc-border);
+    }
+
+    .phone-frame {
+      width: 240px; aspect-ratio: 9/19.5; border-radius: 36px;
+      border: 2px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04);
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      color: rgba(255,255,255,.3); font-size: 13px; padding: var(--sc-5); flex-shrink: 0;
+    }
+    @media (prefers-color-scheme: light) {
+      .phone-frame { border-color: rgba(0,0,0,.12); background: rgba(0,0,0,.03); color: rgba(0,0,0,.3); }
+    }
+
+    footer {
+      border-top: 1px solid var(--sc-border);
+      padding: var(--sc-8) var(--sc-gutter);
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sc-4);
+    }
+    .footer__links { display: flex; align-items: center; gap: var(--sc-5); flex-wrap: wrap; }
+    .footer__links a { font-size: 0.82rem; color: var(--sc-ink-soft); text-decoration: none; }
+    .footer__links a:hover { color: var(--sc-ink); }
+    .footer__copy { font-size: 0.78rem; color: var(--sc-ink-soft); }
+
+    /* ══ Appearance: display modes ══ */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sc-4);
+    }
+    @media (max-width: 720px) { .mode-grid { grid-template-columns: 1fr; } }
+    .mode-card {
+      background: var(--sc-surface);
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      padding: var(--sc-6) var(--sc-7);
+    }
+    .mode-card__swatch {
+      width: 100%; height: 64px; border-radius: 8px; margin-bottom: var(--sc-5);
+      border: 1px solid var(--sc-border);
+    }
+    .mode-card__swatch--dark { background: linear-gradient(135deg, #0a0a0e, #1c1c27); }
+    .mode-card__swatch--light { background: linear-gradient(135deg, #f8f7f4, #e4e1dc); }
+    .mode-card__swatch--auto { background: linear-gradient(135deg, #0a0a0e 0 50%, #f8f7f4 50% 100%); }
+    .mode-card h3 {
+      font-size: 1rem; font-weight: 600; color: var(--sc-ink);
+      margin-bottom: var(--sc-2); line-height: 1.35;
+      display: flex; align-items: center; gap: var(--sc-2);
+    }
+    .mode-card p { font-size: 0.88rem; line-height: 1.6; color: var(--sc-ink-soft); }
+    .mode-badge {
+      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--sc-accent2); background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25); border-radius: 4px; padding: 2px 6px;
+    }
+
+    /* ══ Callout ══ */
+    .callout {
+      background: rgba(108,99,255,0.06);
+      border: 1px solid rgba(108,99,255,0.25);
+      border-radius: 12px;
+      padding: var(--sc-5) var(--sc-6);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--sc-ink-soft);
+      margin-bottom: var(--sc-8);
+      display: flex; gap: var(--sc-3); align-items: flex-start;
+    }
+    .callout strong { color: var(--sc-ink); font-weight: 500; }
+    .callout__icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* ══ Theme swatch cards ══ */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sc-4);
+    }
+    @media (max-width: 860px) { .theme-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .theme-grid { grid-template-columns: 1fr; } }
+    .theme-card {
+      background: var(--sc-surface);
+      border: 1px solid var(--sc-border);
+      border-radius: 12px;
+      padding: var(--sc-6);
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .theme-card:hover {
+      border-color: rgba(108,99,255,0.35);
+      transform: translateY(-2px);
+    }
+    .theme-card__head { display: flex; align-items: center; gap: var(--sc-3); margin-bottom: var(--sc-3); }
+    .theme-card__swatch {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
+    }
+    .theme-card h3 { font-size: 1rem; font-weight: 600; color: var(--sc-ink); line-height: 1.2; }
+    .theme-card p { font-size: 0.85rem; line-height: 1.55; color: var(--sc-ink-soft); }
+
+    /* ══ Phone frame row ══ */
+    .frame-row {
+      display: flex; gap: var(--sc-6); overflow-x: auto;
+      padding-bottom: var(--sc-4);
+      scroll-snap-type: x mandatory;
+    }
+    .frame-row .frame-item { scroll-snap-align: start; text-align: center; }
+    .frame-row .phone-frame { width: 200px; margin-bottom: var(--sc-3); }
+    .frame-row .frame-item__label { font-size: 0.8rem; color: var(--sc-ink-soft); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" role="banner">
+    <a class="site-logo" href="index.html" aria-label="Macrolog docs home">
+      <svg class="site-logo__mark" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#6c63ff"/>
+        <circle cx="15" cy="15" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
+        <path d="M15 7 A8 8 0 0 1 21.93 19" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M21.93 19 A8 8 0 0 1 10.5 22.4" fill="none" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5 22.4 A8 8 0 0 1 15 7" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="15" cy="15" r="5" fill="#6c63ff"/>
+      </svg>
+      <span class="site-logo__name">Macrolog</span>
+    </a>
+    <nav class="site-nav" role="navigation" aria-label="Main">
+      <a class="site-nav__cta" href="https://macroslog.co.uk/" aria-label="Open the Macrolog app">Open App &rarr;</a>
+    </nav>
+  </header>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">Docs</a><span class="breadcrumb__sep">/</span>Themes & Appearance
+  </nav>
+
+  <main>
+    <section class="page-hero">
+      <div class="wrap">
+        <span class="t-label">Personalise</span>
+        <h1 class="t-display-sm">Themes & Appearance</h1>
+        <p class="t-lead">Make Macrolog yours. Choose a base display mode, then pick from seven hand-crafted themes — each with its own personality.</p>
+      </div>
+    </section>
+
+    <!-- Section 1: Base display mode -->
+    <section style="padding-top: 0;">
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Base Display Mode</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="mode-grid">
+          <div class="mode-card">
+            <div class="mode-card__swatch mode-card__swatch--dark"></div>
+            <h3>Dark <span class="mode-badge">Default</span></h3>
+            <p>Deep, low-glare background that's easy on the eyes — the Macrolog default.</p>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card__swatch mode-card__swatch--light"></div>
+            <h3>Light</h3>
+            <p>Bright, paper-like surfaces for well-lit rooms and daytime logging.</p>
+          </div>
+          <div class="mode-card">
+            <div class="mode-card__swatch mode-card__swatch--auto"></div>
+            <h3>Auto</h3>
+            <p>Follows your device setting — dark at night, light by day, automatically.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Themes -->
+    <section class="section-alt">
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Themes</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+
+        <div class="callout">
+          <span class="callout__icon" aria-hidden="true">✨</span>
+          <span>All themes are available now on <strong><a href="https://beta.macroslog.co.uk">beta.macroslog.co.uk</a></strong> — coming to the main app soon.</span>
+        </div>
+
+        <div class="theme-grid">
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#6c63ff;"></span>
+              <h3>Current</h3>
+            </div>
+            <p>The classic — purple accents on deep dark.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#c6ff3a;"></span>
+              <h3>Bold</h3>
+            </div>
+            <p>High-contrast lime with floating pill nav.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:linear-gradient(135deg,#8c6eff,#5bd0c0);"></span>
+              <h3>Gradient</h3>
+            </div>
+            <p>Purple-to-teal gradient with glass cards.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#8ba888;"></span>
+              <h3>Zen</h3>
+            </div>
+            <p>Muted sage green, minimal and calm.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#e8845a;"></span>
+              <h3>Soft</h3>
+            </div>
+            <p>Warm amber tones, relaxed feel.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#3b82f6;"></span>
+              <h3>Editorial</h3>
+            </div>
+            <p>Clean blue, inspired by publication design.</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-card__head">
+              <span class="theme-card__swatch" style="background:#00ff41;"></span>
+              <h3>Retro</h3>
+            </div>
+            <p>Matrix green on black — terminal aesthetic.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phone frame row -->
+    <section>
+      <div class="wrap">
+        <div class="chapter-marker">
+          <span class="chapter-marker__text">Previews</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="frame-row">
+          <div class="frame-item"><div class="phone-frame">Current</div><div class="frame-item__label">Current</div></div>
+          <div class="frame-item"><div class="phone-frame">Bold</div><div class="frame-item__label">Bold</div></div>
+          <div class="frame-item"><div class="phone-frame">Gradient</div><div class="frame-item__label">Gradient</div></div>
+          <div class="frame-item"><div class="phone-frame">Zen</div><div class="frame-item__label">Zen</div></div>
+          <div class="frame-item"><div class="phone-frame">Soft</div><div class="frame-item__label">Soft</div></div>
+          <div class="frame-item"><div class="phone-frame">Editorial</div><div class="frame-item__label">Editorial</div></div>
+          <div class="frame-item"><div class="phone-frame">Retro</div><div class="frame-item__label">Retro</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer__links">
+      <a href="index.html">Docs</a>
+      <a href="https://macroslog.co.uk/">Open App</a>
+      <a href="changelog.html">Changelog</a>
+    </div>
+    <div class="footer__copy">Macrolog — precision macro tracking, private and yours.</div>
+  </footer>
+
+</body>
+</html>

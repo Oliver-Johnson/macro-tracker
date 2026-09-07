@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Barcode Scanner — Macrolog</title>
+  <meta name="description" content="Scan product barcodes in Macrolog with real-time camera detection, Open Food Facts lookup, caching, and manual fallback.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236c63ff'/><text y='22' x='7' font-size='18'>◉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --sc-canvas:   #0a0a0e;
+      --sc-surface:  #13131a;
+      --sc-surface2: #1c1c27;
+      --sc-ink:      #f0f0f8;
+      --sc-ink-soft: #8888a8;
+      --sc-accent:   #6c63ff;
+      --sc-accent2:  #9c94ff;
+      --sc-protein:  #4ade80;
+      --sc-carbs:    #facc15;
+      --sc-fat:      #f97316;
+      --sc-kcal:     #e879f9;
+      --sc-border:   rgba(255,255,255,0.08);
+
+      --sc-font-display: 'DM Serif Display', Georgia, serif;
+      --sc-font-text:    'DM Sans', system-ui, sans-serif;
+
+      --sc-1:  4px;
+      --sc-2:  8px;
+      --sc-3:  12px;
+      --sc-4:  16px;
+      --sc-5:  20px;
+      --sc-6:  24px;
+      --sc-7:  32px;
+      --sc-8:  40px;
+      --sc-9:  56px;
+      --sc-10: 80px;
+      --sc-11: 120px;
+      --sc-gutter: clamp(24px, 6vw, 80px);
+      --sc-measure: 68ch;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --sc-canvas:   #f8f7f4;
+        --sc-surface:  #eeecea;
+        --sc-surface2: #e4e1dc;
+        --sc-ink:      #0e0e14;
+        --sc-border:   rgba(0,0,0,0.08);
+        --sc-ink-soft: #555570;
+      }
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sc-font-text);
+      background: var(--sc-canvas);
+      color: var(--sc-ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--sc-accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    /* ── Typography scale ── */
+    .t-display {
+      font-family: var(--sc-font-display);
+      font-size: clamp(2.6rem, 7vw, 5.4rem);
+      line-height: 1.03;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-display-sm {
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-lead {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+      max-width: 52ch;
+    }
+    .t-body {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--sc-ink-soft);
+      max-width: var(--sc-measure);
+    }
+    .t-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+    }
+    .t-caption {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--sc-ink-soft);
+    }
+
+    /* ── Chapter marker ── */
+    .chapter-marker {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-4);
+      margin-bottom: var(--sc-7);
+    }
+    .chapter-marker__text {
+      font-family: var(--sc-font-text);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+      white-space: nowrap;
+    }
+    .chapter-marker__rule {
+      flex: 1;
+      height: 1px;
+      background: var(--sc-border);
+    }
+
+    /* ── Layout utilities ── */
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding-left: var(--sc-gutter);
+      padding-right: var(--sc-gutter);
+    }
+
+    /* ── Header ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--sc-border);
+      padding: var(--sc-4) var(--sc-gutter);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sc-6);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .site-header { background: rgba(248, 247, 244, 0.88); }
+    }
+
+    .site-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-3);
+      text-decoration: none;
+      color: var(--sc-ink);
+    }
+    .site-logo:hover { text-decoration: none; }
+    .site-logo__mark { width: 30px; height: 30px; flex-shrink: 0; }
+    .site-logo__name {
+      font-family: var(--sc-font-display);
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-6);
+    }
+    .site-nav__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      background: var(--sc-accent);
+      padding: 7px 16px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .site-nav__cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+    .site-nav__cta:focus-visible {
+      outline: 2px solid var(--sc-accent2);
+      outline-offset: 3px;
+    }
+    .site-nav__cta:active { transform: translateY(0); }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      border-bottom: 1px solid var(--sc-border);
+      background: var(--sc-canvas);
+    }
+    .breadcrumb__inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: var(--sc-4) var(--sc-gutter);
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+    .breadcrumb a {
+      color: var(--sc-ink-soft);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumb a:hover { color: var(--sc-ink); text-decoration: none; }
+    .breadcrumb__sep { margin: 0 var(--sc-2); color: var(--sc-border); }
+    .breadcrumb__current { color: var(--sc-ink); }
+
+    /* ── Page hero ── */
+    .page-hero {
+      padding-top: clamp(56px, 9vw, 100px);
+      padding-bottom: clamp(40px, 7vw, 72px);
+    }
+    .page-hero .t-label { margin-bottom: var(--sc-5); }
+    .page-hero h1 { margin-bottom: var(--sc-6); }
+
+    /* ── Chapters ── */
+    section.chapter {
+      padding-top: var(--sc-10);
+      padding-bottom: var(--sc-10);
+      border-top: 1px solid var(--sc-border);
+    }
+    .chapter-body { max-width: var(--sc-measure); }
+    .chapter-body h2 { margin-bottom: var(--sc-5); }
+    .chapter-body .t-body { margin-bottom: var(--sc-6); }
+
+    /* ── Documentation list ── */
+    .doc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-4);
+      margin-top: var(--sc-2);
+    }
+    .doc-list li {
+      position: relative;
+      padding-left: var(--sc-6);
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+    }
+    .doc-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sc-accent);
+    }
+    .doc-list strong { color: var(--sc-ink); font-weight: 500; }
+
+    /* ── Numbered step list ── */
+    .step-list {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-5);
+      margin-top: var(--sc-2);
+    }
+    .step-list li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: var(--sc-4);
+      align-items: start;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--sc-ink-soft);
+    }
+    .step-list li::before {
+      content: counter(step);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--sc-accent2);
+      background: rgba(108,99,255,0.12);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .step-list strong { color: var(--sc-ink); font-weight: 500; }
+
+    /* ── Callout / tip box ── */
+    .callout {
+      background: rgba(108,99,255,0.06);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 16px;
+      padding: var(--sc-8);
+      max-width: var(--sc-measure);
+    }
+    .callout__tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sc-accent2);
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+      margin-bottom: var(--sc-5);
+    }
+    .callout h2 { margin-bottom: var(--sc-4); }
+    .callout .t-body { margin-bottom: var(--sc-5); }
+    .callout .step-list li::before {
+      background: rgba(108,99,255,0.18);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--sc-border);
+      padding: var(--sc-8) var(--sc-gutter);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sc-4);
+    }
+    .footer__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      background: var(--sc-accent);
+      padding: 11px 24px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .footer__cta:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.35);
+      text-decoration: none;
+    }
+    .footer__cta:active { transform: translateY(0); }
+    .footer__copy {
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header" role="banner">
+    <a class="site-logo" href="index.html" aria-label="Macrolog docs home">
+      <svg class="site-logo__mark" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#6c63ff"/>
+        <circle cx="15" cy="15" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
+        <path d="M15 7 A8 8 0 0 1 21.93 19" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M21.93 19 A8 8 0 0 1 10.5 22.4" fill="none" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5 22.4 A8 8 0 0 1 15 7" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="15" cy="15" r="5" fill="#6c63ff"/>
+      </svg>
+      <span class="site-logo__name">Macrolog</span>
+    </a>
+
+    <nav class="site-nav" role="navigation" aria-label="Main">
+      <a class="site-nav__cta" href="https://macroslog.co.uk" aria-label="Open the Macrolog app">Open App &rarr;</a>
+    </nav>
+  </header>
+
+  <!-- ── Breadcrumb ── -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="breadcrumb__inner">
+      <a href="index.html">Docs</a>
+      <span class="breadcrumb__sep">/</span>
+      <span class="breadcrumb__current">Barcode Scanner</span>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ── Page hero ── -->
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="t-label">Feature Guide</p>
+        <h1 class="t-display">Barcode Scanner</h1>
+        <p class="t-lead">
+          Point your camera at a product barcode and Macrolog looks it up instantly. Results are cached, so foods you scan often appear in a flash.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Chapter 01 ── -->
+    <section class="chapter" aria-labelledby="ch01">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">01 — How Scanning Works</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="chapter-body">
+          <h2 id="ch01" class="t-display-sm">How scanning works.</h2>
+          <p class="t-body">
+            Macrolog reads barcodes live through your camera and matches them against a huge open product database — no typing required.
+          </p>
+          <ul class="doc-list">
+            <li>Uses your <strong>camera</strong> to detect barcodes in <strong>real time</strong>.</li>
+            <li>Looks the barcode up in the <strong>Open Food Facts</strong> database.</li>
+            <li>Results are <strong>cached</strong> — no repeated lookups for the same product.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chapter 02 — Callout ── -->
+    <section class="chapter" aria-labelledby="ch02">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">02 — Scanning Tips</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="callout">
+          <span class="callout__tag" aria-hidden="true">Pro Tip</span>
+          <h2 id="ch02" class="t-display-sm">Scanning tips.</h2>
+          <p class="t-body">
+            A clean, steady read is everything. If a code won’t catch, these adjustments almost always fix it.
+          </p>
+          <ul class="doc-list">
+            <li>Hold <strong>steady</strong> — the scanner needs a sharp, well-lit barcode.</li>
+            <li>Move <strong>closer or further</strong> if it doesn’t detect — <strong>15–25cm</strong> is usually ideal.</li>
+            <li>If the barcode won’t scan, try <strong>“Upload Label”</strong> or <strong>“Paste Text”</strong> instead.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chapter 03 ── -->
+    <section class="chapter" aria-labelledby="ch03">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">03 — Product Not Found?</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="chapter-body">
+          <h2 id="ch03" class="t-display-sm">Product not found?</h2>
+          <p class="t-body">
+            Not every product is in the database yet — but a barcode you add once is yours forever, and instant on every future scan.
+          </p>
+          <ul class="doc-list">
+            <li>If a barcode isn’t in the database, you’ll be prompted to <strong>enter details manually</strong>.</li>
+            <li>Your entry is saved to <strong>My Foods</strong> — next time you scan it, it appears instantly.</li>
+            <li>Alternatively, scan or photograph the <strong>nutrition label</strong> directly.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer role="contentinfo">
+    <a class="footer__cta" href="https://macroslog.co.uk">Open Macrolog &rarr;</a>
+    <span class="footer__copy">macroslog.co.uk &middot; Free &amp; private</span>
+  </footer>
+
+</body>
+</html>
