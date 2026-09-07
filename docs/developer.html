@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Developer &amp; AI Features — Macrolog</title>
+  <meta name="description" content="Self-host the Macrolog sync server, access your macros remotely via Cloudflare tunnel, and plug in your own AI provider for meal descriptions and nutrition-label parsing.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236c63ff'/><text y='22' x='7' font-size='18'>◉</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --sc-canvas:   #0a0a0e;
+      --sc-surface:  #13131a;
+      --sc-surface2: #1c1c27;
+      --sc-ink:      #f0f0f8;
+      --sc-ink-soft: #8888a8;
+      --sc-accent:   #6c63ff;
+      --sc-accent2:  #9c94ff;
+      --sc-protein:  #4ade80;
+      --sc-carbs:    #facc15;
+      --sc-fat:      #f97316;
+      --sc-kcal:     #e879f9;
+      --sc-border:   rgba(255,255,255,0.08);
+
+      --sc-font-display: 'DM Serif Display', Georgia, serif;
+      --sc-font-text:    'DM Sans', system-ui, sans-serif;
+
+      --sc-1:  4px;
+      --sc-2:  8px;
+      --sc-3:  12px;
+      --sc-4:  16px;
+      --sc-5:  20px;
+      --sc-6:  24px;
+      --sc-7:  32px;
+      --sc-8:  40px;
+      --sc-9:  56px;
+      --sc-10: 80px;
+      --sc-11: 120px;
+      --sc-gutter: clamp(24px, 6vw, 80px);
+      --sc-measure: 68ch;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --sc-canvas:   #f8f7f4;
+        --sc-surface:  #eeecea;
+        --sc-surface2: #e4e1dc;
+        --sc-ink:      #0e0e14;
+        --sc-border:   rgba(0,0,0,0.08);
+        --sc-ink-soft: #555570;
+      }
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sc-font-text);
+      background: var(--sc-canvas);
+      color: var(--sc-ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: var(--sc-accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible {
+      outline: 2px solid var(--sc-accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    /* ── Typography scale ── */
+    .t-display {
+      font-family: var(--sc-font-display);
+      font-size: clamp(2.6rem, 7vw, 5.4rem);
+      line-height: 1.03;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-display-sm {
+      font-family: var(--sc-font-display);
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .t-lead {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+      max-width: 52ch;
+    }
+    .t-body {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--sc-ink-soft);
+      max-width: var(--sc-measure);
+    }
+    .t-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+    }
+    .t-caption {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--sc-ink-soft);
+    }
+
+    /* ── Chapter marker ── */
+    .chapter-marker {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-4);
+      margin-bottom: var(--sc-7);
+    }
+    .chapter-marker__text {
+      font-family: var(--sc-font-text);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sc-ink-soft);
+      white-space: nowrap;
+    }
+    .chapter-marker__rule {
+      flex: 1;
+      height: 1px;
+      background: var(--sc-border);
+    }
+
+    /* ── Layout utilities ── */
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding-left: var(--sc-gutter);
+      padding-right: var(--sc-gutter);
+    }
+
+    /* ── Header ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 14, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--sc-border);
+      padding: var(--sc-4) var(--sc-gutter);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sc-6);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .site-header { background: rgba(248, 247, 244, 0.88); }
+    }
+
+    .site-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-3);
+      text-decoration: none;
+      color: var(--sc-ink);
+    }
+    .site-logo:hover { text-decoration: none; }
+    .site-logo__mark { width: 30px; height: 30px; flex-shrink: 0; }
+    .site-logo__name {
+      font-family: var(--sc-font-display);
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: var(--sc-6);
+    }
+    .site-nav__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      background: var(--sc-accent);
+      padding: 7px 16px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .site-nav__cta:hover {
+      opacity: 0.88;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+    .site-nav__cta:focus-visible {
+      outline: 2px solid var(--sc-accent2);
+      outline-offset: 3px;
+    }
+    .site-nav__cta:active { transform: translateY(0); }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      border-bottom: 1px solid var(--sc-border);
+      background: var(--sc-canvas);
+    }
+    .breadcrumb__inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: var(--sc-4) var(--sc-gutter);
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+    .breadcrumb a {
+      color: var(--sc-ink-soft);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumb a:hover { color: var(--sc-ink); text-decoration: none; }
+    .breadcrumb__sep { margin: 0 var(--sc-2); color: var(--sc-border); }
+    .breadcrumb__current { color: var(--sc-ink); }
+
+    /* ── Page hero ── */
+    .page-hero {
+      padding-top: clamp(56px, 9vw, 100px);
+      padding-bottom: clamp(40px, 7vw, 72px);
+    }
+    .page-hero .t-label { margin-bottom: var(--sc-5); }
+    .page-hero h1 { margin-bottom: var(--sc-6); }
+
+    /* ── Chapters ── */
+    section.chapter {
+      padding-top: var(--sc-10);
+      padding-bottom: var(--sc-10);
+      border-top: 1px solid var(--sc-border);
+    }
+    .chapter-body { max-width: var(--sc-measure); }
+    .chapter-body h2 { margin-bottom: var(--sc-5); }
+    .chapter-body .t-body { margin-bottom: var(--sc-6); }
+
+    /* ── Documentation list ── */
+    .doc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-4);
+      margin-top: var(--sc-2);
+    }
+    .doc-list li {
+      position: relative;
+      padding-left: var(--sc-6);
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: var(--sc-ink-soft);
+    }
+    .doc-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sc-accent);
+    }
+    .doc-list strong { color: var(--sc-ink); font-weight: 500; }
+
+    /* ── Numbered step list ── */
+    .step-list {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sc-5);
+      margin-top: var(--sc-2);
+    }
+    .step-list li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: var(--sc-4);
+      align-items: start;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--sc-ink-soft);
+    }
+    .step-list li::before {
+      content: counter(step);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--sc-accent2);
+      background: rgba(108,99,255,0.12);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .step-list strong { color: var(--sc-ink); font-weight: 500; }
+
+    /* ── Callout / tip box ── */
+    .callout {
+      background: rgba(108,99,255,0.06);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 16px;
+      padding: var(--sc-8);
+      max-width: var(--sc-measure);
+    }
+    .callout__tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sc-accent2);
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+      margin-bottom: var(--sc-5);
+    }
+    .callout h2 { margin-bottom: var(--sc-4); }
+    .callout .t-body { margin-bottom: var(--sc-5); }
+    .callout .step-list li::before {
+      background: rgba(108,99,255,0.18);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--sc-border);
+      padding: var(--sc-8) var(--sc-gutter);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sc-4);
+    }
+    .footer__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sc-2);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--sc-ink);
+      background: var(--sc-accent);
+      padding: 11px 24px;
+      border-radius: 64px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .footer__cta:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(108, 99, 255, 0.35);
+      text-decoration: none;
+    }
+    .footer__cta:active { transform: translateY(0); }
+    .footer__copy {
+      font-size: 0.82rem;
+      color: var(--sc-ink-soft);
+    }
+
+    /* ── Code blocks ── */
+    pre {
+      white-space: pre;
+      overflow-x: auto;
+      word-break: normal;
+      word-wrap: normal;
+      max-width: 100%;
+      box-sizing: border-box;
+      background: rgba(108,99,255,0.08);
+      border: 1px solid rgba(108,99,255,0.18);
+      border-radius: 6px;
+      padding: var(--sc-3) var(--sc-4);
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: var(--sc-ink);
+      margin-top: var(--sc-3);
+    }
+    pre code {
+      white-space: pre;
+      word-break: normal;
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+    }
+    .code-wrap { position: relative; }
+    .code-wrap pre { margin-top: var(--sc-3); overflow-x: auto; max-width: 100%; }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      font-family: var(--sc-font-text);
+      font-weight: 500;
+      background: rgba(108,99,255,0.2);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 4px;
+      color: var(--sc-accent2);
+      cursor: pointer;
+      transition: opacity 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .copy-btn.copied { background: rgba(74,222,128,0.2); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+    @media (hover: hover) {
+      .copy-btn { opacity: 0; }
+      .code-wrap:hover .copy-btn { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="site-header" role="banner">
+    <a class="site-logo" href="index.html" aria-label="Macrolog docs home">
+      <svg class="site-logo__mark" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="30" rx="7" fill="#6c63ff"/>
+        <circle cx="15" cy="15" r="8" fill="none" stroke="#fff" stroke-width="2" opacity="0.3"/>
+        <path d="M15 7 A8 8 0 0 1 21.93 19" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M21.93 19 A8 8 0 0 1 10.5 22.4" fill="none" stroke="#facc15" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M10.5 22.4 A8 8 0 0 1 15 7" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="15" cy="15" r="5" fill="#6c63ff"/>
+      </svg>
+      <span class="site-logo__name">Macrolog</span>
+    </a>
+
+    <nav class="site-nav" role="navigation" aria-label="Main">
+      <a class="site-nav__cta" href="https://macroslog.co.uk" aria-label="Open the Macrolog app">Open App &rarr;</a>
+    </nav>
+  </header>
+
+  <!-- ── Breadcrumb ── -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="breadcrumb__inner">
+      <a href="index.html">Docs</a>
+      <span class="breadcrumb__sep">/</span>
+      <span class="breadcrumb__current">Developer &amp; AI</span>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ── Page hero ── -->
+    <section class="page-hero">
+      <div class="wrap">
+        <p class="t-label">Feature Guide</p>
+        <h1 class="t-display">Developer &amp; AI Features</h1>
+        <p class="t-lead">
+          Run your own lightweight sync server to keep your macros on infrastructure you control, and plug in your own AI provider for meal descriptions and label parsing. Both are optional and off by default.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Chapter 01 ── -->
+    <section class="chapter" aria-labelledby="ch01">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">01 — Sync Server</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="chapter-body">
+          <h2 id="ch01" class="t-display-sm">Sync across every device.</h2>
+          <p class="t-body">
+            The sync server lets you access your macro data from any device on your network, or anywhere via a Cloudflare tunnel. It's a small Flask app you run yourself — your data never touches anyone else's infrastructure.
+          </p>
+
+          <h3 class="t-label" style="margin-bottom: var(--sc-4);">Getting started</h3>
+          <ul class="doc-list">
+            <li>Requires <strong>Python 3</strong> and <strong>pip</strong>.</li>
+            <li>Clone the repo, install the dependencies, and start the server.</li>
+            <li>The server listens on port <strong>5001</strong> by default.</li>
+          </ul>
+
+          <div class="code-wrap" style="margin-top: var(--sc-6);">
+            <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy commands">Copy</button>
+            <pre><code>git clone https://github.com/Oliver-Johnson/macro-tracker
+cd macro-tracker
+pip install flask flask-cors
+python server.py</code></pre>
+          </div>
+
+          <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">Connecting Macrolog</h3>
+          <ul class="step-list">
+            <li>Go to <strong>Settings → Sync Server</strong>.</li>
+            <li>Enter your server's local IP, e.g. <strong>http://192.168.1.x:5001</strong>.</li>
+            <li>Tap <strong>Connect</strong> — your food log will sync automatically.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chapter 02 ── -->
+    <section class="chapter" aria-labelledby="ch02">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">02 — Remote Access</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="chapter-body">
+          <h2 id="ch02" class="t-display-sm">Three ways to reach it.</h2>
+          <p class="t-body">
+            From simplest to most permanent — pick whichever matches how you want to use the server.
+          </p>
+
+          <h3 class="t-label" style="margin-bottom: var(--sc-4);">1 — LAN only <span style="color: var(--sc-ink-soft); font-weight: 400;">(simplest)</span></h3>
+          <p class="t-body">
+            Connect while on the same Wi-Fi network. No setup needed — just the IP address. Great for a home setup where your phone and server share a network.
+          </p>
+
+          <h3 class="t-label" style="margin-top: var(--sc-7); margin-bottom: var(--sc-4);">2 — Cloudflare Quick Tunnel</h3>
+          <p class="t-body">
+            A temporary HTTPS URL, no account required. The URL changes each session, so it's ideal for occasional remote access.
+          </p>
+          <div class="code-wrap">
+            <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy command">Copy</button>
+            <pre><code>cloudflared tunnel --url http://localhost:5001</code></pre>
+          </div>
+
+          <h3 class="t-label" style="margin-top: var(--sc-7); margin-bottom: var(--sc-4);">3 — Named Cloudflare Tunnel</h3>
+          <p class="t-body">
+            A permanent HTTPS URL on your own domain. Requires a Cloudflare account and a domain — best for long-term, always-on remote access.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Chapter 03 ── -->
+    <section class="chapter" aria-labelledby="ch03">
+      <div class="wrap">
+        <div class="chapter-marker" aria-hidden="true">
+          <span class="chapter-marker__text">03 — AI Features</span>
+          <span class="chapter-marker__rule"></span>
+        </div>
+        <div class="chapter-body">
+          <h2 id="ch03" class="t-display-sm">Bring your own AI.</h2>
+          <p class="t-body">
+            AI features require an API key from one of the supported providers. All processing happens through the API you choose — your key stays on-device and nothing is stored.
+          </p>
+
+          <h3 class="t-label" style="margin-bottom: var(--sc-4);">Supported providers</h3>
+          <ul class="doc-list">
+            <li><strong>OpenAI</strong> — GPT-4o</li>
+            <li><strong>Anthropic</strong> — Claude</li>
+            <li><strong>Google</strong> — Gemini</li>
+          </ul>
+
+          <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">Setting up</h3>
+          <ul class="step-list">
+            <li>Go to <strong>Settings → AI Features</strong>.</li>
+            <li>Enter your <strong>API key</strong> and select your <strong>provider</strong>.</li>
+            <li>Tap <strong>Save</strong>.</li>
+          </ul>
+
+          <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">What AI can do</h3>
+          <ul class="doc-list">
+            <li><strong>Describe a meal</strong> — tap “Describe” in Log Food and type something like “bowl of oats with blueberries and honey, about 350g”. The AI estimates the macros and logs it directly.</li>
+            <li><strong>Parse a nutrition label</strong> — point your camera at a label or paste text. AI extracts the exact macro values and pre-fills the log form.</li>
+            <li><strong>Interpret OCR output</strong> — when a barcode lookup fails or a label scan is unclear, AI cleans up garbled OCR text and pulls out the correct numbers.</li>
+          </ul>
+
+          <div class="callout" style="margin-top: var(--sc-9);">
+            <span class="callout__tag">Tips</span>
+            <h2 class="t-display-sm">Getting the best estimates.</h2>
+            <ul class="doc-list">
+              <li>Be specific with descriptions — include approximate <strong>weights or portions</strong> for better estimates.</li>
+              <li>Review AI-estimated macros before saving — treat them as a <strong>starting point</strong>, not ground truth.</li>
+              <li>API calls use a small amount of tokens; typical daily use costs <strong>less than $0.01</strong>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer role="contentinfo">
+    <a class="footer__cta" href="https://macroslog.co.uk">Open Macrolog &rarr;</a>
+    <span class="footer__copy">macroslog.co.uk &middot; Free &amp; private</span>
+  </footer>
+
+  <script>
+    function copyCode(btn) {
+      var code = btn.parentElement.querySelector('code');
+      navigator.clipboard.writeText(code.textContent.trim()).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+      });
+    }
+  </script>
+
+</body>
+</html>
