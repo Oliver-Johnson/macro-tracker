@@ -1197,14 +1197,14 @@
 
         <div class="inner">
           <div class="whats-new__meta">
-            <div class="version-badge">v2026-08-17.1 &middot; 17 Aug 2026</div>
+            <div class="version-badge">v2026-09-02.2 &middot; 2 Sep 2026</div>
 
             <h2 id="whats-new-heading" class="t-display-sm">
               The latest update.
             </h2>
 
             <p class="t-body">
-              Every release is driven by real use. This one adds a long-requested control for sugar tracking.
+              Every release is driven by real use. This one is a small but welcome fix for barcode scanning.
             </p>
 
             <a class="whats-new__changelog-link" href="changelog.html">
@@ -1213,7 +1213,7 @@
           </div>
 
           <div>
-            <article class="wipe-card" aria-label="Feature: Configurable Sugar Limit">
+            <article class="wipe-card" aria-label="Fix: Scan result Log button">
               <div class="wipe-card__icon" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
@@ -1221,17 +1221,15 @@
                 </svg>
               </div>
 
-              <h3>Configurable Sugar Limit</h3>
+              <h3>Scan result Log button fix</h3>
 
               <p class="t-body">
-                Set your own daily sugar target in Settings. The warning threshold is automatically configured to 75% of your limit, so you get an early heads-up before you go over.
+                After a barcode scan, the food result popup now clears the bottom navigation bar, so the Log button is always fully visible and tappable.
               </p>
 
               <div class="wipe-card__detail">
                 <p>
-                  <strong>Default:</strong> 60g per day.
-                  Find the new field under Settings, next to your other macro targets.
-                  The warning level updates automatically when you change the limit.
+                  Added extra bottom padding to the result sheet so its action button no longer sits behind the nav bar.
                 </p>
               </div>
             </article>
