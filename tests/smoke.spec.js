@@ -186,9 +186,10 @@ test('tour demo data is cleared afterwards and never replaces real data', async 
     demoFlag: localStorage.getItem('mt_tour_demo_active'),
   }))).toEqual({ logs: null, weights: null, water: null, demoFlag: null });
 
-  // The app may follow the tour with the targets wizard; close it if so.
+  // The tour hands over to the targets wizard; close it.
   const wizard = page.locator('#onboarding-backdrop');
-  if (await wizard.evaluate(el => el.classList.contains('open'))) await wizard.locator('.ob-close-btn').click();
+  await expect(wizard).toHaveClass(/\bopen\b/);
+  await wizard.locator('.ob-close-btn').click();
 
   // Now a real user: log something, retake the tour, and the entry must survive.
   await quickAdd(page, SNACK);
@@ -201,6 +202,19 @@ test('tour demo data is cleared afterwards and never replaces real data', async 
   await openView(page, 'Today');
   await expect(page.locator('#food-log-list .log-entry')).toHaveCount(1);
   await expect(page.locator('#food-log-list')).toContainText(SNACK.name);
+});
+
+test('a new user is offered the targets wizard once', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#tour-welcome-backdrop').getByRole('button', { name: 'Skip Tutorial' }).click();
+  const wizard = page.locator('#onboarding-backdrop');
+  await expect(wizard).toHaveClass(/\bopen\b/);
+  await expectInsideViewport(page, wizard.locator('.ob-close-btn'), 'wizard close button');
+  await wizard.locator('.ob-close-btn').click();
+  await expect(wizard).not.toHaveClass(/\bopen\b/);
+  await page.reload();
+  await expect(page.locator('#view-today')).toHaveClass(/\bactive\b/);
+  await expect(wizard).not.toHaveClass(/\bopen\b/);
 });
 
 // ─── Returning user (tour done, targets set) ─────────────────────────────────
@@ -349,6 +363,9 @@ test.describe('returning user', () => {
     await page.evaluate(() => localStorage.clear());
     await page.reload();
     await page.locator('#tour-welcome-backdrop').getByRole('button', { name: 'Skip Tutorial' }).click();
+    // A brand-new user is offered the targets wizard; close it to restore a backup instead
+    await expect(page.locator('#onboarding-backdrop')).toHaveClass(/\bopen\b/);
+    await page.locator('#onboarding-backdrop .ob-close-btn').click();
     await expect(page.locator('#food-log-list')).toContainText('No foods logged yet');
 
     // Import through Settings → Data → Import JSON.
