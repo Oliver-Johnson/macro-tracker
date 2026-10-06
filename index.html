@@ -878,7 +878,7 @@
     <div class="section-header">
       <span class="section-title" id="today-date-label">Today</span>
       <div style="display:flex;gap:6px;">
-        <button id="today-sync-btn" class="btn btn-secondary btn-sm" onclick="syncFromMain()" title="Sync to server">⇅ Sync</button>
+        <button id="today-sync-btn" class="btn btn-secondary btn-sm" onclick="syncNow()" title="Sync with your server">⇅ Sync</button>
         <button class="btn btn-secondary btn-sm" onclick="showDatePicker()">📅 History</button>
       </div>
     </div>
@@ -1310,6 +1310,8 @@
         <input type="password" id="set-sync-key" placeholder="API key (optional)" style="margin-top:6px;">
       </div>
       <button class="btn btn-primary" onclick="saveSyncSettings()">Save</button>
+      <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncNow()">Sync now</button>
+      <div id="sync-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
     </div>
     <div class="card" id="settings-ai-card" style="margin-top:8px;display:none;">
       <div class="card-title">AI Features</div>
@@ -1524,7 +1526,6 @@
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="importData()">Import JSON</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportFoodLogCSV()">Download food log (CSV)</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportWeightLogCSV()">Download weight log (CSV)</button>
-        <button id="settings-sync-to-server-btn" class="btn btn-secondary" style="margin-top:8px;" onclick="syncFoodLog()">Sync to Server</button>
         <button class="btn btn-secondary" style="margin-top:8px; border-color:var(--danger); color:var(--danger);" onclick="clearData()">Clear All Data</button>
       </div><!-- end #data-body -->
     </div>
@@ -3891,6 +3892,7 @@ function renderSettings() {
   document.getElementById('set-water').value = s.waterTarget || 2000;
   document.getElementById('set-sync-url').value = localStorage.getItem('syncServerUrl') || '';
   document.getElementById('set-sync-key').value = localStorage.getItem('syncApiKey') || '';
+  setSyncStatus(syncStatusMsg || syncStatusText());
   const aiCfg = LS.get('mt_ai_settings', {});
   const aiEnabledEl = document.getElementById('set-ai-enabled');
   const aiProviderEl = document.getElementById('set-ai-provider');
@@ -4023,6 +4025,8 @@ function saveSyncSettings() {
   if (url) { localStorage.setItem('syncServerUrl', url); } else { localStorage.removeItem('syncServerUrl'); }
   if (key) { localStorage.setItem('syncApiKey', key); } else { localStorage.removeItem('syncApiKey'); }
   toast(url ? 'Sync settings saved!' : 'Sync URL cleared — sync disabled');
+  setSyncStatus(syncStatusText());
+  if (url) syncNow();
 }
 
 // ═══════════════════════════════════════════════════
@@ -4348,6 +4352,7 @@ function formatAIWeeklySummary(r) {
   return html;
 }
 
+// One-way upload, used only with sync servers from before two-way sync
 function syncFoodLog() {
   const syncUrl = getSyncUrl();
   if (!syncUrl) return;
@@ -4387,6 +4392,7 @@ const SEED_FOODS = [
 const FIBRE_LOOKUP = {};
 for (const s of SEED_FOODS) FIBRE_LOOKUP[s.name.toLowerCase()] = s.fibre;
 
+// Fibre, sugar and sodium from servers from before two-way sync
 function fetchSyncFoodLog() {
   const syncUrl = getSyncUrl();
   if (!syncUrl) return;
@@ -4443,7 +4449,7 @@ function fetchSyncTargets() {
         s.protein = t.protein || s.protein;
         s.carbs = t.carbs || s.carbs;
         s.fat = t.fat || s.fat;
-        localStorage.setItem('mt_settings', JSON.stringify(s));
+        LS.set('mt_settings', s);
         const daily = getDailyTargets();
         daily[todayKey()] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre || 30 };
         LS.set('mt_daily_targets', daily);
@@ -4454,9 +4460,439 @@ function fetchSyncTargets() {
     .catch(() => {}); // silent fail — use local targets
 }
 
+// ═══════════════════════════════════════════════════
+//  TWO-WAY SYNC
+// ═══════════════════════════════════════════════════
+// Each device remembers a fingerprint of every record as of its last sync. A sync
+// fetches the server's copy and merges record by record: a side whose record still
+// matches the fingerprint hasn't touched it, so the other side's version (or its
+// deletion) wins. When both sides changed the same record this device's edit wins,
+// an edit beats a delete, and water added on both devices on the same day is summed.
+// The merged data goes back with the revision it started from, so if another device
+// synced in between the server refuses it and the merge runs again.
+const SYNC_BASE_KEY = 'mt_sync_base';
+const SYNC_DATA_KEYS = {
+  logs: 'mt_logs', recipes: 'mt_recipes', customFoods: 'mt_custom_foods',
+  settings: 'mt_settings', dailyTargets: 'mt_daily_targets', weightLog: 'mt_weight_log',
+  waterLog: 'mt_water_log', exerciseLog: 'mt_exercise_log', ifSettings: 'mt_if_settings', ifLog: 'mt_if_log'
+};
+const SYNC_LIST_DATA = ['logs', 'recipes', 'customFoods', 'weightLog', 'exerciseLog', 'ifLog'];
+const SYNC_COLLECTIONS = ['entries', 'days', 'recipes', 'customFoods', 'dailyTargets', 'weightLog', 'waterLog', 'exerciseLog', 'ifLog', 'settings', 'ifSettings'];
+// On a device's first sync with a server that others already sync to, its targets are
+// usually just the defaults, so the server's targets win; its logged food still counts
+const SYNC_SERVER_FIRST = ['settings', 'ifSettings', 'dailyTargets'];
+
+class SyncError extends Error {}
+
+// Read the synced data straight from storage. Unreadable data stops the sync rather
+// than counting as empty, which would delete those records everywhere else.
+function readSyncData(source, from) {
+  const d = {};
+  for (const name of Object.keys(SYNC_DATA_KEYS)) {
+    let v = source(name);
+    if (v === undefined || v === null) v = SYNC_LIST_DATA.includes(name) ? [] : {};
+    const ok = SYNC_LIST_DATA.includes(name) ? Array.isArray(v) : (typeof v === 'object' && !Array.isArray(v));
+    if (!ok) throw new SyncError(`Sync stopped — ${name} on ${from} isn't in the expected format`);
+    d[name] = v;
+  }
+  return d;
+}
+
+function getSyncableData() {
+  return readSyncData(name => {
+    const raw = localStorage.getItem(SYNC_DATA_KEYS[name]);
+    if (raw === null) return undefined;
+    try { return JSON.parse(raw); } catch { throw new SyncError(`Sync stopped — ${name} on this device can't be read`); }
+  }, 'this device');
+}
+
+// Entries are matched by id, so give any entry without one (or with a copy of
+// another entry's id) its own before syncing
+function ensureEntryIds() {
+  const raw = localStorage.getItem('mt_logs');
+  if (!raw) return;
+  const logs = JSON.parse(raw);
+  if (!Array.isArray(logs)) return;
+  const seen = new Set();
+  let changed = false;
+  for (const day of logs) {
+    for (const e of (day && day.entries) || []) {
+      if (!e || typeof e !== 'object') continue;
+      if (e.id == null || e.id === '' || seen.has(String(e.id))) { e.id = uid(); changed = true; }
+      seen.add(String(e.id));
+    }
+  }
+  if (changed) localStorage.setItem('mt_logs', JSON.stringify(logs));
+}
+
+// JSON with sorted keys, so equal records always get the same fingerprint
+function syncStable(v) {
+  if (Array.isArray(v)) return '[' + v.map(syncStable).join(',') + ']';
+  if (v && typeof v === 'object') {
+    return '{' + Object.keys(v).sort().filter(k => v[k] !== undefined)
+      .map(k => JSON.stringify(k) + ':' + syncStable(v[k])).join(',') + '}';
+  }
+  return JSON.stringify(v === undefined ? null : v);
+}
+
+// cyrb53: a fast 53-bit string hash
+function syncHash(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+// Water totals keep their value, so changes on two devices can be added together
+function syncFp(coll, v) {
+  return coll === 'waterLog' && typeof v === 'number' ? v : syncHash(syncStable(v));
+}
+
+// Split the data into records keyed by something every device agrees on
+function syncToRecords(d) {
+  const r = {};
+  SYNC_COLLECTIONS.forEach(c => r[c] = new Map());
+  const put = (coll, key, value) => {
+    let k = String(key), n = 1;
+    while (r[coll].has(k)) k = `${key}~${++n}`;
+    r[coll].set(k, value);
+  };
+  d.logs.forEach((day, i) => {
+    if (!day || typeof day !== 'object' || !day.date) return;
+    (day.entries || []).forEach((e, j) => {
+      if (e && typeof e === 'object') put('entries', e.id != null && e.id !== '' ? e.id : `noid:${day.date}:${j}`, { date: day.date, entry: e });
+    });
+    const rest = {};
+    for (const k of Object.keys(day)) if (k !== 'date' && k !== 'entries') rest[k] = day[k];
+    if (Object.keys(rest).length) put('days', day.date, rest);
+  });
+  d.recipes.forEach(x => put('recipes', x && x.id != null ? x.id : 'n:' + (x && x.name), x));
+  d.customFoods.forEach(x => put('customFoods', x && x.id != null ? x.id : 'n:' + (x && (x.barcode || x.name)), x));
+  d.weightLog.forEach(x => put('weightLog', x && x.date, x));
+  d.exerciseLog.forEach(x => put('exerciseLog', x && x.id != null ? x.id : 'n:' + (x && x.date) + ':' + (x && x.name), x));
+  d.ifLog.forEach(x => put('ifLog', x && x.date, x));
+  for (const c of ['dailyTargets', 'waterLog', 'settings', 'ifSettings']) {
+    for (const [k, v] of Object.entries(d[c])) put(c, k, v);
+  }
+  return r;
+}
+
+// Rebuild the stored shapes from records
+function syncFromRecords(r) {
+  const days = new Map();
+  const day = date => {
+    if (!days.has(date)) days.set(date, { date, entries: [] });
+    return days.get(date);
+  };
+  for (const [date, rest] of r.days) Object.assign(day(date.replace(/~\d+$/, '')), rest);
+  for (const { date, entry } of r.entries.values()) day(date).entries.push(entry);
+  const logs = [...days.values()].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  const obj = c => Object.fromEntries(r[c]);
+  return {
+    logs,
+    recipes: [...r.recipes.values()],
+    customFoods: [...r.customFoods.values()],
+    settings: obj('settings'),
+    dailyTargets: obj('dailyTargets'),
+    weightLog: [...r.weightLog.values()].sort((a, b) => String(a.date).localeCompare(String(b.date))),
+    waterLog: obj('waterLog'),
+    exerciseLog: [...r.exerciseLog.values()],
+    ifSettings: obj('ifSettings'),
+    ifLog: [...r.ifLog.values()]
+  };
+}
+
+function syncFingerprints(r) {
+  const fp = {};
+  for (const c of SYNC_COLLECTIONS) {
+    fp[c] = {};
+    for (const [k, v] of r[c]) fp[c][k] = syncFp(c, v);
+  }
+  return fp;
+}
+
+const syncHas = (o, k) => !!o && Object.prototype.hasOwnProperty.call(o, k);
+
+function syncChangedSinceBase(r, baseFp) {
+  for (const c of SYNC_COLLECTIONS) {
+    const b = baseFp[c] || {};
+    if (Object.keys(b).length !== r[c].size) return true;
+    for (const [k, v] of r[c]) if (!syncHas(b, k) || b[k] !== syncFp(c, v)) return true;
+  }
+  return false;
+}
+
+// Old one-way servers kept fibre, sugar and sodium that agents filled in; carry them over
+function syncEnrich(entryRec, serverRec) {
+  if (!serverRec) return entryRec;
+  let e = entryRec.entry;
+  for (const f of ['fibre', 'sugar', 'sodium']) {
+    if ((e[f] === 0 || e[f] == null) && serverRec.entry[f] > 0) {
+      if (e === entryRec.entry) e = Object.assign({}, e);
+      e[f] = serverRec.entry[f];
+    }
+  }
+  return e === entryRec.entry ? entryRec : { date: entryRec.date, entry: e };
+}
+
+// mode: 'base' (three-way, with base fingerprints), 'first' (this device has never synced
+// with this server), or 'legacy' (the server holds an old one-way push from a phone)
+function syncMerge(L, S, baseFp, mode) {
+  const out = {};
+  const stats = { pulled: 0, pushed: 0, conflicts: 0, removedLocal: 0, removedServer: 0 };
+  for (const c of SYNC_COLLECTIONS) {
+    const Lc = L[c], Sc = S[c], B = baseFp ? (baseFp[c] || {}) : null;
+    const m = new Map();
+    for (const k of new Set([...Lc.keys(), ...Sc.keys()])) {
+      const l = Lc.get(k), s = Sc.get(k);
+      const fl = l === undefined ? undefined : syncFp(c, l);
+      const fs = s === undefined ? undefined : syncFp(c, s);
+      const fb = syncHas(B, k) ? B[k] : undefined;
+      let v;
+      // Equal on both sides counts as one change, so a retried upload is never applied twice
+      // (the same amount of water added on two devices between syncs counts once)
+      if (fl === fs) v = l;
+      else if (l === undefined || s === undefined) {
+        if (mode !== 'base') v = l === undefined ? s : l;     // union on a first sync
+        else if (fl === fb) v = s;                            // only the server changed it
+        else if (fs === fb) v = l;                            // only this device changed it
+        else { v = l === undefined ? s : l; stats.conflicts++; } // an edit beats a delete
+      } else if (mode === 'base' && fl === fb) v = s;
+      else if (mode === 'base' && fs === fb) v = l;
+      else {
+        stats.conflicts++;
+        const water = c === 'waterLog' && typeof l === 'number' && typeof s === 'number';
+        if (water && mode === 'base') v = Math.max(0, l + s - (typeof fb === 'number' ? fb : 0));
+        else if (water) v = Math.max(l, s);
+        else if (mode === 'first' && SYNC_SERVER_FIRST.includes(c)) v = s;
+        else v = c === 'entries' && mode === 'legacy' ? syncEnrich(l, s) : l;
+      }
+      const fv = v === undefined ? undefined : syncFp(c, v);
+      if (fv !== fl) { if (v === undefined) stats.removedLocal++; else stats.pulled++; }
+      if (fv !== fs) { if (v === undefined) stats.removedServer++; else stats.pushed++; }
+      if (v !== undefined) m.set(k, v);
+    }
+    out[c] = m;
+  }
+  return { records: out, stats };
+}
+
+function syncRecordCount(r) {
+  return SYNC_COLLECTIONS.reduce((n, c) => n + r[c].size, 0);
+}
+
+// A sync that deletes a large share of either side is more likely a wiped device
+// or server than a real cleanup, so it waits for the user to confirm
+function syncTooDestructive(removed, total) {
+  return removed > 10 && removed > total * 0.2;
+}
+
+function writeSyncData(state) {
+  for (const [name, key] of Object.entries(SYNC_DATA_KEYS)) {
+    const v = state[name];
+    const json = JSON.stringify(v);
+    const current = localStorage.getItem(key);
+    if (current === json) continue;
+    // Never create an empty key: the app's defaults (for example the targets) apply when it's missing
+    if (current === null && (Array.isArray(v) ? !v.length : !Object.keys(v).length)) continue;
+    localStorage.setItem(key, json);
+  }
+}
+
+// Applying changes under an open sheet could shift the entry it is editing, and
+// re-rendering would wipe what someone is typing, so those wait a few seconds
+function syncShouldWait() {
+  const a = document.activeElement;
+  return !!document.querySelector('.modal-backdrop.open') ||
+    !!(a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT'));
+}
+
+let syncInFlight = false, syncAgain = false, syncTimer = null, syncLastAt = 0, syncLegacyUrl = null, syncStatusMsg = '';
+
+function setSyncStatus(text) {
+  syncStatusMsg = text;
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = text;
+}
+
+function syncStatusText() {
+  const base = LS.get(SYNC_BASE_KEY, null);
+  if (!getSyncUrl()) return 'Not set up';
+  if (!base || base.url !== getSyncUrl()) return 'Not synced yet';
+  return 'Last synced ' + new Date(base.at).toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function scheduleSync(ms) {
+  if (!getSyncUrl()) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { syncTimer = null; syncNow({ quiet: true }); }, ms);
+}
+
+async function syncNow(opts = {}) {
+  const quiet = !!opts.quiet;
+  const url = getSyncUrl();
+  if (!url) { if (!quiet) toast('Set sync URL in Settings first'); return; }
+  if (localStorage.getItem(TOUR_DEMO_KEY)) { if (!quiet) toast('Finish the tour first, then sync'); return; }
+  if (quiet && syncLegacyUrl === url) return;
+  if (quiet && syncShouldWait()) { scheduleSync(5000); return; }
+  if (syncInFlight) { syncAgain = true; return; }
+  syncInFlight = true;
+  setSyncStatus('Syncing…');
+  try {
+    const run = () => syncRun(url, quiet);
+    const result = navigator.locks && navigator.locks.request
+      ? await navigator.locks.request('macrolog-sync', run)  // one sync at a time across tabs
+      : await run();
+    syncLastAt = Date.now();
+    setSyncStatus(result && result.message ? result.message : syncStatusText());
+    if (!quiet && result && result.toast) toast(result.toast);
+  } catch (err) {
+    const msg = err instanceof SyncError ? err.message : 'Sync failed — server offline?';
+    setSyncStatus(msg);
+    if (!quiet) toast(msg);
+  } finally {
+    syncInFlight = false;
+    if (syncAgain) { syncAgain = false; scheduleSync(1000); }
+  }
+}
+
+async function syncRun(url, quiet) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const saved = LS.get(SYNC_BASE_KEY, null);
+    const base = saved && saved.url === url && saved.fp ? saved : null;
+    const res = await fetch(url + '/sync/state' + (base ? '?rev=' + encodeURIComponent(base.rev) : ''),
+      { headers: getSyncHeaders(), cache: 'no-store' });
+    if (res.status === 401) throw new SyncError('Sync failed — wrong API key');
+    if (res.status === 404) return syncWithOldServer(url, quiet);
+    if (!res.ok) throw new SyncError('Sync failed — server error ' + res.status);
+    const got = await res.json();
+    syncLegacyUrl = null;
+
+    if (localStorage.getItem(TOUR_DEMO_KEY)) return null; // never sync tour demo data
+    ensureEntryIds();
+    const local = getSyncableData();
+    const localJson = JSON.stringify(local);
+    const L = syncToRecords(local);
+
+    let merged, stats, destructive, legacy = false;
+    if (got.unchanged && base) {
+      // The server hasn't changed since this device last synced, so it only needs this device's changes
+      if (!syncChangedSinceBase(L, base.fp)) {
+        LS.set(SYNC_BASE_KEY, Object.assign({}, base, { at: Date.now() }));
+        return { toast: 'Already up to date' };
+      }
+      merged = L;
+      let removed = 0, total = 0;
+      for (const c of SYNC_COLLECTIONS) {
+        for (const k of Object.keys(base.fp[c] || {})) { total++; if (!L[c].has(k)) removed++; }
+      }
+      stats = { pulled: 0, pushed: 1, conflicts: 0, removedLocal: 0, removedServer: removed };
+      destructive = syncTooDestructive(removed, total);
+    } else {
+      const server = got.data && typeof got.data === 'object' ? got.data : {};
+      legacy = !server._sync;
+      const S = syncToRecords(readSyncData(name => server[name], 'the server'));
+      const mode = legacy ? 'legacy' : base ? 'base' : 'first';
+      ({ records: merged, stats } = syncMerge(L, S, mode === 'base' ? base.fp : null, mode));
+      destructive = syncTooDestructive(stats.removedLocal, syncRecordCount(L)) ||
+        syncTooDestructive(stats.removedServer, syncRecordCount(S));
+    }
+
+    if (destructive) {
+      const msg = `This sync would delete ${stats.removedServer} records from the server and ${stats.removedLocal} from this device.`;
+      if (quiet || !confirm(msg + ' Continue?')) {
+        return { message: 'Sync paused — ' + msg + ' Tap Sync now to review.', toast: 'Sync cancelled' };
+      }
+    }
+
+    // Applying changes under an open sheet or while someone types waits, before anything is uploaded
+    if (stats.pulled > 0 && quiet && syncShouldWait()) { scheduleSync(5000); return { message: 'Waiting to apply changes' }; }
+
+    let state = syncFromRecords(merged);
+    const fp = syncFingerprints(merged);
+    let rev = got.rev;
+    if (stats.pushed > 0 || legacy || got.unchanged) {
+      // The server keeps any other top-level keys it holds (for example from agents)
+      const body = Object.assign({}, state, { _sync: { version: 1, updatedAt: new Date().toISOString() } });
+      const put = await fetch(url + '/sync/state', {
+        method: 'PUT', headers: getSyncHeaders(), body: JSON.stringify({ baseRev: got.rev, data: body })
+      });
+      if (put.status === 409) continue; // another device synced in between: merge again
+      if (put.status === 401) throw new SyncError('Sync failed — wrong API key');
+      if (!put.ok) throw new SyncError('Sync failed — server error ' + put.status);
+      rev = (await put.json()).rev;
+    }
+
+    if (localStorage.getItem(TOUR_DEMO_KEY)) return null;
+    // If something changed here (in any tab) while talking to the server, keep those
+    // changes on top of what was uploaded; the next sync sends them
+    let changedMeanwhile = false;
+    if (JSON.stringify(getSyncableData()) !== localJson) {
+      const now = syncToRecords(getSyncableData());
+      state = syncFromRecords(syncMerge(now, merged, syncFingerprints(L), 'base').records);
+      changedMeanwhile = true;
+    }
+    try {
+      writeSyncData(state);
+    } catch (e) {
+      throw new SyncError('Sync failed — storage full on this device');
+    }
+    LS.set(SYNC_BASE_KEY, { url, rev, fp, at: Date.now() });
+    if (changedMeanwhile) syncAgain = true;
+    if (stats.pulled > 0) {
+      renderToday();
+      renderRecipes();
+      renderSettings();
+      if (currentView === 'trends') renderTrends();
+      if (currentView === 'fasting') renderFastingView();
+      if (document.getElementById('view-history').classList.contains('open')) renderHistChart();
+    }
+    const parts = [];
+    if (stats.pulled) parts.push(`${stats.pulled} update${stats.pulled === 1 ? '' : 's'} received`);
+    if (stats.pushed && !got.unchanged) parts.push(`${stats.pushed} sent`);
+    return { toast: parts.length ? 'Synced: ' + parts.join(', ') : 'Synced' };
+  }
+  throw new SyncError('Sync busy — other devices kept syncing; try again');
+}
+
+// Servers from before two-way sync only take a full upload and give back fibre data
+function syncWithOldServer(url, quiet) {
+  syncLegacyUrl = url;
+  if (quiet) { fetchSyncFoodLog(); return { message: 'Server needs updating for two-way sync' }; }
+  syncFoodLog();
+  return { message: 'Sent to server. Update the sync server for two-way sync.' };
+}
+
+// Sync shortly after any change to synced data, on opening the app, and every few
+// minutes while it's open, so a desktop left open picks up what a phone logs
+(function startAutoSync() {
+  const lsSet = LS.set;
+  const watched = new Set(Object.values(SYNC_DATA_KEYS));
+  LS.set = (k, v) => { lsSet(k, v); if (watched.has(k)) scheduleSync(3000); };
+  document.addEventListener('visibilitychange', () => {
+    if (!getSyncUrl()) return;
+    if (document.visibilityState === 'hidden' && syncTimer) { clearTimeout(syncTimer); syncTimer = null; syncNow({ quiet: true }); }
+    if (document.visibilityState === 'visible' && Date.now() - syncLastAt > 30000) syncNow({ quiet: true });
+  });
+  window.addEventListener('online', () => { if (getSyncUrl()) syncNow({ quiet: true }); });
+  setInterval(() => {
+    if (getSyncUrl() && document.visibilityState === 'visible') syncNow({ quiet: true });
+  }, 2 * 60 * 1000);
+})();
+
 function clearData() {
-  if (!confirm('Delete ALL data? This cannot be undone.')) return;
+  const synced = !!getSyncUrl();
+  if (!confirm(synced
+    ? 'Delete ALL data on this device? Your sync server keeps its copy, and the next sync downloads it again.'
+    : 'Delete ALL data? This cannot be undone.')) return;
   ['mt_logs','mt_recipes','mt_custom_foods','mt_barcode_cache'].forEach(k => localStorage.removeItem(k));
+  // Forget the last sync too, so the next one restores from the server instead of deleting there
+  localStorage.removeItem(SYNC_BASE_KEY);
   renderToday();
   renderRecipes();
   renderSettings();
@@ -4806,7 +5242,7 @@ recordTodayTargets();
 applyDisplayPrefs();
 renderToday();
 fetchSyncTargets();
-fetchSyncFoodLog();
+syncNow({ quiet: true });
 // First-run tour takes priority; it calls checkOnboarding() when done
 if (!checkFirstRunTour()) checkOnboarding();
 
@@ -5138,12 +5574,6 @@ function toggleData() {
   const open = el.style.display !== 'none';
   el.style.display = open ? 'none' : '';
   chevron.textContent = open ? '▶' : '▼';
-}
-
-// ─── Sync from main page ───
-function syncFromMain() {
-  if (!getSyncUrl()) { toast('Set sync URL in Settings first'); return; }
-  syncFoodLog();
 }
 
 // ═══════════════════════════════════════════════════
