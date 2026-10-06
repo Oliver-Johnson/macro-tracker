@@ -10,6 +10,7 @@
 <title>Macro Tracker</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.svg">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;900&family=Inter:wght@200;300;400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0f0f13;
@@ -145,6 +146,7 @@
   .recipe-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; cursor: pointer; }
   .recipe-name { font-size: 15px; font-weight: 600; }
   .recipe-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .recipe-draft-badge { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
   .ingredient-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
   .ingredient-row:last-child { border-bottom: none; }
 
@@ -195,7 +197,7 @@
   .water-progress-track { width: 100%; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; margin: 8px 0; }
   .water-progress-fill { height: 100%; background: #38bdf8; border-radius: 4px; transition: width 0.4s ease; }
   .water-btns { display: flex; gap: 8px; margin-top: 8px; }
-  .water-btn { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: #38bdf8; border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+  .water-btn { flex: 1; background: var(--bg3); border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
   .water-btn:active { opacity: 0.7; }
   .water-custom-row { display: none; margin-top: 8px; gap: 8px; align-items: center; }
   .water-custom-row.open { display: flex; }
@@ -582,6 +584,217 @@
     .kofi-mobile-card { display: flex; }
   }
   .kofi-dismissed { display: none !important; }
+
+  /* ─── Selectable visual styles ─────────────────────────────────────── */
+  .big-cal, .bold-pills, .zen-macroline { display: none; }
+
+  /* GRADIENT ─── */
+  html.style-gradient { --accent:#8c6eff; --accent2:#5bd0c0; --kcal:#8c6eff; }
+  html.style-gradient #app { background: linear-gradient(165deg,#2b2260 0%,#1e2a55 40%,#123f4d 100%); min-height:100vh; }
+  html.style-gradient .card, html.style-gradient .water-card, html.style-gradient .exercise-card {
+    background: rgba(255,255,255,.06); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  html.style-gradient #kcal-ring { stroke: url(#kcalGrad); }
+  html.style-gradient body { font-family: 'Manrope',-apple-system,sans-serif; }
+  html.style-gradient.theme-light #app,
+  html.style-gradient.theme-light body {
+    background: linear-gradient(165deg, #b8aaff 0%, #a8c0ff 50%, #8ee0d8 100%);
+    min-height: 100vh;
+  }
+  html.style-gradient.theme-light .card,
+  html.style-gradient.theme-light .water-card,
+  html.style-gradient.theme-light .exercise-card {
+    background: rgba(255,255,255,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-color: rgba(140,110,255,.22); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+  }
+  html.style-gradient.theme-light .stat-chip {
+    background: rgba(255,255,255,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-color: rgba(140,110,255,.22); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+  }
+  html.style-gradient.theme-light #today-streak-weight-row > div:last-child {
+    background: rgba(255,255,255,.72) !important; border-color: rgba(140,110,255,.22) !important;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+  }
+  html.style-gradient.theme-light #diary-notes {
+    background: rgba(255,255,255,.72) !important; border-color: rgba(140,110,255,.22) !important;
+  }
+  html.style-gradient.theme-light .kofi-mobile-card {
+    background: rgba(255,255,255,.72); border-color: rgba(140,110,255,.22);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  }
+  html.style-gradient.theme-light .btn-secondary,
+  html.style-gradient.theme-light .water-btn {
+    background: rgba(255,255,255,.6); border-color: rgba(140,110,255,.22);
+  }
+  html.style-gradient.theme-light .bar-track { background: rgba(140,110,255,.18); }
+  html.style-gradient.theme-light input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),
+  html.style-gradient.theme-light textarea,
+  html.style-gradient.theme-light select {
+    background: rgba(255,255,255,.65) !important; border-color: rgba(140,110,255,.22) !important;
+    color: var(--text) !important;
+  }
+  @media (prefers-color-scheme: light) {
+    html.style-gradient.theme-auto #app,
+    html.style-gradient.theme-auto body {
+      background: linear-gradient(165deg, #b8aaff 0%, #a8c0ff 50%, #8ee0d8 100%);
+      min-height: 100vh;
+    }
+    html.style-gradient.theme-auto .card,
+    html.style-gradient.theme-auto .water-card,
+    html.style-gradient.theme-auto .exercise-card {
+      background: rgba(255,255,255,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-color: rgba(140,110,255,.22); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+    }
+    html.style-gradient.theme-auto .stat-chip {
+      background: rgba(255,255,255,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-color: rgba(140,110,255,.22); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+    }
+    html.style-gradient.theme-auto #today-streak-weight-row > div:last-child {
+      background: rgba(255,255,255,.72) !important; border-color: rgba(140,110,255,.22) !important;
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 4px 20px rgba(100,80,200,.1);
+    }
+    html.style-gradient.theme-auto #diary-notes {
+      background: rgba(255,255,255,.72) !important; border-color: rgba(140,110,255,.22) !important;
+    }
+    html.style-gradient.theme-auto .kofi-mobile-card {
+      background: rgba(255,255,255,.72); border-color: rgba(140,110,255,.22);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    }
+    html.style-gradient.theme-auto .btn-secondary,
+    html.style-gradient.theme-auto .water-btn { background: rgba(255,255,255,.6); border-color: rgba(140,110,255,.22); }
+    html.style-gradient.theme-auto .bar-track { background: rgba(140,110,255,.18); }
+    html.style-gradient.theme-auto input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),
+    html.style-gradient.theme-auto textarea,
+    html.style-gradient.theme-auto select {
+      background: rgba(255,255,255,.65) !important; border-color: rgba(140,110,255,.22) !important;
+      color: var(--text) !important;
+    }
+  }
+  html.style-gradient .stat-chip {
+    background: rgba(255,255,255,.06); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-color: rgba(255,255,255,.12);
+  }
+  html.style-gradient #today-streak-weight-row > div:last-child {
+    background: rgba(255,255,255,.06) !important; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-color: rgba(255,255,255,.12) !important;
+  }
+  html.style-gradient #diary-notes {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: var(--text);
+    border-radius: 10px;
+  }
+  html.style-gradient .kofi-mobile-card {
+    background: rgba(255,255,255,.06); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-color: rgba(255,255,255,.12);
+  }
+
+  /* Global btn-secondary glass */
+  html.style-gradient .btn-secondary {
+    background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15);
+  }
+
+  /* Water add buttons */
+  html.style-gradient .water-btn {
+    background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2);
+  }
+
+  /* Macro bar tracks — lighten the dark bg */
+  html.style-gradient .bar-track {
+    background: rgba(255,255,255,.1);
+  }
+
+  /* All inputs, textareas, selects across all pages */
+  html.style-gradient input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]),
+  html.style-gradient textarea,
+  html.style-gradient select {
+    background: rgba(255,255,255,.06) !important; border-color: rgba(255,255,255,.15) !important;
+    color: var(--text) !important;
+  }
+
+  /* ZEN ─── */
+  html.style-zen { --accent:#8ba888; --accent2:#8ba888; --bg:#111112; --bg2:#111112; --bg3:#1a1a1b; --border:#262627; --text:#f2f2f0; --muted:#7a7a78; --kcal:#8ba888; }
+  html.style-zen body { font-family: 'Inter',-apple-system,sans-serif; }
+  html.style-zen #today-ring-row,
+  html.style-zen #macro-bars,
+  html.style-zen .stat-chips,
+  html.style-zen .log-macros,
+  html.style-zen .btn-icon,
+  html.style-zen .meal-subtotal,
+  html.style-zen #dashboard-card .btn { display: none !important; }
+  html.style-zen #dashboard-card { background: none; border: none; padding: 0; }
+  html.style-zen .big-cal { display: block; padding: 32px 0 8px; text-align: center; }
+  html.style-zen .big-cal-kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  html.style-zen .big-cal-val { font-size: 72px; font-weight: 200; line-height: 1; color: var(--text); }
+  html.style-zen .big-cal-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  html.style-zen .big-cal-sub b { font-weight: 400; }
+  html.style-zen .zen-macroline { display: flex; justify-content: center; gap: 10px; font-size: 13px; color: var(--muted); padding: 8px 0 24px; }
+  html.style-zen .zen-macroline b { color: var(--text); font-weight: 500; }
+  html.style-zen .zen-macroline .sep { opacity: .4; }
+  html.style-zen .log-entry { border-bottom: 1px solid var(--border); padding: 10px 0; }
+  html.style-zen .log-name { font-size: 14px; font-weight: 300; }
+  html.style-zen .log-kcal { font-size: 14px; font-weight: 300; }
+  html.style-zen.theme-light { --bg:#fafaf8; --bg2:#fafaf8; --bg3:#f0f0ec; --border:#e4e4e0; --text:#1a1a18; --muted:#888884; }
+  @media (prefers-color-scheme: light) {
+    html.style-zen.theme-auto { --bg:#fafaf8; --bg2:#fafaf8; --bg3:#f0f0ec; --border:#e4e4e0; --text:#1a1a18; --muted:#888884; }
+  }
+
+  /* BOLD ─── */
+  html.style-bold { --accent:#c6ff3a; --accent2:#c6ff3a; --bg:#08090c; --bg2:#0f1014; --bg3:#15161b; --border:#16171b; --text:#f5f5f5; --muted:#5a5c63; --kcal:#c6ff3a; }
+  html.style-bold body { font-family: 'Archivo',-apple-system,sans-serif; }
+  html.style-bold #today-ring-row,
+  html.style-bold .stat-chips { display: none !important; }
+  html.style-bold #dashboard-card { background: none; border: none; padding: 0; }
+  html.style-bold .big-cal { display: block; padding: 6px 0 4px; }
+  html.style-bold .big-cal-kicker { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  html.style-bold .big-cal-val { font-size: 80px; font-weight: 900; line-height: 1; color: var(--accent); }
+  html.style-bold .big-cal-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  html.style-bold .big-cal-sub b { font-weight: 700; color: var(--text); }
+  html.style-bold .bold-pills { display: flex; gap: 10px; padding: 12px 0 20px; }
+  html.style-bold .bp { flex: 1; border-radius: 14px; padding: 12px 10px; text-align: center; }
+  html.style-bold .bp-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; opacity: .8; }
+  html.style-bold .bp-num { font-size: 22px; font-weight: 900; }
+  html.style-bold .bp-goal { font-size: 11px; opacity: .7; margin-top: 4px; }
+  html.style-bold .bp.p { background: #ff5c7a; color: #1a0308; }
+  html.style-bold .bp.c { background: #3a9bff; color: #02101f; }
+  html.style-bold .bp.f { background: #ffb03a; color: #1f1202; }
+  html.style-bold #today-food-log-card { background: none; border: none; padding: 0; }
+  html.style-bold .log-entry { padding: 13px 0; border-bottom: 1px solid var(--border); }
+  html.style-bold .log-name { font-weight: 700; }
+  html.style-bold .log-kcal { font-size: 18px; }
+  html.style-bold nav { position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: auto; border-top: none; background: #15161b; border-radius: 28px; padding: 8px 20px; box-shadow: 0 4px 24px rgba(0,0,0,.6); transition: transform 0.2s ease; }
+  html.style-bold body.modal-open nav { transform: translateX(-50%) translateY(calc(100% + 32px)); pointer-events: none; }
+  html.style-bold body.keyboard-open nav { transform: translateX(-50%) translateY(calc(100% + 32px)); pointer-events: none; }
+  html.style-bold #view-today, html.style-bold .view { padding-bottom: calc(96px + var(--safe-bottom)); }
+  html.style-bold.theme-light { --accent: #5fbf00; --bg: #f7f7f4; --bg3: #ebebe6; --bg2: #f7f7f4; --border: #e0e0da; --text: #111; --muted: #666; --kcal: #5fbf00; }
+  html.style-bold.theme-light nav { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+  @media (prefers-color-scheme: light) {
+    html.style-bold.theme-auto { --accent: #5fbf00; --bg: #f7f7f4; --bg3: #ebebe6; --bg2: #f7f7f4; --border: #e0e0da; --text: #111; --muted: #666; --kcal: #5fbf00; }
+    html.style-bold.theme-auto nav { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+  }
+
+  /* SOFT ─── */
+  html.style-soft { --accent:#e8845a; --accent2:#f0b57e; --bg:#1a1210; --bg2:#231815; --bg3:#2e211d; --border:#3d2e28; --text:#f5ede8; --muted:#9a7a6e; --kcal:#e8845a; }
+  html.style-soft .card, html.style-soft .water-card, html.style-soft .exercise-card { border-radius:24px; }
+  html.style-soft nav button { border-radius:20px; }
+  html.style-soft nav button.active { background:var(--accent); color:#fff; }
+  html.style-soft.theme-light { --accent:#c2683f; --bg:#f4efe6; --bg2:#fffdf8; --bg3:#ebe3d6; --border:#ddd2c0; --text:#33291f; --muted:#8a7d6b; --kcal:#c2683f; }
+  @media(prefers-color-scheme:light){html.style-soft.theme-auto{--accent:#c2683f;--bg:#f4efe6;--bg2:#fffdf8;--bg3:#ebe3d6;--border:#ddd2c0;--text:#33291f;--muted:#8a7d6b;--kcal:#c2683f;}}
+
+  /* EDITORIAL ─── */
+  html.style-editorial { --accent:#3b82f6; --accent2:#60a5fa; --bg:#0c0d0f; --bg2:#141618; --bg3:#1c1e22; --border:#2a2d33; --text:#f0f2f5; --muted:#7a8090; --kcal:#3b82f6; }
+  html.style-editorial .card, html.style-editorial .water-card, html.style-editorial .exercise-card { border-radius:4px; }
+  html.style-editorial nav { border-radius:0; }
+  html.style-editorial.theme-light { --accent:#1d4ed8; --bg:#f8f9fa; --bg2:#ffffff; --bg3:#e9ecef; --border:#dee2e6; --text:#111827; --muted:#6b7280; --kcal:#1d4ed8; }
+  @media(prefers-color-scheme:light){html.style-editorial.theme-auto{--accent:#1d4ed8;--bg:#f8f9fa;--bg2:#ffffff;--bg3:#e9ecef;--border:#dee2e6;--text:#111827;--muted:#6b7280;--kcal:#1d4ed8;}}
+
+  /* RETRO ─── */
+  html.style-retro { --accent:#00ff41; --accent2:#00cc33; --bg:#0a0a0a; --bg2:#0f0f0f; --bg3:#141414; --border:#1a2e1a; --text:#00ff41; --muted:#1a6b1a; --kcal:#00ff41; --protein:#00ff41; --carbs:#00ff41; --fat:#00ff41; }
+  html.style-retro body { font-family:'Courier New',Courier,monospace; }
+  html.style-retro .card, html.style-retro .water-card, html.style-retro .exercise-card { border-radius:0; border:1px solid #1a6b1a; background:#0a0a0a; }
+  html.style-retro nav { border-radius:0; border-top:1px solid #1a6b1a; }
+  html.style-retro nav button.active { background:#00ff41; color:#0a0a0a; border-radius:0; }
+  html.style-retro.theme-light { --accent:#8b6914; --accent2:#c8a020; --bg:#fff8e7; --bg2:#fffef5; --bg3:#f5edcc; --border:#c8b464; --text:#1a1000; --muted:#8b7a30; --kcal:#8b6914; --protein:#8b6914; --carbs:#8b6914; --fat:#8b6914; }
+  @media(prefers-color-scheme:light){html.style-retro.theme-auto{--accent:#8b6914;--bg:#fff8e7;--bg2:#fffef5;--bg3:#f5edcc;--border:#c8b464;--text:#1a1000;--muted:#8b7a30;--kcal:#8b6914;}}
 </style>
 </head>
 <body>
@@ -601,9 +814,21 @@
 
     <!-- Kcal ring -->
     <div class="card" id="dashboard-card" data-section="today-macro-card" onclick="openHistoryScreen()" style="cursor:pointer;">
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+      <div class="big-cal" aria-hidden="true">
+        <div class="big-cal-kicker">Calories Today</div>
+        <div class="big-cal-val" id="big-kcal-val">0</div>
+        <div class="big-cal-sub">of <b id="big-kcal-goal">0</b> kcal · <b id="big-kcal-left">0</b> left</div>
+      </div>
+      <div class="bold-pills" aria-hidden="true" id="bold-pills"></div>
+      <div class="zen-macroline" aria-hidden="true" id="zen-macroline"></div>
+      <div id="today-ring-row" style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
         <div style="position:relative; width:90px; height:90px; flex-shrink:0; cursor:pointer;" onclick="event.stopPropagation();showMacroBreakdown('kcal','Calories','kcal')">
           <svg viewBox="0 0 90 90" width="90" height="90">
+            <defs>
+              <linearGradient id="kcalGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#8c6eff"/><stop offset="1" stop-color="#5bd0c0"/>
+              </linearGradient>
+            </defs>
             <circle class="ring-track" cx="45" cy="45" r="38" style="stroke:var(--bg3); stroke-width:8; fill:none;"/>
             <circle id="kcal-ring" cx="45" cy="45" r="38" style="fill:none; stroke:var(--kcal); stroke-width:8; stroke-linecap:round; stroke-dasharray:239; stroke-dashoffset:239; transform:rotate(-90deg); transform-origin:45px 45px; transition: stroke-dashoffset 0.5s ease;"/>
           </svg>
@@ -665,7 +890,7 @@
         <button class="water-btn" onclick="addWater(250)">+250ml</button>
         <button class="water-btn" onclick="addWater(500)">+500ml</button>
         <button class="water-btn" onclick="addWater(750)">+750ml</button>
-        <button class="water-btn" onclick="toggleWaterCustom()" style="color:var(--muted);flex:0 0 auto;padding:7px 10px;">+ml</button>
+        <button class="water-btn" onclick="toggleWaterCustom()" style="color:var(--text);border-color:var(--border);flex:0 0 auto;padding:7px 10px;">+ml</button>
       </div>
       <div class="water-custom-row" id="water-custom-row">
         <input type="number" id="water-custom-input" placeholder="ml" min="1" max="2000" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 10px;font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')addWaterCustom()">
@@ -1071,6 +1296,18 @@
             <button id="theme-btn-dark"  class="btn btn-primary"    style="flex:1;font-size:13px;" onclick="setTheme('dark')">🌙 Dark</button>
             <button id="theme-btn-light" class="btn btn-secondary"  style="flex:1;font-size:13px;" onclick="setTheme('light')">☀️ Light</button>
             <button id="theme-btn-auto"  class="btn btn-secondary"  style="flex:1;font-size:13px;" onclick="setTheme('auto')">⚙️ Auto</button>
+          </div>
+        </div>
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Style</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="style-btn-current"   class="btn btn-primary"   style="font-size:12px;" onclick="setStyle('current')">Current</button>
+            <button id="style-btn-bold"      class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('bold')">Bold</button>
+            <button id="style-btn-gradient"  class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('gradient')">Gradient</button>
+            <button id="style-btn-zen"       class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('zen')">Zen</button>
+            <button id="style-btn-soft"      class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('soft')">Soft</button>
+            <button id="style-btn-editorial" class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('editorial')">Editorial</button>
+            <button id="style-btn-retro"     class="btn btn-secondary" style="font-size:12px;" onclick="setStyle('retro')">Retro</button>
           </div>
         </div>
 
@@ -1707,7 +1944,8 @@
       </div>
     </div>
     <div id="recipe-nutrition-preview" style="font-size:12px; color:var(--muted); margin-bottom:12px;"></div>
-    <button class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    <button id="save-recipe-btn" class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    <button id="save-draft-btn" class="btn btn-secondary" style="margin-top:8px;display:none;" onclick="saveRecipeAsDraft()">Save as Draft</button>
     <button id="recipe-clear-draft-btn" class="btn btn-secondary" style="margin-top:8px;display:none;" onclick="clearRecipeDraft()">Clear draft</button>
   </div>
 </div>
@@ -2201,6 +2439,19 @@ function renderToday() {
   document.getElementById('kcal-ring').style.strokeDasharray = circ;
   document.getElementById('kcal-val').textContent = Math.round(totals.kcal);
   document.getElementById('kcal-remaining').textContent = Math.max(0, Math.round(s.kcal - totals.kcal));
+
+  // Big-cal / Bold / Zen theme elements
+  const bcv = document.getElementById('big-kcal-val');
+  if (bcv) bcv.textContent = Math.round(totals.kcal).toLocaleString();
+  const bkg = document.getElementById('big-kcal-goal');
+  if (bkg) bkg.textContent = Math.round(s.kcal).toLocaleString();
+  const bkl = document.getElementById('big-kcal-left');
+  if (bkl) bkl.textContent = Math.max(0, Math.round(s.kcal - totals.kcal)).toLocaleString();
+  const pill = (cls, lbl, val, goal) => `<div class="bp ${cls}"><div class="bp-lbl">${lbl}</div><div class="bp-num">${r1(val)}g</div><div class="bp-goal">/ ${goal}g</div></div>`;
+  const boldPills = document.getElementById('bold-pills');
+  if (boldPills) boldPills.innerHTML = pill('p','Protein',totals.protein,s.protein) + pill('c','Carbs',totals.carbs,s.carbs) + pill('f','Fat',totals.fat,s.fat);
+  const zenLine = document.getElementById('zen-macroline');
+  if (zenLine) zenLine.innerHTML = `Protein <b>${r1(totals.protein)}g</b> <span class="sep">·</span> Carbs <b>${r1(totals.carbs)}g</b> <span class="sep">·</span> Fat <b>${r1(totals.fat)}g</b>`;
 
   // Net kcal (exercise burn)
   const burned = getTodayBurned();
@@ -3081,6 +3332,20 @@ function renderRecipes() {
   }
   el.innerHTML = recipes.map((r, i) => {
     const n = r.totalNutrition;
+    if (r.draft) {
+      return `<div class="recipe-card" onclick="openEditRecipe(${i})">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div>
+            <div class="recipe-name">${esc(r.name)}<span class="recipe-draft-badge">Draft</span></div>
+            <div class="recipe-meta">Tap to complete</div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button class="btn-icon" onclick="event.stopPropagation();openEditRecipe(${i})" style="color:var(--accent2);font-size:12px;padding:4px 8px;">Edit</button>
+            <button class="btn-icon" onclick="event.stopPropagation();deleteDraftRecipe(${i})" style="color:var(--danger,#e05252);font-size:14px;padding:4px 8px;" title="Delete draft">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }
     return `<div class="recipe-card" onclick="showRecipeOptions(${i})">
       <div style="display:flex;justify-content:space-between;align-items:start;">
         <div>
@@ -3091,6 +3356,16 @@ function renderRecipes() {
       </div>
     </div>`;
   }).join('');
+}
+
+function deleteDraftRecipe(i) {
+  const recipes = getRecipes();
+  const r = recipes[i];
+  if (!r) return;
+  recipes.splice(i, 1);
+  LS.set('mt_recipes', recipes);
+  renderRecipes();
+  toast('Draft deleted');
 }
 
 function showRecipeOptions(i) {
@@ -3166,6 +3441,7 @@ function openCreateRecipe() {
     document.getElementById('recipe-clear-draft-btn').style.display = 'none';
   }
   renderRecipeIngredients();
+  updateRecipeSaveButtons();
   openModal('recipe-edit-modal');
 }
 
@@ -3179,6 +3455,7 @@ function openEditRecipe(i) {
   document.getElementById('recipe-name-input').value = r.name;
   document.getElementById('recipe-total-weight').value = r.totalWeight || '';
   renderRecipeIngredients();
+  updateRecipeSaveButtons();
   openModal('recipe-edit-modal');
 }
 
@@ -3197,6 +3474,7 @@ function renderRecipeIngredients() {
       <button class="btn-icon" onclick="removeIngredient(${i})">✕</button>
     </div>`).join('');
   updateRecipePreview();
+  updateRecipeSaveButtons();
 }
 
 function removeIngredient(i) {
@@ -3460,6 +3738,56 @@ function saveRecipe() {
   closeModal('recipe-edit-modal');
   renderRecipes();
   toast('Recipe saved!');
+}
+
+function updateRecipeSaveButtons() {
+  const name = document.getElementById('recipe-name-input').value.trim();
+  const hasIngredients = editingRecipeIngredients && editingRecipeIngredients.length > 0;
+  const totalWeight = parseFloat(document.getElementById('recipe-total-weight').value);
+  const hasWeight = !isNaN(totalWeight) && totalWeight > 0;
+  const isValid = hasIngredients && hasWeight;
+
+  const saveBtn = document.getElementById('save-recipe-btn');
+  const draftBtn = document.getElementById('save-draft-btn');
+  if (saveBtn) saveBtn.style.display = isValid ? '' : 'none';
+  if (draftBtn) draftBtn.style.display = (!isValid && name) ? '' : 'none';
+}
+
+function saveRecipeAsDraft() {
+  const name = document.getElementById('recipe-name-input').value.trim();
+  if (!name) { toast('Add a recipe name first'); return; }
+
+  const recipes = getRecipes();
+  const draftId = editingRecipe ? editingRecipe.id : uid();
+  const totalWeight = parseFloat(document.getElementById('recipe-total-weight').value) || 0;
+
+  // Compute partial nutrition for any ingredients already added
+  const totalNutrition = editingRecipeIngredients.reduce((acc, ing) => {
+    const f = ing.weight / 100;
+    return { kcal: acc.kcal + ing.kcal * f, protein: acc.protein + ing.protein * f,
+             carbs: acc.carbs + ing.carbs * f, fat: acc.fat + ing.fat * f };
+  }, { kcal:0, protein:0, carbs:0, fat:0 });
+
+  const draft = {
+    id: draftId,
+    name,
+    ingredients: editingRecipeIngredients.slice(),
+    totalWeight,
+    totalNutrition,
+    draft: true,
+    savedAt: new Date().toISOString()
+  };
+
+  const existingIdx = recipes.findIndex(r => r.id === draftId);
+  if (existingIdx >= 0) recipes[existingIdx] = draft;
+  else recipes.push(draft);
+
+  LS.set('mt_recipes', recipes);
+  localStorage.removeItem('mt_recipe_draft');
+  document.getElementById('recipe-clear-draft-btn').style.display = 'none';
+  closeModal('recipe-edit-modal');
+  renderRecipes();
+  toast('Saved as draft');
 }
 
 // ═══════════════════════════════════════════════════
@@ -4078,6 +4406,26 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   });
 });
 
+// Hide Bold nav when any modal/overlay is open
+new MutationObserver(function() {
+  const hasModal = !!(
+    document.querySelector('.modal-backdrop.open') ||
+    document.querySelector('#tour-welcome-backdrop.open') ||
+    document.querySelector('#tour-overlay.active') ||
+    document.querySelector('#macro-breakdown-modal[style*="block"]') ||
+    document.querySelector('#onboarding-backdrop.open')
+  );
+  document.body.classList.toggle('modal-open', hasModal);
+}).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'style', 'open'] });
+
+// Hide Bold nav when a text field is focused (keyboard open)
+document.addEventListener('focusin', e => {
+  if (e.target.matches('input, textarea, select')) document.body.classList.add('keyboard-open');
+});
+document.addEventListener('focusout', e => {
+  if (e.target.matches('input, textarea, select')) document.body.classList.remove('keyboard-open');
+});
+
 // ═══════════════════════════════════════════════════
 //  UTILITIES
 // ═══════════════════════════════════════════════════
@@ -4569,7 +4917,10 @@ function prefillManualForm(nutrition) {
 
 // ─── Recipe draft autosave ───
 function saveRecipeDraft() {
-  if (editingRecipe) return; // Only save for new recipes
+  if (editingRecipe) {
+    updateRecipeSaveButtons();
+    return; // Only autosave for new recipes, but still update buttons for edits
+  }
   const draft = {
     name: document.getElementById('recipe-name-input').value,
     totalWeight: document.getElementById('recipe-total-weight').value,
@@ -4579,6 +4930,7 @@ function saveRecipeDraft() {
   };
   localStorage.setItem('mt_recipe_draft', JSON.stringify(draft));
   document.getElementById('recipe-clear-draft-btn').style.display = '';
+  updateRecipeSaveButtons();
 }
 
 function clearRecipeDraft() {
@@ -4658,6 +5010,37 @@ function setTheme(theme) {
   applyTheme(theme);
 }
 applyTheme(localStorage.getItem('mt_theme') || 'dark');
+
+// ─── Visual style (current / bold / gradient / zen / soft / editorial / retro) ───
+function applyStyle(style) {
+  style = style || 'current';
+  document.documentElement.classList.remove('style-bold','style-gradient','style-zen','style-soft','style-editorial','style-retro');
+  if (style !== 'current') document.documentElement.classList.add('style-' + style);
+  ['current','bold','gradient','zen','soft','editorial','retro'].forEach(s => {
+    const b = document.getElementById('style-btn-' + s);
+    if (!b) return;
+    b.className = s === style ? 'btn btn-primary' : 'btn btn-secondary';
+    b.style.fontSize = '12px';
+  });
+  const themeColorMap = {
+    'current': '#0f0f13',
+    'bold': '#0d0d0d',
+    'soft': '#1c1424',
+    'editorial': '#f5f0e8',
+    'zen': '#1a1a22',
+    'gradient': '#2b2260',
+    'retro': '#0a0a0a'
+  };
+  const tc = themeColorMap[style] || '#0f0f13';
+  let tcMeta = document.querySelector('meta[name="theme-color"]');
+  if (!tcMeta) { tcMeta = document.createElement('meta'); tcMeta.name = 'theme-color'; document.head.appendChild(tcMeta); }
+  tcMeta.content = tc;
+}
+function setStyle(style) {
+  localStorage.setItem('mt_style', style);
+  applyStyle(style);
+}
+applyStyle(localStorage.getItem('mt_style') || 'current');
 
 // ─── Appearance toggle ───
 function toggleAppearance() {
