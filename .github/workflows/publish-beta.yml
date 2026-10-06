@@ -1,0 +1,53 @@
+name: Publish beta
+
+# Publishes the beta branch to beta.macroslog.co.uk. GitHub Pages serves one
+# site per repo, so the built site is pushed to Oliver-Johnson/MacrosLog-beta,
+# which serves it. Setup: .github/beta/README.md
+
+on:
+  push:
+    branches: [beta]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-beta
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy key is set
+        env:
+          KEY: ${{ secrets.BETA_DEPLOY_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Add the BETA_DEPLOY_KEY secret first (see .github/beta/README.md)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          path: src
+
+      - uses: actions/checkout@v4
+        with:
+          repository: Oliver-Johnson/MacrosLog-beta
+          ssh-key: ${{ secrets.BETA_DEPLOY_KEY }}
+          path: site
+
+      - name: Build beta site
+        run: bash src/.github/beta/build.sh src site "${{ github.run_number }}"
+
+      - name: Push to MacrosLog-beta
+        working-directory: site
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to publish."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898222+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Publish beta from macro-tracker@${GITHUB_SHA::7}"
+          git push

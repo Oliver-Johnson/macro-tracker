@@ -74,7 +74,7 @@ self.addEventListener('fetch', e => {
   }
 
   // Network-first for the main HTML so updates are always picked up
-  if (url.pathname.endsWith('/') || url.pathname.endsWith('index.html')) {
+  if (url.pathname === '/' || url.pathname.endsWith('/index.html')) {
     e.respondWith(
       fetch(e.request)
         .then(res => {
