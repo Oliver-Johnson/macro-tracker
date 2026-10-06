@@ -489,7 +489,7 @@
         <div class="chapter-body">
           <h2 id="ch01" class="t-display-sm">Sync across every device.</h2>
           <p class="t-body">
-            The sync server keeps a copy of your food log on a computer you control, reachable on your network or anywhere via a Cloudflare tunnel. It's a small Flask app you run yourself, so your data never touches anyone else's infrastructure. Today it is a one-way backup: Macrolog sends your log, recipes, custom foods and targets to the server, and fills in fibre, sugar and sodium values that were added on the server.
+            The sync server keeps a copy of your food log on a computer you control, reachable on your network or anywhere via a Cloudflare tunnel. It's a small Flask app you run yourself, so your data never touches anyone else's infrastructure. Every phone, tablet and computer that points at the same server shares one log: add a meal on your phone and it appears on your desktop, and the other way round.
           </p>
 
           <h3 class="t-label" style="margin-bottom: var(--sc-4);">Getting started</h3>
@@ -513,7 +513,17 @@ SYNC_API_KEY=choose-a-secret python server.py</code></pre>
           <ul class="step-list">
             <li>Turn on <strong>Settings → Data → Developer Mode</strong>. This shows the Sync Server card.</li>
             <li>In <strong>Settings → Sync Server</strong>, enter your server's HTTPS address (see Remote Access below), e.g. <strong>https://your-tunnel.trycloudflare.com</strong>, and the API key, then tap <strong>Save</strong>.</li>
-            <li>Tap <strong>⇅ Sync</strong> on the Today page whenever you want to send your log to the server. Targets and fibre values are fetched each time the app opens.</li>
+            <li>Saving syncs straight away. After that Macrolog syncs a few seconds after each change, when you open it, and every couple of minutes while it's open. <strong>⇅ Sync</strong> on the Today page syncs now.</li>
+            <li>Repeat on each device, using the same address and key.</li>
+          </ul>
+
+          <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">How sync works</h3>
+          <ul class="doc-list">
+            <li>Food entries, notes, weight, water, exercise, fasts, recipes, custom foods, targets and settings all sync. Theme, display choices, AI settings and the sync settings stay on each device.</li>
+            <li>Changes merge item by item, so edits on two devices don't overwrite each other. If both devices changed the same entry, the last device to sync keeps its version, and an edit beats a delete. Water added on two devices on the same day is added together.</li>
+            <li>A sync that would delete a large part of your log, for example after a browser cleared its storage, pauses instead. Tapping <strong>Sync now</strong> explains what it would delete and asks first.</li>
+            <li><strong>Clear All Data</strong> on a synced device only clears that device; the next sync downloads your log again.</li>
+            <li>Upgrading from the old one-way sync? Update the server first, then the app. The first sync merges the server's copy with your device, so an entry you deleted since your last upload may come back once.</li>
           </ul>
         </div>
       </div>

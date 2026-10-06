@@ -30,7 +30,7 @@ A free, mobile-first progressive web app (PWA) for tracking daily calories and m
 
 Turn on **Settings → Data → Developer Mode** to show:
 
-- **Sync server:** a small self-hosted Flask server (`sync-server/`) that keeps a copy of your log. See [the developer docs](https://macroslog.co.uk/docs/developer.html).
+- **Sync server:** a small self-hosted Flask server (`sync-server/`) that keeps your log in sync between your phone, tablet and computer. See [the developer docs](https://macroslog.co.uk/docs/developer.html).
 - **AI features:** describe a meal in words to log it, plus daily and weekly summaries, using your own Claude, Gemini or OpenAI key. The key stays on your device and requests go straight to the provider.
 
 ---
