@@ -293,11 +293,8 @@ test.describe('returning user', () => {
       },
     },
     {
-      // BUG: the History calendar overrides the 7 Sep fix with an inline
-      // `padding-bottom: calc(16px + var(--safe-bottom))` on its .modal, so the
-      // "Jump to Today" button sits entirely behind the bottom nav on every
-      // device. Tapping it hits a nav button instead. Remove test.fail() once
-      // #date-modal .modal gets the same bottom clearance as the other sheets.
+      // An inline padding on this sheet once put "Jump to Today" behind the
+      // bottom nav, so tapping it opened Settings (fixed in v2026-10-06.2).
       name: 'History calendar',
       sheet: '#date-modal',
       action: 'Jump to Today',
@@ -324,7 +321,8 @@ test.describe('returning user', () => {
 
   for (const s of SHEETS) {
     test(`${s.name}: "${s.action}" button is reachable`, async ({ page }, testInfo) => {
-      test.fail(!!s.knownBug, 'Known bug: History calendar "Jump to Today" sits behind the bottom nav');
+      // Set knownBug to a description to mark a scenario that fails today.
+      test.fail(!!s.knownBug, `Known bug: ${s.knownBug}`);
       await s.open(page);
       const sheet = page.locator(s.sheet);
       await expect(sheet).toHaveClass(/\bopen\b/);
