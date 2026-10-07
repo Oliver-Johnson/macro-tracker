@@ -4,6 +4,8 @@ import json
 import os
 import sys
 import tempfile
+import threading
+import time
 import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -110,6 +112,21 @@ class SyncServerTest(unittest.TestCase):
         self.put_state(rev, {"logs": [{"date": "d", "entries": [{"id": "a"}]}], "_sync": {}})
         res = self.client.post("/sync/food-log", json={"logs": []})
         self.assertEqual(res.status_code, 409)
+        self.assertEqual(len(self.get_state()["data"]["logs"]), 1)
+
+    def test_legacy_push_waits_for_a_two_way_sync_in_progress(self):
+        with open(server.FOOD_LOG_PATH, "w") as f:
+            json.dump({"logs": []}, f)
+        statuses = []
+        push = threading.Thread(target=lambda: statuses.append(
+            self.client.post("/sync/food-log", json={"logs": []}).status_code))
+        with server.STATE_LOCK:  # a two-way sync is writing
+            push.start()
+            time.sleep(0.3)  # let the push reach the lock
+            with open(server.FOOD_LOG_PATH, "w") as f:
+                json.dump({"logs": [{"date": "d", "entries": [{"id": "a"}]}], "_sync": {}}, f)
+        push.join(5)
+        self.assertEqual(statuses, [409])
         self.assertEqual(len(self.get_state()["data"]["logs"]), 1)
 
     def test_api_key_is_required_when_set(self):

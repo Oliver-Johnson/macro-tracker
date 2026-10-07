@@ -144,31 +144,33 @@ def food_log():
         if err:
             return err
         os.makedirs(GARMIN_DIR, exist_ok=True)
-        # Preserve non-zero fibre/sugar/sodium from existing server data
-        # so manual enrichment isn't wiped by phone syncs
-        if os.path.exists(FOOD_LOG_PATH):
-            try:
-                with open(FOOD_LOG_PATH) as f:
-                    existing = json.load(f)
-                # A one-way push from an old copy of the app would overwrite
-                # changes other devices made through two-way sync
-                if isinstance(existing, dict) and "_sync" in existing:
-                    return jsonify({"error": "This server uses two-way sync. Update the app and sync again."}), 409
-                existing_by_id = {}
-                for day in existing.get("logs", []):
-                    for entry in day.get("entries", []):
-                        if entry.get("id"):
-                            existing_by_id[entry["id"]] = entry
-                for day in data.get("logs", []):
-                    for entry in day.get("entries", []):
-                        eid = entry.get("id")
-                        if eid and eid in existing_by_id:
-                            for field in ("fibre", "sugar", "sodium"):
-                                if not entry.get(field) and existing_by_id[eid].get(field):
-                                    entry[field] = existing_by_id[eid][field]
-            except Exception:
-                pass
+        # Held from the read to the write, so a two-way sync can't land in between
+        # and then be overwritten by this push
         with STATE_LOCK:
+            # Preserve non-zero fibre/sugar/sodium from existing server data
+            # so manual enrichment isn't wiped by phone syncs
+            if os.path.exists(FOOD_LOG_PATH):
+                try:
+                    with open(FOOD_LOG_PATH) as f:
+                        existing = json.load(f)
+                    # A one-way push from an old copy of the app would overwrite
+                    # changes other devices made through two-way sync
+                    if isinstance(existing, dict) and "_sync" in existing:
+                        return jsonify({"error": "This server uses two-way sync. Update the app and sync again."}), 409
+                    existing_by_id = {}
+                    for day in existing.get("logs", []):
+                        for entry in day.get("entries", []):
+                            if entry.get("id"):
+                                existing_by_id[entry["id"]] = entry
+                    for day in data.get("logs", []):
+                        for entry in day.get("entries", []):
+                            eid = entry.get("id")
+                            if eid and eid in existing_by_id:
+                                for field in ("fibre", "sugar", "sodium"):
+                                    if not entry.get(field) and existing_by_id[eid].get(field):
+                                        entry[field] = existing_by_id[eid][field]
+                except Exception:
+                    pass
             write_store(data)
         return jsonify({"status": "saved"})
     else:
