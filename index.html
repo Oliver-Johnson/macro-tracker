@@ -6043,15 +6043,13 @@ function getTrendsDays() {
 function getTrendsData() {
   const days = getTrendsDays();
   const today = todayKey();
+  // Date keys are UTC dates, so step in UTC (local steps skip or repeat a day across a DST change)
   const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - days + 1);
-  // Six days before the range, so the first days of the range get a full 7-day average
-  const avgStart = new Date(startDate);
-  avgStart.setDate(avgStart.getDate() - 6);
+  startDate.setUTCDate(startDate.getUTCDate() - days + 1);
 
   // Build date list
   const dates = [];
-  for (let d = new Date(startDate); d <= new Date(today); d.setDate(d.getDate() + 1)) {
+  for (let d = new Date(startDate); d <= new Date(today); d.setUTCDate(d.getUTCDate() + 1)) {
     dates.push(d.toISOString().slice(0, 10));
   }
 
@@ -6073,6 +6071,10 @@ function getTrendsData() {
     macroMap[day.date] = { kcal, protein, carbs, fat };
   });
 
+  // Read the targets once, as getTargetsForDate re-parses them on every call (slow for a year of days)
+  const dailyTargets = getDailyTargets();
+  const settings = getSettings();
+
   // Average kcal over the 7 days ending on each date, from at least 3 logged days
   const avg7Of = date => {
     const d = new Date(date);
@@ -6080,7 +6082,7 @@ function getTrendsData() {
     for (let i = 0; i < 7; i++) {
       const k = d.toISOString().slice(0, 10);
       if (macroMap[k] && macroMap[k].kcal > 0) vals.push(macroMap[k].kcal);
-      d.setDate(d.getDate() - 1);
+      d.setUTCDate(d.getUTCDate() - 1);
     }
     return vals.length >= 3 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   };
@@ -6095,7 +6097,7 @@ function getTrendsData() {
       carbs:   m ? m.carbs   : null,
       fat:     m ? m.fat     : null,
       avg7: avg7Of(date),
-      target: getTargetsForDate(date).kcal || 2000
+      target: (dailyTargets[date] || settings).kcal || 2000
     };
   });
 }
@@ -6169,8 +6171,8 @@ function renderTrends() {
   const wMax = hasWeight ? Math.ceil(Math.max(...weights) + 0.5) : 80;
   const wRange = wMax - wMin || 1;
 
-  // Kcal range (right axis)
-  const kcals = data.filter(d => d.kcal != null && d.kcal > 0).map(d => d.kcal);
+  // Kcal range (right axis); the 7-day average can start above the range's own days
+  const kcals = data.flatMap(d => [d.kcal, d.avg7]).filter(v => v != null && v > 0);
   const targets = data.map(d => d.target);
   const kcalTarget = targets[targets.length - 1] || 2000;
   const kcalMax = Math.max(...kcals, kcalTarget) * 1.15 || kcalTarget * 1.15;
