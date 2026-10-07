@@ -554,6 +554,8 @@
   #kofi-overlay .kofi-btn:hover { opacity: 0.85; text-decoration: none; }
   @media (min-width: 768px) {
     #kofi-overlay { display: block; }
+    /* Sit above the bottom nav, which otherwise covers the card's button */
+    #kofi-overlay { bottom: calc(76px + var(--safe-bottom)); }
     body.kofi-on { padding-bottom: 0; }
   }
 
@@ -582,6 +584,7 @@
     .kofi-mobile-card { display: flex; }
   }
   .kofi-dismissed { display: none !important; }
+  .hidden { display: none; }
 </style>
 </head>
 <body>
@@ -801,9 +804,9 @@
 
         <button type="button" onclick="var s=this.nextElementSibling;var open=!s.classList.contains('hidden');s.classList.toggle('hidden',open);this.querySelector('span.chevron').style.transform=open?'':'rotate(180deg)';" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 0; background:none; border:none; cursor:pointer; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">
           <span>Additional Nutrients</span>
-          <span class="chevron" style="transition:transform 0.2s;">▾</span>
+          <span class="chevron" style="transition:transform 0.2s;transform:rotate(180deg);">▾</span>
         </button>
-        <div class="hidden">
+        <div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
           <input type="number" id="manual-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
@@ -863,9 +866,9 @@
 
         <button type="button" onclick="var s=this.nextElementSibling;var open=!s.classList.contains('hidden');s.classList.toggle('hidden',open);this.querySelector('span.chevron').style.transform=open?'':'rotate(180deg)';" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 0; background:none; border:none; cursor:pointer; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">
           <span>Additional Nutrients</span>
-          <span class="chevron" style="transition:transform 0.2s;">▾</span>
+          <span class="chevron" style="transition:transform 0.2s;transform:rotate(180deg);">▾</span>
         </button>
-        <div class="hidden">
+        <div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
           <input type="number" id="qa-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
@@ -1200,7 +1203,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.1</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.2</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -1723,7 +1726,7 @@
 
 <!-- ─── Calendar Picker modal ─── -->
 <div class="modal-backdrop" id="date-modal">
-  <div class="modal" style="padding-bottom: calc(16px + var(--safe-bottom));">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal('date-modal')">✕</button>
     <div class="modal-title">History</div>
     <div class="cal-header">
@@ -4843,9 +4846,9 @@ function renderHistChart() {
     const baseY = PT + chartH;
     const labelColor = d.hasData ? '#7070a0' : '#3a3a55';
 
-    // Date label (rotated)
+    // Date label, rotated to hang down-left from just under the axis
     const lbl = histFmtDate(d.dateKey);
-    const labelY = H - 2;
+    const labelY = PT + chartH + 10;
     out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 15 ? 7.5 : 9}" fill="${labelColor}" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
 
     if (!d.hasData) {
@@ -5053,7 +5056,7 @@ function showBreakdownModal(displayName, unit, items, total) {
     const displayed = fmt(e.value);
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid var(--bg3);">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.name)}</div>
         <div style="font-size:11px;color:var(--muted);">${e.meal}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
@@ -5163,7 +5166,7 @@ function renderTrends() {
   if (!svg) return;
 
   const W = 420, H = 220;
-  const PL = 38, PR = 38, PT = 12, PB = 44;
+  const PL = 38, PR = 38, PT = 20, PB = 44;
   const chartW = W - PL - PR;
   const chartH = H - PT - PB;
   const n = data.length;
@@ -5183,13 +5186,13 @@ function renderTrends() {
   const kcalMin = 0;
   const kcalRange = kcalMax - kcalMin || 1;
 
-  // Coordinate helpers
-  const xOf = i => PL + (i / Math.max(n - 1, 1)) * chartW;
-  const yWeight = w => PT + chartH - ((w - wMin) / wRange) * chartH;
-  const yKcal = k => PT + chartH - ((k - kcalMin) / kcalRange) * chartH;
-
   // Bar width
   const barW = Math.max(Math.floor(chartW / n * 0.6), 2);
+
+  // Coordinate helpers (inset by half a bar so the end bars don't cover the axis labels)
+  const xOf = i => PL + barW / 2 + (i / Math.max(n - 1, 1)) * (chartW - barW);
+  const yWeight = w => PT + chartH - ((w - wMin) / wRange) * chartH;
+  const yKcal = k => PT + chartH - ((k - kcalMin) / kcalRange) * chartH;
 
   let out = '';
 
@@ -5215,8 +5218,8 @@ function renderTrends() {
   }
 
   // Axis labels
-  out += `<text x="${PL - 4}" y="${PT - 3}" text-anchor="end" font-size="8" fill="#9c94ff">kg</text>`;
-  out += `<text x="${W - PR + 4}" y="${PT - 3}" text-anchor="start" font-size="8" fill="#e879f9">kcal</text>`;
+  out += `<text x="${PL - 4}" y="${PT - 10}" text-anchor="end" font-size="8" fill="#9c94ff">kg</text>`;
+  out += `<text x="${W - PR + 4}" y="${PT - 10}" text-anchor="start" font-size="8" fill="#e879f9">kcal</text>`;
 
   // Stacked macro bars (protein bottom, carbs middle, fat top — by kcal contribution)
   data.forEach((d, i) => {
@@ -5299,7 +5302,8 @@ function renderTrends() {
   data.forEach((d, i) => {
     if (i % labelStep !== 0 && i !== n - 1) return;
     const cx = n === 1 ? PL + chartW / 2 : xOf(i);
-    const labelY = H - 2;
+    // Rotated labels hang down-left from just under the axis
+    const labelY = PT + chartH + 10;
     const parts = d.date.split('-');
     const lbl = parts[2] + '/' + parts[1];
     out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 20 ? 7 : 8.5}" fill="#7070a0" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
@@ -6444,6 +6448,8 @@ function tourPositionSpotlight(target) {
   let rect;
   if (target) {
     rect = target.getBoundingClientRect();
+    // A hidden target (e.g. a log tab that isn't showing) has an empty rect; treat it as no target
+    if (rect.width === 0 && rect.height === 0) rect = null;
   } else {
     // No target — dim nothing, center tooltip
     rect = null;
