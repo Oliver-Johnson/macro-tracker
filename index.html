@@ -1319,6 +1319,8 @@
       <button id="trends-pill-2w" class="btn btn-secondary btn-sm" onclick="setTrendsRange('2w',this)" style="border-radius:20px;padding:5px 14px;">2W</button>
       <button id="trends-pill-1m" class="btn btn-primary btn-sm" onclick="setTrendsRange('1m',this)" style="border-radius:20px;padding:5px 14px;">1M</button>
       <button id="trends-pill-3m" class="btn btn-secondary btn-sm" onclick="setTrendsRange('3m',this)" style="border-radius:20px;padding:5px 14px;">3M</button>
+      <button id="trends-pill-6m" class="btn btn-secondary btn-sm" onclick="setTrendsRange('6m',this)" style="border-radius:20px;padding:5px 14px;">6M</button>
+      <button id="trends-pill-1y" class="btn btn-secondary btn-sm" onclick="setTrendsRange('1y',this)" style="border-radius:20px;padding:5px 14px;">1Y</button>
     </div>
 
     <!-- Main dual-axis chart -->
@@ -1333,6 +1335,8 @@
         <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:10px;background:var(--carbs);border-radius:2px;opacity:0.85;"></div>Carbs</div>
         <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:10px;background:var(--fat);border-radius:2px;opacity:0.85;"></div>Fat</div>
         <div style="display:flex;align-items:center;gap:5px;"><div style="width:18px;height:2px;border-top:1.5px dashed #6c63ff;"></div>Kcal target</div>
+        <div id="trends-legend-avg" style="display:flex;align-items:center;gap:5px;"><div style="width:16px;height:2px;background:var(--kcal);border-radius:2px;"></div>7-day avg kcal</div>
+        <div id="trends-legend-weekly" style="display:none;align-items:center;gap:5px;">Each bar is a week's daily average</div>
       </div>
     </div>
 
@@ -5170,7 +5174,7 @@ function closeMacroBreakdown() {
 //  TRENDS VIEW
 // ═══════════════════════════════════════════════════
 
-let trendsRange = '1m'; // '2w' | '1m' | '3m'
+let trendsRange = '1m'; // '2w' | '1m' | '3m' | '6m' | '1y'
 
 function setTrendsRange(r, btn) {
   trendsRange = r;
@@ -5186,18 +5190,21 @@ function setTrendsRange(r, btn) {
 function getTrendsDays() {
   if (trendsRange === '2w') return 14;
   if (trendsRange === '3m') return 90;
+  if (trendsRange === '6m') return 182;
+  if (trendsRange === '1y') return 364;
   return 30; // 1m default
 }
 
 function getTrendsData() {
   const days = getTrendsDays();
   const today = todayKey();
+  // Date keys are UTC dates, so step in UTC (local steps skip or repeat a day across a DST change)
   const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - days + 1);
+  startDate.setUTCDate(startDate.getUTCDate() - days + 1);
 
   // Build date list
   const dates = [];
-  for (let d = new Date(startDate); d <= new Date(today); d.setDate(d.getDate() + 1)) {
+  for (let d = new Date(startDate); d <= new Date(today); d.setUTCDate(d.getUTCDate() + 1)) {
     dates.push(d.toISOString().slice(0, 10));
   }
 
@@ -5219,6 +5226,22 @@ function getTrendsData() {
     macroMap[day.date] = { kcal, protein, carbs, fat };
   });
 
+  // Read the targets once, as getTargetsForDate re-parses them on every call (slow for a year of days)
+  const dailyTargets = getDailyTargets();
+  const settings = getSettings();
+
+  // Average kcal over the 7 days ending on each date, from at least 3 logged days
+  const avg7Of = date => {
+    const d = new Date(date);
+    const vals = [];
+    for (let i = 0; i < 7; i++) {
+      const k = d.toISOString().slice(0, 10);
+      if (macroMap[k] && macroMap[k].kcal > 0) vals.push(macroMap[k].kcal);
+      d.setUTCDate(d.getUTCDate() - 1);
+    }
+    return vals.length >= 3 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  };
+
   return dates.map(date => {
     const m = macroMap[date] || null;
     return {
@@ -5228,9 +5251,34 @@ function getTrendsData() {
       protein: m ? m.protein : null,
       carbs:   m ? m.carbs   : null,
       fat:     m ? m.fat     : null,
-      target: getTargetsForDate(date).kcal || 2000
+      avg7: avg7Of(date),
+      target: (dailyTargets[date] || settings).kcal || 2000
     };
   });
+}
+
+// Longer ranges show one bar per week: the average of the days logged that week,
+// with weeks counted back from today so the last bar ends today
+function trendsShortDate(dateKey) {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
+
+function trendsByWeek(daily) {
+  const weeks = [];
+  for (let end = daily.length; end > 0; end -= 7) {
+    const days = daily.slice(Math.max(0, end - 7), end);
+    const logged = days.filter(d => d.kcal != null && d.kcal > 0);
+    const weighed = days.filter(d => d.weight != null);
+    const mean = (arr, f) => arr.length ? arr.reduce((s, d) => s + (d[f] || 0), 0) / arr.length : null;
+    weeks.unshift({
+      date: days[0].date, endDate: days[days.length - 1].date, weekly: true, daysLogged: logged.length,
+      kcal: mean(logged, 'kcal'), protein: mean(logged, 'protein'), carbs: mean(logged, 'carbs'), fat: mean(logged, 'fat'),
+      weight: weighed.length ? Math.round(mean(weighed, 'weight') * 10) / 10 : null,
+      avg7: null,
+      target: Math.round(mean(days, 'target'))
+    });
+  }
+  return weeks;
 }
 
 // Charts draw in viewBox units, so on tablet and desktop widths they get a wider,
@@ -5253,7 +5301,13 @@ function chartDims(W, H) {
 
 function renderTrends() {
   try {
-  const data = getTrendsData();
+  const daily = getTrendsData();
+  const weekly = getTrendsDays() > 90;
+  const data = weekly ? trendsByWeek(daily) : daily;
+  const legendAvg = document.getElementById('trends-legend-avg');
+  if (legendAvg) legendAvg.style.display = weekly ? 'none' : 'flex';
+  const legendWeekly = document.getElementById('trends-legend-weekly');
+  if (legendWeekly) legendWeekly.style.display = weekly ? 'flex' : 'none';
   const svg = document.getElementById('trends-svg');
   if (!svg) return;
 
@@ -5272,8 +5326,8 @@ function renderTrends() {
   const wMax = hasWeight ? Math.ceil(Math.max(...weights) + 0.5) : 80;
   const wRange = wMax - wMin || 1;
 
-  // Kcal range (right axis)
-  const kcals = data.filter(d => d.kcal != null && d.kcal > 0).map(d => d.kcal);
+  // Kcal range (right axis); the 7-day average can start above the range's own days
+  const kcals = data.flatMap(d => [d.kcal, d.avg7]).filter(v => v != null && v > 0);
   const targets = data.map(d => d.target);
   const kcalTarget = targets[targets.length - 1] || 2000;
   const kcalMax = Math.max(...kcals, kcalTarget) * 1.15 || kcalTarget * 1.15;
@@ -5339,7 +5393,8 @@ function renderTrends() {
     const fh = fFrac * totalBarH;
 
     // Encode all macro data on each rect for tooltip
-    const dataAttrs = `data-date="${d.date}" data-kcal="${Math.round(d.kcal)}" data-target="${d.target}" data-protein="${Math.round(d.protein||0)}" data-carbs="${Math.round(d.carbs||0)}" data-fat="${Math.round(d.fat||0)}"`;
+    const label = d.weekly ? `Week of ${trendsShortDate(d.date)} · ${d.daysLogged} day${d.daysLogged === 1 ? '' : 's'} logged` : d.date;
+    const dataAttrs = `data-date="${label}" data-kcal="${Math.round(d.kcal)}" data-target="${d.target}" data-protein="${Math.round(d.protein||0)}" data-carbs="${Math.round(d.carbs||0)}" data-fat="${Math.round(d.fat||0)}"`;
 
     // Protein (bottom segment)
     if (ph > 0) {
@@ -5370,6 +5425,13 @@ function renderTrends() {
     out += `<text x="${W - PR - 2}" y="${(parseFloat(ty) - 3).toFixed(1)}" text-anchor="end" font-size="7.5" fill="#6c63ff" opacity="0.9">target</text>`;
   }
 
+  // 7-day average kcal line
+  const avgPts = data.map((d, i) => d.avg7 != null ? `${(n === 1 ? PL + chartW / 2 : xOf(i)).toFixed(1)},${yKcal(d.avg7).toFixed(1)}` : null);
+  let run = [];
+  const flush = () => { if (run.length >= 2) out += `<polyline points="${run.join(' ')}" fill="none" stroke="var(--kcal)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`; run = []; };
+  avgPts.forEach(p => { if (p) run.push(p); else flush(); });
+  flush();
+
   // Weight polyline
   if (hasWeight) {
     const weightPts = data
@@ -5386,15 +5448,18 @@ function renderTrends() {
       if (d.weight == null) return;
       const cx = n === 1 ? PL + chartW / 2 : xOf(i);
       const cy = yWeight(d.weight);
-      out += `<circle data-date="${d.date}" data-weight="${d.weight}" class="trends-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3.5" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" style="cursor:pointer;"/>`;
+      const label = d.weekly ? `Week of ${trendsShortDate(d.date)} (average)` : d.date;
+      out += `<circle data-date="${label}" data-weight="${d.weight}" class="trends-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${n > 40 ? 2.5 : 3.5}" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" style="cursor:pointer;"/>`;
     });
   }
 
-  // X axis date labels (show ~6 evenly spaced)
-  const labelCount = Math.min(n, 6);
+  // X axis date labels (show ~6 evenly spaced, 8 on wide charts)
+  const labelCount = Math.min(n, wide ? 8 : 6);
   const labelStep = Math.max(1, Math.floor(n / labelCount));
   data.forEach((d, i) => {
     if (i % labelStep !== 0 && i !== n - 1) return;
+    // Leave out a label that would crowd the last one
+    if (i !== n - 1 && n - 1 - i < labelStep / 2) return;
     const cx = n === 1 ? PL + chartW / 2 : xOf(i);
     const parts = d.date.split('-');
     const lbl = parts[2] + '/' + parts[1];
@@ -5458,7 +5523,7 @@ function renderTrends() {
   svg.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
 
   // Summary row
-  renderTrendsSummary(data);
+  renderTrendsSummary(daily);
 
   // AI weekly card visibility
   const prefs = getDisplayPrefs();
@@ -5502,6 +5567,19 @@ function renderTrendsSummary(data) {
     }
   } else {
     summaryHTML += `<div style="color:var(--muted);font-size:12px;">No calorie data for this period.</div>`;
+  }
+
+  // Average macros and how many days were logged
+  if (kcalDays.length > 0) {
+    const avg = f => Math.round(kcalDays.reduce((s, d) => s + (d[f] || 0), 0) / kcalDays.length);
+    summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--muted);">Avg macros</span>
+      <span><span style="color:var(--protein);">P ${avg('protein')}g</span> &nbsp;<span style="color:var(--carbs);">C ${avg('carbs')}g</span> &nbsp;<span style="color:var(--fat);">F ${avg('fat')}g</span></span>
+    </div>`;
+    summaryHTML += `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--muted);">Days logged</span>
+      <span>${kcalDays.length} of ${data.length}</span>
+    </div>`;
   }
 
   // Weight change
