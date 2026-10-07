@@ -1200,7 +1200,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-09-02.2</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.1</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -3959,6 +3959,8 @@ function syncFoodLog() {
     .catch(() => toast('Sync failed — server offline?'));
 }
 
+// Fibre fallbacks by food name. These used to be added to every user's custom
+// foods on launch; they are now only a lookup, so users' food lists stay their own.
 const SEED_FOODS = [
   { name: 'Brown Basmati Rice (raw)',    kcal: 356, protein: 7.9,  carbs: 72.8, fat: 2.7,  fibre: 3.5,  sugar: 0.7, sodium: 0,    defaultWeight: 75  },
   { name: 'Brown Basmati Rice (cooked)', kcal: 137, protein: 2.9,  carbs: 27.5, fat: 1.0,  fibre: 1.4,  sugar: 0.3, sodium: 0,    defaultWeight: 150 },
@@ -3976,23 +3978,6 @@ const SEED_FOODS = [
 // Lookup table by normalised name for patching fibre at log time
 const FIBRE_LOOKUP = {};
 for (const s of SEED_FOODS) FIBRE_LOOKUP[s.name.toLowerCase()] = s.fibre;
-
-function seedCustomFoods() {
-  const customs = getCustomFoods();
-  let changed = false;
-  for (const seed of SEED_FOODS) {
-    const idx = customs.findIndex(f => f.name === seed.name);
-    if (idx === -1) {
-      customs.push({ id: uid(), ...seed, barcode: null });
-      changed = true;
-    } else if (!customs[idx].fibre && seed.fibre) {
-      // Update existing entry that has fibre=0 with correct value
-      customs[idx] = { ...customs[idx], fibre: seed.fibre, sugar: seed.sugar ?? customs[idx].sugar, sodium: seed.sodium ?? customs[idx].sodium };
-      changed = true;
-    }
-  }
-  if (changed) LS.set('mt_custom_foods', customs);
-}
 
 function fetchSyncFoodLog() {
   const syncUrl = getSyncUrl();
@@ -4390,7 +4375,6 @@ const TOUR_DEMO_KEY = 'mt_tour_demo_active';
 
 deduplicateLogs();
 recordTodayTargets();
-seedCustomFoods();
 applyDisplayPrefs();
 renderToday();
 fetchSyncTargets();
