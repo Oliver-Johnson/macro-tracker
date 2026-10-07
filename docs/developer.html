@@ -489,7 +489,7 @@
         <div class="chapter-body">
           <h2 id="ch01" class="t-display-sm">Sync across every device.</h2>
           <p class="t-body">
-            The sync server lets you access your macro data from any device on your network, or anywhere via a Cloudflare tunnel. It's a small Flask app you run yourself — your data never touches anyone else's infrastructure.
+            The sync server keeps a copy of your food log on a computer you control, reachable on your network or anywhere via a Cloudflare tunnel. It's a small Flask app you run yourself, so your data never touches anyone else's infrastructure. Every phone, tablet and computer that points at the same server shares one log: add a meal on your phone and it appears on your desktop, and the other way round.
           </p>
 
           <h3 class="t-label" style="margin-bottom: var(--sc-4);">Getting started</h3>
@@ -497,21 +497,33 @@
             <li>Requires <strong>Python 3</strong> and <strong>pip</strong>.</li>
             <li>Clone the repo, install the dependencies, and start the server.</li>
             <li>The server listens on port <strong>5001</strong> by default.</li>
+            <li>Set <strong>SYNC_API_KEY</strong> to require an API key. Without it, anyone who can reach the server can read your log.</li>
+            <li>Data is saved as JSON files in <strong>~/.claude/garmin-tools/</strong> on the server.</li>
           </ul>
 
           <div class="code-wrap" style="margin-top: var(--sc-6);">
             <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy commands">Copy</button>
             <pre><code>git clone https://github.com/Oliver-Johnson/macro-tracker
-cd macro-tracker
+cd macro-tracker/sync-server
 pip install flask flask-cors
-python server.py</code></pre>
+SYNC_API_KEY=choose-a-secret python server.py</code></pre>
           </div>
 
           <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">Connecting Macrolog</h3>
           <ul class="step-list">
-            <li>Go to <strong>Settings → Sync Server</strong>.</li>
-            <li>Enter your server's local IP, e.g. <strong>http://192.168.1.x:5001</strong>.</li>
-            <li>Tap <strong>Connect</strong> — your food log will sync automatically.</li>
+            <li>Turn on <strong>Developer Mode</strong> at the bottom of <strong>Settings</strong>. This shows the Sync Server card.</li>
+            <li>In <strong>Settings → Sync Server</strong>, enter your server's HTTPS address (see Remote Access below), e.g. <strong>https://your-tunnel.trycloudflare.com</strong>, and the API key, then tap <strong>Save</strong>.</li>
+            <li>Saving syncs straight away. After that Macrolog syncs a few seconds after each change, when you open it, and every couple of minutes while it's open. <strong>⇅ Sync</strong> on the Today page syncs now.</li>
+            <li>Repeat on each device, using the same address and key.</li>
+          </ul>
+
+          <h3 class="t-label" style="margin-top: var(--sc-8); margin-bottom: var(--sc-4);">How sync works</h3>
+          <ul class="doc-list">
+            <li>Food entries, notes, weight, water, exercise, fasts, recipes, custom foods, targets and settings all sync. Theme, display choices, AI settings and the sync settings stay on each device.</li>
+            <li>Changes merge item by item, so edits on two devices don't overwrite each other. If both devices changed the same entry, the last device to sync keeps its version, and an edit beats a delete. Water added on two devices on the same day is added together.</li>
+            <li>A sync that would delete a large part of your log, for example after a browser cleared its storage, pauses instead. Tapping <strong>Sync now</strong> explains what it would delete and asks first.</li>
+            <li><strong>Clear All Data</strong> on a synced device only clears that device; the next sync downloads your log again.</li>
+            <li>Upgrading from the old one-way sync? Update the server first, then the app. The first sync merges the server's copy with your device, so an entry you deleted since your last upload may come back once.</li>
           </ul>
         </div>
       </div>
@@ -530,12 +542,12 @@ python server.py</code></pre>
             From simplest to most permanent — pick whichever matches how you want to use the server.
           </p>
 
-          <h3 class="t-label" style="margin-bottom: var(--sc-4);">1 — LAN only <span style="color: var(--sc-ink-soft); font-weight: 400;">(simplest)</span></h3>
+          <h3 class="t-label" style="margin-bottom: var(--sc-4);">1 — LAN only</h3>
           <p class="t-body">
-            Connect while on the same Wi-Fi network. No setup needed — just the IP address. Great for a home setup where your phone and server share a network.
+            Connect while on the same Wi-Fi network using the server's local IP address. Macrolog is served over HTTPS, and browsers block it from talking to a plain <strong>http://</strong> address, so this only works if you put the server behind HTTPS yourself (for example with a reverse proxy and a certificate). For most setups, a tunnel below is easier.
           </p>
 
-          <h3 class="t-label" style="margin-top: var(--sc-7); margin-bottom: var(--sc-4);">2 — Cloudflare Quick Tunnel</h3>
+          <h3 class="t-label" style="margin-top: var(--sc-7); margin-bottom: var(--sc-4);">2 — Cloudflare Quick Tunnel <span style="color: var(--sc-ink-soft); font-weight: 400;">(simplest)</span></h3>
           <p class="t-body">
             A temporary HTTPS URL, no account required. The URL changes each session, so it's ideal for occasional remote access.
           </p>
