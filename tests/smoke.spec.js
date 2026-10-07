@@ -1,6 +1,7 @@
 // Smoke tests for Macrolog. They drive the real UI on every device in
 // playwright.config.js and only need a static server (no camera, no network).
 const fs = require('fs');
+const path = require('path');
 const { test: base, expect } = require('playwright/test');
 
 // Targets for the "returning user" state. 2000 kcal makes "remaining" easy to check.
@@ -349,6 +350,42 @@ test.describe('returning user', () => {
       await expect(sheet).not.toHaveClass(/\bopen\b/);
     });
   }
+
+  // Desktops rarely have a camera, so a barcode can be read from a photo instead. The
+  // reader (ZXing) normally comes from unpkg, which these tests block, so it is served from
+  // node_modules when installed (CI installs it alongside Playwright).
+  test('a barcode photo or typed barcode logs a product without a camera', async ({ page }) => {
+    let zxing;
+    try { zxing = fs.readFileSync(require.resolve('@zxing/library/umd/index.min.js')); }
+    catch (e) { test.skip(true, 'npm install --no-save @zxing/library@0.23.0 to run this test'); }
+    await page.route(/unpkg\.com\/@zxing\/library/, route =>
+      route.fulfill({ body: zxing, contentType: 'application/javascript' }));
+    // Open Food Facts is blocked too, so the lookup falls back to the barcode cache.
+    const code = '5000112637922';
+    await page.evaluate(code => localStorage.setItem('mt_barcode_cache', JSON.stringify({
+      [code]: { name: 'Smoke test beans', kcal: 80, protein: 5, carbs: 12, fat: 0.5, defaultWeight: 200, barcode: code },
+    })), code);
+    await page.reload();
+    await openView(page, 'Log Food');
+
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser'),
+      page.getByRole('button', { name: /Barcode from Image/ }).click(),
+    ]);
+    await chooser.setFiles(path.join(__dirname, 'fixtures', 'barcode-photo.jpg'));
+    const sheet = page.locator('#weight-modal');
+    await expect(sheet).toHaveClass(/\bopen\b/, { timeout: 20_000 });
+    await expect(page.locator('#weight-modal-title')).toHaveText('Smoke test beans');
+    await sheet.getByRole('button', { name: 'Add to Log', exact: true }).click();
+    const logs = await page.evaluate(() => localStorage.getItem('mt_logs'));
+    expect(logs).toContain(code);
+
+    // The number printed under a barcode can be typed into Search instead.
+    await page.locator('#view-log .tabs').getByRole('button', { name: /Search/ }).click();
+    await page.fill('#search-input', code);
+    await page.press('#search-input', 'Enter');
+    await expect(page.locator('#search-results .result-item').first()).toContainText('Smoke test beans');
+  });
 
   test('export then import on a wiped device restores the log', async ({ page }, testInfo) => {
     await quickAdd(page, SNACK);

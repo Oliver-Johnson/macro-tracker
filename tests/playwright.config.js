@@ -1,6 +1,6 @@
 // Smoke test config for Macrolog.
 //
-// Setup (once): npm install --no-save playwright@1.56.1 && npx playwright install chromium
+// Setup (once): npm install --no-save playwright@1.56.1 @zxing/library@0.23.0 && npx playwright install chromium
 // Run locally (Chromium only):
 //   MT_BROWSERS=chromium npx playwright test -c tests/playwright.config.js
 // CI runs both engines: MT_BROWSERS=chromium,webkit (the default).

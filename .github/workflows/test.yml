@@ -16,9 +16,10 @@ jobs:
         with:
           node-version: 22
 
-      # The app has no package.json; install the test runner without creating one.
+      # The app has no package.json; install the test runner (and the barcode reader
+      # the photo-scan test serves locally) without creating one.
       - name: Install Playwright
-        run: npm install --no-save playwright@1.56.1
+        run: npm install --no-save playwright@1.56.1 @zxing/library@0.23.0
 
       - name: Install browsers
         run: npx playwright install --with-deps chromium webkit
