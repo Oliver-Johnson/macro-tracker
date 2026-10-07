@@ -15,13 +15,15 @@ making changes, edit `index.html` directly.
 
 ## Running the checks
 
-There is no test suite to run locally. CI validates:
+There is no test suite yet. To try a change, serve the repo root with any static
+server (for example `python3 -m http.server`) and open it in a browser. CI checks:
 
-- `index.html` and `docs/index.html` are valid HTML (via `htmlhint`)
-- `manifest.json` is valid JSON
 - the version string in `index.html` matches the cache name in `sw.js`
+- `.nojekyll` is present, so GitHub Pages serves the site as is
+- there are no broken symlinks
+- there are no leftover merge conflict markers
 
-Before submitting a PR, verify those things pass by checking the CI output.
+Before submitting a PR, check that CI passes.
 
 ## What to contribute
 
@@ -33,9 +35,11 @@ Before submitting a PR, verify those things pass by checking the CI output.
 
 ## What is out of scope
 
-- Server-side features. Everything runs in the browser. There is no server, no account
-  and no analytics — that is a deliberate constraint.
-- Third-party API integrations that require keys or accounts.
+- Server-side features the app depends on. Everything runs in the browser, with no
+  account and no analytics, and that is a deliberate constraint. The self-hosted sync
+  server and the bring-your-own-key AI features are opt-in extras behind Developer Mode,
+  and the app must keep working fully without them.
+- Integrations that need a key or account for core features.
 - Framework migrations. The single-file architecture is intentional.
 
 ## Style
@@ -44,4 +48,5 @@ Match the surrounding code. Comments explain *why*, particularly where something
 non-obvious has been done for a specific reason (PWA quirks, iOS Safari workarounds,
 etc.).
 
-Keep the file self-contained. Do not add external script or style dependencies.
+Keep the file self-contained. The only external scripts are ZXing (barcodes) and
+Tesseract.js (label OCR); please don't add more.

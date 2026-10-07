@@ -50,3 +50,18 @@ jobs:
             exit 1
           fi
           echo "No conflict markers."
+
+  sync-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install flask flask-cors
+
+      - name: Sync server tests
+        run: python -m unittest sync-server/test_server.py -v

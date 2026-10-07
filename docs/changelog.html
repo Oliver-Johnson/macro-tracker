@@ -224,19 +224,122 @@
     <h1 class="page-title">Changelog</h1>
     <p class="page-subtitle">A history of every update to Macrolog.</p>
 
-    <!-- ── v2026-09-02.2 (Scan modal fix) ── -->
+    <!-- ── Beta: two-way sync ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">Beta</span>
+        <span class="release-date">6 October 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">New</div>
+          <ul class="changes">
+            <li><strong>Two-way sync</strong> — every device pointed at your sync server shares one log. Changes merge entry by entry, sync a few seconds after each change, and a sync that would delete a large part of your log asks first</li>
+            <li><strong>Sync server</strong> — new <code>/sync/state</code> endpoint with revision checks, atomic writes and tests</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-10-06.2 (Chart labels, tour, History button, small fixes) ── -->
     <div class="release">
       <div class="release-dot latest"></div>
       <div class="release-header">
-        <span class="release-version">v2026-09-02.2</span>
-        <span class="release-date">2 September 2026</span>
+        <span class="release-version">v2026-10-06.2</span>
+        <span class="release-date">6 October 2026</span>
         <span class="release-badge">Latest</span>
       </div>
       <div class="release-body">
         <div class="change-group">
           <div class="change-group-label">Fixed</div>
           <ul class="changes">
+            <li><strong>Chart dates</strong> — the dates under the Trends and Macro History charts were cut off and now show in full</li>
+            <li><strong>Trends axis labels</strong> — the kg and kcal labels no longer overlap the top axis values, and the first and last bars no longer cover the axis numbers</li>
+            <li><strong>First-run tour</strong> — steps whose target isn't on screen now show the tip in the middle instead of pointing at the top corner</li>
+            <li><strong>Ko-fi card</strong> — on tablets and larger screens it sits above the bottom navigation instead of behind it</li>
+            <li><strong>History calendar</strong> — the "Jump to Today" button was hidden behind the bottom navigation, so tapping it opened Settings instead</li>
+            <li><strong>Additional Nutrients</strong> — the section in Manual and Quick Add now collapses when you tap its heading; it stays open by default</li>
+            <li><strong>Food names</strong> — names in the macro breakdown popup are now shown as plain text, so a product name containing HTML can't change the page</li>
+            <li><strong>Docs What's New</strong> — the update cards now appear in Chrome; they stayed hidden because the reveal never triggered</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-10-06.1 (Custom foods seeding fix) ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-10-06.1</span>
+        <span class="release-date">6 October 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">Fixed</div>
+          <ul class="changes">
+            <li><strong>Custom foods</strong> — new installs no longer start with a set of pre-filled custom foods, and foods you delete from your list no longer reappear the next time the app opens</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-09-02.2 (Scan modal fix) ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-09-02.2</span>
+        <span class="release-date">7 September 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">Fixed</div>
+          <ul class="changes">
             <li><strong>Scan result Log button</strong> — the barcode scan result popup now clears the bottom nav bar, so the Log button is always fully visible and tappable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Docs feature guides ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">Docs</span>
+        <span class="release-date">7 September 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">Docs</div>
+          <ul class="changes">
+            <li><strong>Feature guides</strong> — new pages for recipes, installing, appearance, trends, the barcode scanner, nutrition label scanning and custom foods</li>
+            <li><strong>Developer &amp; AI guide</strong> — sync server setup, remote access options and AI features in one place</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2026-09-03.8 (beta) ── -->
+    <div class="release">
+      <div class="release-dot"></div>
+      <div class="release-header">
+        <span class="release-version">v2026-09-03.8 (beta)</span>
+        <span class="release-date">3 September 2026</span>
+      </div>
+      <div class="release-body">
+        <div class="change-group">
+          <div class="change-group-label">New</div>
+          <ul class="changes">
+            <li><strong>Recipe drafts</strong> — save a recipe as a draft before it's finished, and delete drafts you no longer need</li>
+          </ul>
+        </div>
+        <div class="change-group">
+          <div class="change-group-label">Fixed</div>
+          <ul class="changes">
+            <li><strong>Status bar colour</strong> — follows the selected style and is never purple</li>
+            <li><strong>Bold nav</strong> — the floating nav hides behind open popups, the setup wizard and the on-screen keyboard</li>
+            <li><strong>Gradient style</strong> — glass styling now covers every page, with a stronger gradient in light mode</li>
+            <li><strong>Water buttons</strong> — use the selected style's colours</li>
           </ul>
         </div>
       </div>
@@ -270,7 +373,7 @@
         <div class="change-group">
           <div class="change-group-label">New</div>
           <ul class="changes">
-            <li><strong>/beta/ build</strong> — separate beta PWA at <code>/beta/</code> with all 7 UI themes</li>
+            <li><strong>Beta channel</strong> — separate beta PWA at <a href="https://beta.macroslog.co.uk">beta.macroslog.co.uk</a> with all 7 UI themes</li>
             <li><strong>7 visual styles</strong> — Current (default), Bold (neon-green, giant kcal, floating pill nav), Gradient (purple-to-teal glassmorphism), Zen (minimal, ring hidden, lightweight number), Soft (warm cream/terracotta, pill-everything), Editorial (clinical blue, sharp 4px corners), Retro (terminal green-on-black / amber-on-cream)</li>
             <li>Style selector in Settings → Appearance; persists in localStorage; orthogonal to dark/light/auto colour mode</li>
           </ul>

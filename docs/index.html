@@ -457,6 +457,7 @@
       clip-path: inset(0 100% 0 0 round 16px);
       transition: none;
     }
+    .wipe-card + .wipe-card { margin-top: var(--sc-4); }
     .wipe-card.is-revealed {
       animation: sc-wipe-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
@@ -1229,14 +1230,14 @@
 
         <div class="inner">
           <div class="whats-new__meta">
-            <div class="version-badge">v2026-09-02.2 &middot; 2 Sep 2026</div>
+            <div class="version-badge">v2026-10-06.2 &middot; 6 Oct 2026</div>
 
             <h2 id="whats-new-heading" class="t-display-sm">
               The latest update.
             </h2>
 
             <p class="t-body">
-              Every release is driven by real use. This one is a small but welcome fix for barcode scanning.
+              Every release is driven by real use. This one keeps your custom foods list to foods you added, and makes the chart dates readable again.
             </p>
 
             <a class="whats-new__changelog-link" href="changelog.html">
@@ -1245,7 +1246,7 @@
           </div>
 
           <div>
-            <article class="wipe-card" aria-label="Fix: Scan result Log button">
+            <article class="wipe-card" aria-label="Fix: Custom foods list">
               <div class="wipe-card__icon" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
@@ -1253,15 +1254,35 @@
                 </svg>
               </div>
 
-              <h3>Scan result Log button fix</h3>
+              <h3>Your custom foods stay your own</h3>
 
               <p class="t-body">
-                After a barcode scan, the food result popup now clears the bottom navigation bar, so the Log button is always fully visible and tappable.
+                New installs no longer start with a set of pre-filled custom foods, and any food you delete from your list now stays deleted.
               </p>
 
               <div class="wipe-card__detail">
                 <p>
-                  Added extra bottom padding to the result sheet so its action button no longer sits behind the nav bar.
+                  If your list already has these foods, they stay where they are. Delete any you don't use and they won't come back.
+                </p>
+              </div>
+            </article>
+
+            <article class="wipe-card" aria-label="Fix: Chart labels and tour">
+              <div class="wipe-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+              </div>
+
+              <h3>Readable chart dates</h3>
+
+              <p class="t-body">
+                The dates along the bottom of the Trends and Macro History charts were cut off. They now show in full, and the kg and kcal labels no longer overlap the axis numbers.
+              </p>
+
+              <div class="wipe-card__detail">
+                <p>
+                  Also: the History calendar's "Jump to Today" button is no longer hidden behind the bottom navigation, the Additional Nutrients section now collapses when tapped, the first-run tour no longer points at hidden parts of the screen, and on tablets the Ko-fi card no longer sits behind the navigation.
                 </p>
               </div>
             </article>
@@ -1621,7 +1642,7 @@
             Run your own lightweight Flask sync server to keep every entry on infrastructure you control, and plug in your own AI provider (Claude, Gemini, or OpenAI) for meal descriptions and summaries — your API key stays on-device. Both are optional and off by default.
           </p>
           <p class="t-body">
-            Full setup, Docker instructions, and the sync server source live in the repo: <a href="https://github.com/Oliver-Johnson/macro-tracker" style="color:var(--sc-accent)">github.com/Oliver-Johnson/macro-tracker</a>.
+            Full setup instructions and the sync server source live in the repo: <a href="https://github.com/Oliver-Johnson/macro-tracker" style="color:var(--sc-accent)">github.com/Oliver-Johnson/macro-tracker</a>.
           </p>
           <p class="t-body">
             <a href="developer.html" style="color:var(--sc-accent);font-weight:500;text-decoration:none">Full developer &amp; AI guide &rarr;</a>
@@ -1645,21 +1666,26 @@
   </footer>
 
   <script>
-    // ── Intersection Observer: wipe-reveal for What's New card ──
+    // ── Intersection Observer: wipe-reveal for What's New cards ──
     (function () {
-      var card = document.querySelector('.wipe-card');
-      if (!card) return;
+      var cards = document.querySelectorAll('.wipe-card');
+      if (!cards.length) return;
 
+      // Watch the cards' column rather than the cards: Chromium treats an element
+      // clipped to nothing (the cards' starting clip-path) as never intersecting.
+      var column = cards[0].parentElement;
       var obs = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
+            cards.forEach(function (card, i) {
+              setTimeout(function () { card.classList.add('is-revealed'); }, i * 120);
+            });
             obs.unobserve(entry.target);
           }
         });
       }, { threshold: 0.15 });
 
-      obs.observe(card);
+      obs.observe(column);
     })();
 
     // ── Feature cards: stagger fade-up ──
