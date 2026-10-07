@@ -38,7 +38,7 @@ Set the `SYNC_API_KEY` environment variable to require Bearer-token auth:
 SYNC_API_KEY=your-secret-key python server.py
 ```
 
-In Macrolog, turn on Settings → Data → Developer Mode, then enter your server URL and the same API key in Settings → Sync Server.
+In Macrolog, turn on Developer Mode at the bottom of Settings, then enter your server URL and the same API key in Settings → Sync Server.
 
 ## Exposing via tunnel (optional)
 
