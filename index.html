@@ -795,6 +795,80 @@
   html.style-retro nav button.active { background:#00ff41; color:#0a0a0a; border-radius:0; }
   html.style-retro.theme-light { --accent:#8b6914; --accent2:#c8a020; --bg:#fff8e7; --bg2:#fffef5; --bg3:#f5edcc; --border:#c8b464; --text:#1a1000; --muted:#8b7a30; --kcal:#8b6914; --protein:#8b6914; --carbs:#8b6914; --fat:#8b6914; }
   @media(prefers-color-scheme:light){html.style-retro.theme-auto{--accent:#8b6914;--bg:#fff8e7;--bg2:#fffef5;--bg3:#f5edcc;--border:#c8b464;--text:#1a1000;--muted:#8b7a30;--kcal:#8b6914;}}
+  .hidden { display: none; }
+
+  /* ─── Tablet (≥768px): keep the phone layout, but centre it and float sheets ─── */
+  @media (min-width: 768px) {
+    .view { padding-left: max(16px, calc((100% - 760px) / 2)); padding-right: max(16px, calc((100% - 760px) / 2)); }
+    .modal-backdrop { justify-content: center; }
+    .modal { max-width: 600px; }
+    #scan-container { max-width: 520px; margin-left: auto; margin-right: auto; }
+    /* Clear the bottom nav, which this card used to cover on tablets */
+    #kofi-overlay { bottom: calc(76px + var(--safe-bottom)); }
+  }
+
+  /* ─── Desktop (≥1024px): sidebar nav, centred content, two-column Today ─── */
+  @media (min-width: 1024px) {
+    :root { --sidebar-w: 220px; }
+    #app { flex-direction: row; }
+    nav {
+      order: -1; flex-direction: column; gap: 4px;
+      width: var(--sidebar-w); padding: 20px 12px;
+      border-top: none; border-right: 1px solid var(--border);
+    }
+    nav::before {
+      content: 'Macrolog'; font-size: 18px; font-weight: 800; color: var(--text);
+      padding: 4px 14px 18px;
+    }
+    nav button {
+      flex: none; flex-direction: row; justify-content: flex-start; gap: 12px;
+      padding: 10px 14px; font-size: 14px; font-weight: 500; border-radius: 10px;
+    }
+    nav button:hover { background: var(--bg3); color: var(--text); }
+    nav button.active { background: var(--bg3); }
+    nav button svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* .view percentages resolve against #app, which includes the sidebar */
+    .view {
+      padding: 32px max(40px, calc((100% - var(--sidebar-w) - 760px) / 2)) 40px;
+    }
+    #view-today, #view-trends {
+      padding-left: max(40px, calc((100% - var(--sidebar-w) - 1160px) / 2));
+      padding-right: max(40px, calc((100% - var(--sidebar-w) - 1160px) / 2));
+    }
+    #view-today.active {
+      display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+      column-gap: 20px; align-items: start; align-content: start;
+    }
+    #view-today > .section-header, #view-today > .stat-chips { grid-column: 1 / -1; }
+
+    /* Sheets become centred dialogs over the content area; the sidebar stays usable, as the bottom nav does on phones */
+    .modal-backdrop { left: var(--sidebar-w); align-items: center; padding: 24px; }
+    .modal { max-width: 560px; border-radius: 20px; padding-bottom: 20px; max-height: 85vh; }
+    #view-history { left: var(--sidebar-w); }
+    .history-body {
+      padding-left: max(40px, calc((100% - 1160px) / 2));
+      padding-right: max(40px, calc((100% - 1160px) / 2));
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 8px; align-content: start;
+    }
+    /* The three toggles share one row; everything else spans the width */
+    .history-body > * { grid-column: 1 / -1; }
+    .history-body > .hist-pill-toggle, .history-body > .hist-toggle-row { grid-column: auto; }
+    #toast { bottom: 24px; left: calc(50% + var(--sidebar-w) / 2); }
+
+    /* Ko-fi card sits in the empty foot of the sidebar instead of over the content */
+    #kofi-overlay { left: 12px; right: auto; bottom: 12px; width: calc(var(--sidebar-w) - 24px); z-index: 8002; }
+  }
+
+  /* The Bold style's floating pill nav becomes the sidebar on desktop, and stays put under sheets */
+  @media (min-width: 1024px) {
+    html.style-bold nav, html.style-bold body.modal-open nav, html.style-bold body.keyboard-open nav {
+      position: static; left: auto; bottom: auto; transform: none; pointer-events: auto;
+      width: var(--sidebar-w); padding: 20px 12px; border-radius: 0; box-shadow: none;
+      border-right: 1px solid var(--border);
+    }
+    html.style-bold #view-today, html.style-bold .view { padding-bottom: 40px; }
+  }
 </style>
 </head>
 <body>
@@ -812,6 +886,8 @@
     <!-- Stat chips (Feature 5) -->
     <div class="stat-chips" id="stat-chips" data-section="today-stat-chips"></div>
 
+    <!-- Main column on desktop; a plain block on phones -->
+    <div class="today-main">
     <!-- Kcal ring -->
     <div class="card" id="dashboard-card" data-section="today-macro-card" onclick="openHistoryScreen()" style="cursor:pointer;">
       <div class="big-cal" aria-hidden="true">
@@ -878,7 +954,10 @@
       <div class="card-title">Food Log</div>
       <div id="food-log-list"></div>
     </div>
+    </div>
 
+    <!-- Side column on desktop; a plain block on phones -->
+    <div class="today-side">
     <!-- Water card (Feature 2) -->
     <div class="water-card" id="water-card" data-section="today-water">
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -934,6 +1013,7 @@
         <button id="ai-daily-btn" class="btn btn-secondary btn-sm" onclick="generateDailySummary()">Generate</button>
       </div>
       <div id="ai-daily-body" style="font-size:13px;color:var(--muted);">Tap Generate for a personalised review of today's nutrition.</div>
+    </div>
     </div>
 
     <!-- Ko-fi mobile inline card -->
@@ -1026,9 +1106,9 @@
 
         <button type="button" onclick="var s=this.nextElementSibling;var open=!s.classList.contains('hidden');s.classList.toggle('hidden',open);this.querySelector('span.chevron').style.transform=open?'':'rotate(180deg)';" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 0; background:none; border:none; cursor:pointer; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">
           <span>Additional Nutrients</span>
-          <span class="chevron" style="transition:transform 0.2s;">▾</span>
+          <span class="chevron" style="transition:transform 0.2s;transform:rotate(180deg);">▾</span>
         </button>
-        <div class="hidden">
+        <div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
           <input type="number" id="manual-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
@@ -1088,9 +1168,9 @@
 
         <button type="button" onclick="var s=this.nextElementSibling;var open=!s.classList.contains('hidden');s.classList.toggle('hidden',open);this.querySelector('span.chevron').style.transform=open?'':'rotate(180deg)';" style="width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 0; background:none; border:none; cursor:pointer; font-size:11px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase;">
           <span>Additional Nutrients</span>
-          <span class="chevron" style="transition:transform 0.2s;">▾</span>
+          <span class="chevron" style="transition:transform 0.2s;transform:rotate(180deg);">▾</span>
         </button>
-        <div class="hidden">
+        <div>
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; color:var(--muted);">Dietary Fibre (g)</label>
           <input type="number" id="qa-fibre" min="0" step="0.1" placeholder="Optional" style="width:96px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text); -moz-appearance:textfield; appearance:textfield;">
@@ -1437,7 +1517,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.1</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.2</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -1961,7 +2041,7 @@
 
 <!-- ─── Calendar Picker modal ─── -->
 <div class="modal-backdrop" id="date-modal">
-  <div class="modal" style="padding-bottom: calc(16px + var(--safe-bottom));">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal('date-modal')">✕</button>
     <div class="modal-title">History</div>
     <div class="cal-header">
@@ -5170,7 +5250,8 @@ function renderHistChart() {
   const legend = document.getElementById('hist-legend');
   const n = data.length;
 
-  const W = 400, H = 210;
+  const { W, H } = chartDims(400, 210);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   const PL = 38, PR = 6, PT = 10, PB = 48;
   const chartW = W - PL - PR;
   const chartH = H - PT - PB;
@@ -5226,10 +5307,14 @@ function renderHistChart() {
     const baseY = PT + chartH;
     const labelColor = d.hasData ? '#7070a0' : '#3a3a55';
 
-    // Date label (rotated)
+    // Date label: horizontal when there's room, otherwise rotated to hang down-left from just under the axis
     const lbl = histFmtDate(d.dateKey);
-    const labelY = H - 2;
-    out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 15 ? 7.5 : 9}" fill="${labelColor}" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+    if (W > 400 && n <= 15) {
+      out += `<text x="${cx.toFixed(1)}" y="${PT + chartH + 18}" text-anchor="middle" font-size="9" fill="${labelColor}">${lbl}</text>`;
+    } else {
+      const labelY = PT + chartH + 10;
+      out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 15 ? 7.5 : 9}" fill="${labelColor}" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+    }
 
     if (!d.hasData) {
       out += `<rect x="${x.toFixed(1)}" y="${(baseY - 2).toFixed(1)}" width="${barW}" height="2" rx="1" fill="#2e2e3e"/>`;
@@ -5436,7 +5521,7 @@ function showBreakdownModal(displayName, unit, items, total) {
     const displayed = fmt(e.value);
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid var(--bg3);">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.name)}</div>
         <div style="font-size:11px;color:var(--muted);">${e.meal}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
@@ -5539,14 +5624,34 @@ function getTrendsData() {
   });
 }
 
+// Charts draw in viewBox units, so on tablet and desktop widths they get a wider,
+// taller viewBox; otherwise labels would scale up with the much wider card.
+function chartDims(W, H) {
+  if (window.matchMedia('(min-width: 1024px)').matches) return { W: 760, H: 300 };
+  if (window.matchMedia('(min-width: 768px)').matches) return { W: 600, H: 260 };
+  return { W, H };
+}
+['(min-width: 768px)', '(min-width: 1024px)'].forEach(q => {
+  const mql = window.matchMedia(q);
+  const onChange = () => {
+    if (document.getElementById('view-trends').classList.contains('active')) renderTrends();
+    if (document.getElementById('view-history').classList.contains('open')) renderHistChart();
+  };
+  // Safari before 14 only has the older addListener
+  if (mql.addEventListener) mql.addEventListener('change', onChange);
+  else if (mql.addListener) mql.addListener(onChange);
+});
+
 function renderTrends() {
   try {
   const data = getTrendsData();
   const svg = document.getElementById('trends-svg');
   if (!svg) return;
 
-  const W = 420, H = 220;
-  const PL = 38, PR = 38, PT = 12, PB = 44;
+  const { W, H } = chartDims(420, 220);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const wide = W > 420;
+  const PL = 38, PR = 38, PT = 20, PB = wide ? 30 : 44;
   const chartW = W - PL - PR;
   const chartH = H - PT - PB;
   const n = data.length;
@@ -5566,13 +5671,13 @@ function renderTrends() {
   const kcalMin = 0;
   const kcalRange = kcalMax - kcalMin || 1;
 
-  // Coordinate helpers
-  const xOf = i => PL + (i / Math.max(n - 1, 1)) * chartW;
-  const yWeight = w => PT + chartH - ((w - wMin) / wRange) * chartH;
-  const yKcal = k => PT + chartH - ((k - kcalMin) / kcalRange) * chartH;
-
   // Bar width
   const barW = Math.max(Math.floor(chartW / n * 0.6), 2);
+
+  // Coordinate helpers (inset by half a bar so the end bars don't cover the axis labels)
+  const xOf = i => PL + barW / 2 + (i / Math.max(n - 1, 1)) * (chartW - barW);
+  const yWeight = w => PT + chartH - ((w - wMin) / wRange) * chartH;
+  const yKcal = k => PT + chartH - ((k - kcalMin) / kcalRange) * chartH;
 
   let out = '';
 
@@ -5598,8 +5703,8 @@ function renderTrends() {
   }
 
   // Axis labels
-  out += `<text x="${PL - 4}" y="${PT - 3}" text-anchor="end" font-size="8" fill="#9c94ff">kg</text>`;
-  out += `<text x="${W - PR + 4}" y="${PT - 3}" text-anchor="start" font-size="8" fill="#e879f9">kcal</text>`;
+  out += `<text x="${PL - 4}" y="${PT - 10}" text-anchor="end" font-size="8" fill="#9c94ff">kg</text>`;
+  out += `<text x="${W - PR + 4}" y="${PT - 10}" text-anchor="start" font-size="8" fill="#e879f9">kcal</text>`;
 
   // Stacked macro bars (protein bottom, carbs middle, fat top — by kcal contribution)
   data.forEach((d, i) => {
@@ -5682,10 +5787,15 @@ function renderTrends() {
   data.forEach((d, i) => {
     if (i % labelStep !== 0 && i !== n - 1) return;
     const cx = n === 1 ? PL + chartW / 2 : xOf(i);
-    const labelY = H - 2;
     const parts = d.date.split('-');
     const lbl = parts[2] + '/' + parts[1];
-    out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 20 ? 7 : 8.5}" fill="#7070a0" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+    if (wide) {
+      out += `<text x="${cx.toFixed(1)}" y="${PT + chartH + 18}" text-anchor="middle" font-size="9" fill="#7070a0">${lbl}</text>`;
+    } else {
+      // Rotated labels hang down-left from just under the axis
+      const labelY = PT + chartH + 10;
+      out += `<text x="${cx.toFixed(1)}" y="${labelY}" text-anchor="end" font-size="${n > 20 ? 7 : 8.5}" fill="#7070a0" transform="rotate(-40 ${cx.toFixed(1)} ${labelY})">${lbl}</text>`;
+    }
   });
 
   // No-data message overlay
@@ -6827,10 +6937,14 @@ function tourPositionSpotlight(target) {
   let rect;
   if (target) {
     rect = target.getBoundingClientRect();
+    // A hidden target (e.g. a log tab that isn't showing) has an empty rect; treat it as no target
+    if (rect.width === 0 && rect.height === 0) rect = null;
   } else {
     // No target — dim nothing, center tooltip
     rect = null;
   }
+  // On the desktop layout the sidebar nav sits above the tour overlay, so keep the tooltip right of it
+  const minLeft = window.matchMedia('(min-width: 1024px)').matches ? 220 + 24 : 24;
 
   const top    = document.getElementById('tour-dim-top');
   const bottom = document.getElementById('tour-dim-bottom');
@@ -6867,7 +6981,7 @@ function tourPositionSpotlight(target) {
     }
 
     // Horizontally: center over the target, clamped to viewport
-    ttLeft = Math.max(24, Math.min(vw - ttW - 24, x + w / 2 - ttW / 2));
+    ttLeft = Math.max(minLeft, Math.min(vw - ttW - 24, x + w / 2 - ttW / 2));
 
     tooltip.style.top = ttTop + 'px';
     tooltip.style.left = ttLeft + 'px';
@@ -6883,7 +6997,7 @@ function tourPositionSpotlight(target) {
     const ttW = Math.min(300, vw - 48);
     const ttH = 180;
     tooltip.style.top  = Math.max(24, (vh - ttH) / 2) + 'px';
-    tooltip.style.left = ((vw - ttW) / 2) + 'px';
+    tooltip.style.left = Math.max(minLeft, (vw - ttW) / 2) + 'px';
     tooltip.style.width = ttW + 'px';
   }
 }
