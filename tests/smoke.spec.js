@@ -21,9 +21,10 @@ const VIEWS = [
 const test = base.extend({
   // Abort every request that is not to the local test server (CDNs, Open Food
   // Facts, USDA, AI providers) so runs behave the same locally and in CI.
+  // WebKit also routes blob: URLs (no hostname), so only http(s) is checked.
   context: async ({ context }, use) => {
     await context.route(
-      url => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
+      url => url.protocol.startsWith('http') && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
       route => route.abort(),
     );
     await use(context);
