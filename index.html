@@ -2443,7 +2443,8 @@ function recordTodayTargets() {
   const daily = getDailyTargets();
   if (!daily[today]) {
     const s = getSettings();
-    daily[today] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre || 30 };
+    // auto: filled in from settings, not set by the user, so sync lets targets set on another device win
+    daily[today] = { kcal: s.kcal, protein: s.protein, carbs: s.carbs, fat: s.fat, fibre: s.fibre || 30, auto: true };
     LS.set('mt_daily_targets', daily);
   }
 }
@@ -4515,7 +4516,8 @@ function getSyncableData() {
 function ensureEntryIds() {
   const raw = localStorage.getItem('mt_logs');
   if (!raw) return;
-  const logs = JSON.parse(raw);
+  let logs;
+  try { logs = JSON.parse(raw); } catch { return; } // getSyncableData reports unreadable logs
   if (!Array.isArray(logs)) return;
   const seen = new Set();
   let changed = false;
@@ -4576,7 +4578,14 @@ function syncToRecords(d) {
     if (Object.keys(rest).length) put('days', day.date, rest);
   });
   d.recipes.forEach(x => put('recipes', x && x.id != null ? x.id : 'n:' + (x && x.name), x));
-  d.customFoods.forEach(x => put('customFoods', x && x.id != null ? x.id : 'n:' + (x && (x.barcode || x.name)), x));
+  // Older versions added the seed foods on every device, each copy with its own id, so
+  // copies nobody has edited are matched by their content instead of being duplicated
+  const seedNames = new Set(SEED_FOODS.map(s => s.name));
+  const foodKey = x => {
+    if (x && x.barcode == null && seedNames.has(x.name)) { const { id, ...rest } = x; return 'seed:' + syncHash(syncStable(rest)); }
+    return x && x.id != null ? x.id : 'n:' + (x && (x.barcode || x.name));
+  };
+  d.customFoods.forEach(x => put('customFoods', foodKey(x), x));
   d.weightLog.forEach(x => put('weightLog', x && x.date, x));
   d.exerciseLog.forEach(x => put('exerciseLog', x && x.id != null ? x.id : 'n:' + (x && x.date) + ':' + (x && x.name), x));
   d.ifLog.forEach(x => put('ifLog', x && x.date, x));
@@ -4671,8 +4680,12 @@ function syncMerge(L, S, baseFp, mode) {
       else {
         stats.conflicts++;
         const water = c === 'waterLog' && typeof l === 'number' && typeof s === 'number';
+        // Targets a device filled in from its settings at launch (auto) give way to targets
+        // someone set for that day; if both sides were filled in, the server's stand
+        const autoL = c === 'dailyTargets' && !!(l && l.auto), autoS = c === 'dailyTargets' && !!(s && s.auto);
         if (water && mode === 'base') v = Math.max(0, l + s - (typeof fb === 'number' ? fb : 0));
         else if (water) v = Math.max(l, s);
+        else if (autoL || autoS) v = autoL ? s : l;
         else if (mode === 'first' && SYNC_SERVER_FIRST.includes(c)) v = s;
         else v = c === 'entries' && mode === 'legacy' ? syncEnrich(l, s) : l;
       }
@@ -4717,6 +4730,7 @@ function syncShouldWait() {
 }
 
 let syncInFlight = false, syncAgain = false, syncTimer = null, syncLastAt = 0, syncLegacyUrl = null, syncStatusMsg = '';
+let syncPauseToldUser = false;
 
 function setSyncStatus(text) {
   syncStatusMsg = text;
@@ -4755,6 +4769,16 @@ async function syncNow(opts = {}) {
     syncLastAt = Date.now();
     setSyncStatus(result && result.message ? result.message : syncStatusText());
     if (!quiet && result && result.toast) toast(result.toast);
+    if (result && result.paused) {
+      // Automatic syncs stay paused until someone reviews it, so say so once, not on every retry
+      if (!quiet) syncPauseToldUser = true;
+      else if (!syncPauseToldUser && document.visibilityState === 'visible') {
+        syncPauseToldUser = true;
+        toast('Sync paused — tap ⇅ Sync to review');
+      }
+    } else if (result && result.toast) {
+      syncPauseToldUser = false; // this sync went through
+    }
   } catch (err) {
     const msg = err instanceof SyncError ? err.message : 'Sync failed — server offline?';
     setSyncStatus(msg);
@@ -4810,7 +4834,7 @@ async function syncRun(url, quiet) {
     if (destructive) {
       const msg = `This sync would delete ${stats.removedServer} records from the server and ${stats.removedLocal} from this device.`;
       if (quiet || !confirm(msg + ' Continue?')) {
-        return { message: 'Sync paused — ' + msg + ' Tap Sync now to review.', toast: 'Sync cancelled' };
+        return { message: 'Sync paused — ' + msg + ' Tap Sync now to review.', toast: 'Sync cancelled', paused: true };
       }
     }
 

@@ -42,11 +42,11 @@ Set the `SYNC_API_KEY` environment variable to require Bearer-token auth:
 SYNC_API_KEY=your-secret-key python server.py
 ```
 
-In Macrolog, turn on Settings → Data → Developer Mode, then enter your server URL and the same API key in Settings → Sync Server. Do the same on each device you want to keep in sync.
+In Macrolog, turn on Developer Mode at the bottom of Settings, then enter your server URL and the same API key in Settings → Sync Server. Do the same on each device you want to keep in sync.
 
 ## How the app merges
 
-Each device remembers a fingerprint of every record from its last sync. When it syncs, it fetches the server's copy and merges record by record: a side whose record still matches the fingerprint didn't change it, so the other side's version (or deletion) wins. If both sides changed the same record, the syncing device's edit wins and an edit beats a delete; water added on two devices on the same day is summed. A sync that would delete more than a fifth of either side (and more than 10 records) waits for the user to confirm, and nothing syncs while the app's tour demo data is showing.
+Each device remembers a fingerprint of every record from its last sync. When it syncs, it fetches the server's copy and merges record by record: a side whose record still matches the fingerprint didn't change it, so the other side's version (or deletion) wins. If both sides changed the same record, the syncing device's edit wins and an edit beats a delete; water added on two devices on the same day is summed, and a day's targets that a device filled in from its settings when it opened (marked `auto`) give way to targets someone set. A sync that would delete more than a fifth of either side (and more than 10 records) waits for the user to confirm, and nothing syncs while the app's tour demo data is showing.
 
 ## Tests
 
