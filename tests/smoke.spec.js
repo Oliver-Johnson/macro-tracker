@@ -217,6 +217,18 @@ test('a new user is offered the targets wizard once', async ({ page }) => {
   await expect(wizard).not.toHaveClass(/\bopen\b/);
 });
 
+// Someone who finished the tour on an earlier version today, with nothing logged or saved,
+// is offered the wizard as the app opens. Opening it there once threw and stopped the app loading.
+test('the targets wizard can be offered as the app opens', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('mt_test_seeded')) return;
+    sessionStorage.setItem('mt_test_seeded', '1');
+    localStorage.setItem('mt_tour_complete', '1');
+  });
+  await page.goto('/');
+  await expect(page.locator('#onboarding-backdrop')).toHaveClass(/\bopen\b/);
+});
+
 // ─── Returning user (tour done, targets set) ─────────────────────────────────
 
 test.describe('returning user', () => {
