@@ -1203,7 +1203,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-06.2</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-07.1</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -4382,8 +4382,10 @@ applyDisplayPrefs();
 renderToday();
 fetchSyncTargets();
 fetchSyncFoodLog();
-// First-run tour takes priority; it calls checkOnboarding() when done
-if (!checkFirstRunTour()) checkOnboarding();
+// First-run tour takes priority; it calls checkOnboarding() when done.
+// Deferred: the wizard's state (obActivityMult etc.) is declared further down this script,
+// so opening it synchronously here throws and stops the rest of the app from loading.
+if (!checkFirstRunTour()) setTimeout(checkOnboarding, 0);
 
 // Auto-start scan if on scan tab and view-log is navigated to
 document.querySelector('[onclick*="view-log"] , [onclick*=\'log\']');
@@ -5472,11 +5474,17 @@ function obUpdateDietPreview() {
 }
 
 function checkOnboarding() {
-  // For existing users who already have targets, no TDEE wizard needed
-  // For brand-new users, the first-run tour handles this (tourFinish calls back here)
+  // Offer the targets wizard once, to someone who has never set targets. For brand-new users
+  // the first-run tour calls back here when it finishes or is skipped.
+  if (localStorage.getItem('mt_onboarding_offered') || localStorage.getItem(TOUR_DEMO_KEY)) return;
+  // recordTodayTargets() saves the defaults for today on every launch, so only saved settings,
+  // targets from an earlier day or logged data mean the user has been here before
   const daily = getDailyTargets();
-  const hasTargets = Object.keys(daily).length > 0;
-  if (!hasTargets && !localStorage.getItem(TOUR_DEMO_KEY)) openTDEEWizard();
+  const hasTargets = localStorage.getItem('mt_settings') !== null ||
+    Object.keys(daily).some(d => d !== todayKey()) || hasExistingUserData();
+  if (hasTargets) return;
+  localStorage.setItem('mt_onboarding_offered', '1');
+  openTDEEWizard();
 }
 
 function openTDEEWizard() {
@@ -6169,6 +6177,7 @@ function checkFirstRunTour() {
 function tourSkip() {
   document.getElementById('tour-welcome-backdrop').classList.remove('open');
   localStorage.setItem(TOUR_COMPLETE_KEY, '1');
+  checkOnboarding();
 }
 
 function tourStart() {
