@@ -6107,10 +6107,16 @@ function chartDims(W, H) {
   if (window.matchMedia('(min-width: 768px)').matches) return { W: 600, H: 260 };
   return { W, H };
 }
-['(min-width: 768px)', '(min-width: 1024px)'].forEach(q => window.matchMedia(q).addEventListener('change', () => {
-  if (document.getElementById('view-trends').classList.contains('active')) renderTrends();
-  if (document.getElementById('view-history').classList.contains('open')) renderHistChart();
-}));
+['(min-width: 768px)', '(min-width: 1024px)'].forEach(q => {
+  const mql = window.matchMedia(q);
+  const onChange = () => {
+    if (document.getElementById('view-trends').classList.contains('active')) renderTrends();
+    if (document.getElementById('view-history').classList.contains('open')) renderHistChart();
+  };
+  // Safari before 14 only has the older addListener
+  if (mql.addEventListener) mql.addEventListener('change', onChange);
+  else if (mql.addListener) mql.addListener(onChange);
+});
 
 function renderTrends() {
   try {
