@@ -373,8 +373,10 @@ test.describe('returning user', () => {
       page.getByRole('button', { name: /Barcode from Image/ }).click(),
     ]);
     await chooser.setFiles(path.join(__dirname, 'fixtures', 'barcode-photo.jpg'));
+    // Report the scan status if the sheet doesn't open, so a failure says why
     const sheet = page.locator('#weight-modal');
-    await expect(sheet).toHaveClass(/\bopen\b/, { timeout: 20_000 });
+    await expect.poll(async () => (await sheet.getAttribute('class')).includes('open')
+      ? 'open' : page.locator('#scan-status').textContent(), { timeout: 20_000 }).toBe('open');
     await expect(page.locator('#weight-modal-title')).toHaveText('Smoke test beans');
     await sheet.getByRole('button', { name: 'Add to Log', exact: true }).click();
     const logs = await page.evaluate(() => localStorage.getItem('mt_logs'));

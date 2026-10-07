@@ -1276,7 +1276,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-07.3</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-07.4</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -2838,9 +2838,15 @@ function loadImageFile(file) {
 async function decodeBarcodeFromImage(file) {
   const img = await loadImageFile(file);
   if ('BarcodeDetector' in window) {
+    // Some browsers expose the API without a working backend, so check the formats and never wait long
+    const orTimeout = (promise, fallback) => Promise.race([promise, new Promise(r => setTimeout(() => r(fallback), 3000))]);
     try {
-      const found = await new BarcodeDetector({ formats: BARCODE_FORMATS }).detect(img);
-      if (found.length) return found[0].rawValue;
+      const supported = await orTimeout(BarcodeDetector.getSupportedFormats(), []);
+      const formats = BARCODE_FORMATS.filter(f => supported.includes(f));
+      if (formats.length) {
+        const found = await orTimeout(new BarcodeDetector({ formats }).detect(img), []);
+        if (found.length) return found[0].rawValue;
+      }
     } catch(e) {}
   }
   if (typeof ZXing === 'undefined') throw new Error('Barcode reader not loaded. Check your connection and try again.');
