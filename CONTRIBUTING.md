@@ -15,8 +15,18 @@ making changes, edit `index.html` directly.
 
 ## Running the checks
 
-There is no test suite yet. To try a change, serve the repo root with any static
-server (for example `python3 -m http.server`) and open it in a browser. CI checks:
+To try a change, serve the repo root with any static server (for example
+`python3 -m http.server`) and open it in a browser.
+
+The smoke tests in `tests/` drive the app in Playwright on Android, iPhone, iPad
+and desktop sizes. To run them locally in Chromium:
+
+```bash
+npm install --no-save playwright@1.56.1 && npx playwright install chromium
+MT_BROWSERS=chromium npx playwright test -c tests/playwright.config.js
+```
+
+CI runs the smoke tests in Chromium and WebKit, and checks that:
 
 - the version string in `index.html` matches the cache name in `sw.js`
 - `.nojekyll` is present, so GitHub Pages serves the site as is
