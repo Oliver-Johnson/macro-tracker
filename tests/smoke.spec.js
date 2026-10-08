@@ -368,6 +368,8 @@ test.describe('returning user', () => {
     })), code);
     await page.reload();
     await openView(page, 'Log Food');
+    // Desktop layouts may open Log Food on Search, so pick the Scan tab first
+    await page.locator('#view-log .tabs').getByRole('button', { name: /Scan/ }).click();
 
     const [chooser] = await Promise.all([
       page.waitForEvent('filechooser'),
