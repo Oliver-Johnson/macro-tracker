@@ -22,7 +22,7 @@ The smoke tests in `tests/` drive the app in Playwright on Android, iPhone, iPad
 and desktop sizes. To run them locally in Chromium:
 
 ```bash
-npm install --no-save playwright@1.56.1 && npx playwright install chromium
+npm install --no-save playwright@1.56.1 @zxing/library@0.23.0 && npx playwright install chromium
 MT_BROWSERS=chromium npx playwright test -c tests/playwright.config.js
 ```
 
