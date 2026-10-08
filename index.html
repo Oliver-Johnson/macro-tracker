@@ -127,6 +127,10 @@
   #scan-video { width: 100%; height: 100%; object-fit: cover; }
   .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
   .scan-frame { width: 65%; aspect-ratio: 1; border: 2px solid var(--accent); border-radius: 8px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.4); }
+  /* Drop/paste a barcode image: only mentioned where there's a mouse to drag with */
+  .pointer-hint { display: none; font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; }
+  @media (hover: hover) and (pointer: fine) { .pointer-hint { display: block; } }
+  body.barcode-drop::after { content: 'Drop the image to read its barcode'; position: fixed; inset: 12px; z-index: 10000; display: flex; align-items: center; justify-content: center; border: 3px dashed var(--accent); border-radius: 16px; background: rgba(0,0,0,0.55); color: #fff; font-size: 18px; font-weight: 600; pointer-events: none; }
 
   /* ─── Search results ─── */
   .result-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
@@ -816,6 +820,8 @@
         <button class="btn btn-secondary" onclick="toggleScan()" style="flex:1;min-width:0;height:48px;padding:0;display:flex;align-items:center;justify-content:center;">Stop Camera</button>
         <button class="btn btn-secondary" onclick="flipCamera()" style="flex:1;min-width:0;height:48px;padding:0;display:flex;align-items:center;justify-content:center;" title="Flip camera">⟳</button>
       </div>
+      <button class="btn btn-secondary" id="scan-image-btn" onclick="pickBarcodeImage()" style="margin-top:8px;">🖼️ Barcode from Image</button>
+      <div class="pointer-hint">You can also drop or paste a photo or screenshot of a barcode anywhere on this page.</div>
       <div style="display:flex;gap:8px;margin-top:8px;box-sizing:border-box;max-width:100%;">
         <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1;min-width:0;">📷 Scan Label</button>
         <button class="btn btn-secondary" onclick="ocrFromFile()" style="flex:1;min-width:0;">🖼️ Upload Label</button>
@@ -1270,7 +1276,7 @@
         <span id="data-chevron" style="font-size:12px;">▶</span>
       </div>
       <div id="data-body" style="display:none;">
-        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-07.2</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px; margin-top:10px;">Version 2026-10-07.4</div>
         <p style="margin:4px 0 10px;font-size:0.75rem;color:var(--muted)">New features launch on <a href="https://beta.macroslog.co.uk" target="_blank" style="color:var(--accent);text-decoration:none">beta.macroslog.co.uk</a> first</p>
         <button class="btn btn-secondary" onclick="checkForUpdate()">Check for Updates</button>
         <button class="btn btn-secondary" style="margin-top:8px;" onclick="exportData()">Export JSON</button>
@@ -2690,6 +2696,22 @@ async function handleScannedBarcode(text) {
   }
 }
 
+function isNoCameraError(e) {
+  return !!e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError');
+}
+
+function showCameraError(e) {
+  scanActive = false;
+  // Most desktops have no camera at all, so point to the image option rather than permissions
+  if (isNoCameraError(e)) {
+    document.getElementById('scan-container').style.display = 'none'; // no point showing an empty viewfinder
+    document.getElementById('scan-status').textContent = 'No camera found. Use "Barcode from Image" below instead.';
+    return;
+  }
+  document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
+  toast('Camera unavailable — check permissions');
+}
+
 async function startScanNative() {
   const video = document.getElementById('scan-video');
   try {
@@ -2736,9 +2758,7 @@ async function startScanNative() {
     };
     nativeRafId = requestAnimationFrame(tick);
   } catch(e) {
-    document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
-    toast('Camera unavailable — check permissions');
-    scanActive = false;
+    showCameraError(e);
   }
 }
 
@@ -2758,15 +2778,14 @@ async function startScanZXing() {
     document.getElementById('scan-status').textContent = 'Point camera at a barcode';
     document.querySelector('[onclick="toggleScan()"]').textContent = 'Stop Camera';
   } catch(e) {
-    document.getElementById('scan-status').textContent = 'Camera error: ' + e.message;
-    toast('Camera unavailable — check permissions');
-    scanActive = false;
+    showCameraError(e);
   }
 }
 
 async function startScan() {
   stopScan();
   scanActive = true;
+  document.getElementById('scan-container').style.display = '';
   document.getElementById('scan-status').textContent = 'Starting camera…';
   if ('BarcodeDetector' in window) {
     await startScanNative();
@@ -2795,6 +2814,165 @@ function toggleScan() {
   if (scanActive) stopScan();
   else startScan();
 }
+
+// ─── Barcode from an image (desktops without a camera, screenshots, saved photos) ───
+const BARCODE_FORMATS = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','code_93','itf','qr_code'];
+// [rotation°, long side in px, tryHarder]. Quick passes first; the slower tryHarder passes catch
+// sideways, blurry and diagonal barcodes. 3000px keeps small barcodes in big phone photos readable.
+const IMAGE_SCAN_PASSES = [
+  [0, 1600, false], [0, 800, false], [0, 3000, false], [45, 1200, false],
+  [0, 1200, true], [0, 1600, true], [45, 1200, true], [0, 2400, true], [45, 2400, true],
+];
+
+function loadImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Couldn't open that image. Try a JPG or PNG.")); };
+    img.src = url;
+  });
+}
+
+// Returns the barcode text, or null if none could be read
+async function decodeBarcodeFromImage(file) {
+  const img = await loadImageFile(file);
+  if ('BarcodeDetector' in window) {
+    // Some browsers expose the API without a working backend, so check the formats and never wait long
+    const orTimeout = (promise, fallback) => Promise.race([promise, new Promise(r => setTimeout(() => r(fallback), 3000))]);
+    try {
+      const supported = await orTimeout(BarcodeDetector.getSupportedFormats(), []);
+      const formats = BARCODE_FORMATS.filter(f => supported.includes(f));
+      if (formats.length) {
+        const found = await orTimeout(new BarcodeDetector({ formats }).detect(img), []);
+        if (found.length) return found[0].rawValue;
+      }
+    } catch(e) {}
+  }
+  if (typeof ZXing === 'undefined') throw new Error('Barcode reader not loaded. Check your connection and try again.');
+  const F = ZXing.BarcodeFormat;
+  const formats = [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.QR_CODE];
+  const readers = [false, true].map(tryHarder => {
+    const hints = new Map([[ZXing.DecodeHintType.POSSIBLE_FORMATS, formats]]);
+    if (tryHarder) hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+    const reader = new ZXing.MultiFormatReader();
+    reader.setHints(hints);
+    return reader;
+  });
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const w = img.naturalWidth, h = img.naturalHeight, longSide = Math.max(w, h);
+  const tried = new Set(), seen = {}, started = Date.now();
+  for (const [angle, size, tryHarder] of IMAGE_SCAN_PASSES) {
+    const scale = Math.min(1, size / longSide);
+    const key = `${angle}/${scale}/${tryHarder}`;
+    if (tried.has(key) || Date.now() - started > 10000) continue; // small images repeat sizes
+    tried.add(key);
+    const sw = w * scale, sh = h * scale, rad = angle * Math.PI / 180;
+    const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+    canvas.width = Math.round(sw * cos + sh * sin);
+    canvas.height = Math.round(sw * sin + sh * cos);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(1, 0, 0, 1, canvas.width / 2, canvas.height / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    try {
+      const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(canvas)));
+      const text = readers[+tryHarder].decodeWithState(bitmap).getText();
+      // tryHarder can misread blurry or partial codes, so its reads need a second pass to agree
+      if (!tryHarder) return text;
+      seen[text] = (seen[text] || 0) + 1;
+      if (seen[text] >= 2) return text;
+    } catch(e) {} // nothing found at this size/angle
+    await new Promise(r => setTimeout(r)); // let the status text repaint between passes
+  }
+  const reads = Object.keys(seen);
+  return reads.length === 1 ? reads[0] : null; // two different reads means at least one is wrong
+}
+
+// Reads and looks up a barcode image, reporting progress through say(). Returns the food or null.
+async function lookupBarcodeImage(file, say) {
+  say('Reading barcode…');
+  let code;
+  try { code = await decodeBarcodeFromImage(file); }
+  catch(e) { say(e.message); return null; }
+  if (!code) { say("Couldn't read a barcode in that image. Try a closer, sharper photo, or type the number into Search."); return null; }
+  say(`Found ${code}, looking it up…`);
+  const food = await lookupBarcode(code);
+  if (!food) say(`Barcode ${code} isn't in Open Food Facts yet. Try Search or add it manually.`);
+  return food;
+}
+
+async function pickBarcodeImage() {
+  const resume = scanActive;
+  stopScan(); // free the camera in case the picker offers to take a photo
+  const file = await pickImageFile(false);
+  if (file) await scanBarcodeImage(file, resume);
+  else if (resume) startScan();
+}
+
+async function scanBarcodeImage(file, resume = scanActive) {
+  stopScan();
+  const statusEl = document.getElementById('scan-status');
+  const onScanTab = document.getElementById('log-scan').style.display !== 'none';
+  const food = await lookupBarcodeImage(file, msg => onScanTab ? (statusEl.textContent = msg) : toast(msg));
+  if (food) showWeightModal(food, resume);
+}
+
+async function pickIngredientBarcodeImage() {
+  stopIngredientScan();
+  const file = await pickImageFile(false);
+  if (file) await scanIngredientBarcodeImage(file);
+}
+
+async function scanIngredientBarcodeImage(file) {
+  stopIngredientScan();
+  const statusEl = document.getElementById('ing-scan-status');
+  const food = await lookupBarcodeImage(file, msg => { if (statusEl) statusEl.textContent = msg; });
+  if (food) showIngredientWeight(food);
+}
+
+// Drop or paste a barcode image on the Log Food page or the recipe "Scan" ingredient dialog
+function barcodeImageHandler() {
+  if (document.getElementById('ingredient-modal').classList.contains('open')) {
+    return document.getElementById('ing-scan-status') ? scanIngredientBarcodeImage : null;
+  }
+  if (document.querySelector('.modal-backdrop.open')) return null;
+  return document.getElementById('view-log').classList.contains('active') ? scanBarcodeImage : null;
+}
+function firstImageFile(files) {
+  return [...(files || [])].find(f => f.type.startsWith('image/')) || null;
+}
+(function initBarcodeImageDrop() {
+  let dragDepth = 0;
+  const isFileDrag = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  const endDrag = () => { dragDepth = 0; document.body.classList.remove('barcode-drop'); };
+  document.addEventListener('dragenter', e => {
+    if (!isFileDrag(e) || !barcodeImageHandler()) return;
+    dragDepth++;
+    document.body.classList.add('barcode-drop');
+  });
+  document.addEventListener('dragleave', () => { if (dragDepth && --dragDepth === 0) endDrag(); });
+  document.addEventListener('dragover', e => { if (isFileDrag(e) && barcodeImageHandler()) e.preventDefault(); });
+  document.addEventListener('drop', e => {
+    endDrag();
+    const handler = barcodeImageHandler();
+    if (!isFileDrag(e) || !handler) return;
+    e.preventDefault(); // stop the browser opening the file instead of the app
+    const file = firstImageFile(e.dataTransfer.files);
+    if (file) handler(file);
+    else toast('Drop a photo or screenshot of a barcode');
+  });
+  document.addEventListener('paste', e => {
+    const handler = barcodeImageHandler();
+    const file = handler && firstImageFile(e.clipboardData && e.clipboardData.files);
+    if (!file) return; // let text pastes through
+    e.preventDefault();
+    handler(file);
+  });
+})();
 
 // ─── Open Food Facts ───
 function enrichFromSeed(food) {
@@ -2966,6 +3144,14 @@ async function searchOFF(query) {
 }
 
 // ─── Search ───
+// EAN-8, UPC-A, EAN-13 or GTIN-14 with a correct check digit
+function isValidGtin(code) {
+  if (!/^(\d{8}|\d{12,14})$/.test(code)) return false;
+  const digits = code.split('').map(Number), check = digits.pop();
+  const sum = digits.reverse().reduce((acc, d, i) => acc + d * (i % 2 ? 1 : 3), 0);
+  return (10 - sum % 10) % 10 === check;
+}
+
 async function doSearch() {
   const q = document.getElementById('search-input').value.trim();
   if (!q) return;
@@ -2991,13 +3177,15 @@ async function doSearch() {
     .filter(f => f.name.toLowerCase().includes(ql))
     .map(f => ({ ...f, _saved: true }));
 
-  const results = await searchOFF(q);
-  const all = [...generics, ...customs, ...results];
+  // A barcode number typed in (e.g. read off the packet on a desktop) is looked up directly
+  const byBarcode = isValidGtin(q) ? await lookupBarcode(q) : null;
+  const results = byBarcode ? [] : await searchOFF(q);
+  const all = [...(byBarcode ? [{ ...byBarcode, _barcode: true }] : []), ...generics, ...customs, ...results];
 
   if (!all.length) { el.innerHTML = '<div class="empty-state">No results found.<br><br><span style="color:var(--accent2);cursor:pointer;" onclick="switchLogTab(\'manual\',document.querySelector(\'.tab:nth-child(3)\'))">+ Add it manually</span></div>'; return; }
   el.innerHTML = all.slice(0, 25).map((r, i) => `
     <div class="result-item" onclick="pickSearchResult(${i})">
-      <div class="result-name">${esc(r.name)}${r._saved ? ' <span class="tag tag-protein">saved</span>' : ''}${r._generic ? ' <span class="tag tag-generic">Generic</span>' : ''}</div>
+      <div class="result-name">${esc(r.name)}${r._barcode ? ' <span class="tag tag-generic">Barcode</span>' : ''}${r._saved ? ' <span class="tag tag-protein">saved</span>' : ''}${r._generic ? ' <span class="tag tag-generic">Generic</span>' : ''}</div>
       <div class="result-macros">${r.kcal} kcal · P ${r.protein}g · C ${r.carbs}g · F ${r.fat}g (per 100g)</div>
     </div>`).join('');
   window._searchResults = all;
@@ -3349,7 +3537,7 @@ async function startIngredientScanNative() {
       } catch(e) { ingRafId = requestAnimationFrame(tick); }
     };
     ingRafId = requestAnimationFrame(tick);
-  } catch(e) { toast('Camera error: ' + e.message); }
+  } catch(e) { showIngredientCameraError(e); }
 }
 
 async function startIngredientScanZXing() {
@@ -3371,7 +3559,15 @@ async function startIngredientScanZXing() {
       if (err && !(err instanceof ZXing.NotFoundException)) console.warn(err);
     });
     if (statusEl) statusEl.textContent = 'Point camera at a barcode';
-  } catch(e) { toast('Camera error: ' + e.message); }
+  } catch(e) { showIngredientCameraError(e); }
+}
+
+function showIngredientCameraError(e) {
+  const box = document.getElementById('ing-scan-box'), statusEl = document.getElementById('ing-scan-status');
+  if (isNoCameraError(e) && box && statusEl) {
+    box.style.display = 'none';
+    statusEl.textContent = 'No camera found. Use "Barcode from Image" below instead.';
+  } else toast('Camera error: ' + e.message);
 }
 
 function stopIngredientScan() {
@@ -3388,10 +3584,12 @@ function addRecipeIngredient(mode) {
 
   if (mode === 'scan') {
     content.innerHTML = `
-      <div style="width:100%;aspect-ratio:4/3;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+      <div id="ing-scan-box" style="width:100%;aspect-ratio:4/3;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;">
         <video id="ing-scan-video" style="width:100%;height:100%;object-fit:cover;" autoplay muted playsinline></video>
       </div>
-      <div id="ing-scan-status" style="font-size:13px;color:var(--muted);text-align:center;">Starting camera…</div>`;
+      <div id="ing-scan-status" style="font-size:13px;color:var(--muted);text-align:center;">Starting camera…</div>
+      <button class="btn btn-secondary" onclick="pickIngredientBarcodeImage()" style="margin-top:10px;">🖼️ Barcode from Image</button>
+      <div class="pointer-hint">Or drop or paste a photo of the barcode here.</div>`;
     openModal('ingredient-modal');
     startIngredientScan();
     return;
