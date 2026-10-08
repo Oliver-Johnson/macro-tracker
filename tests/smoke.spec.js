@@ -263,6 +263,61 @@ test.describe('returning user', () => {
     }
   });
 
+  // Computers rarely have a camera to hand, so Log Food opens on Search there; phones and tablets keep Scan.
+  test('Log Food opens on Search on desktop and on Scan elsewhere', async ({ page, isMobile }) => {
+    const desktop = !isMobile && page.viewportSize().width >= 1024;
+    await openView(page, 'Log Food');
+    const active = page.locator('#view-log .tab.active');
+    if (desktop) {
+      await expect(active).toHaveText(/Search/);
+      await expect(page.locator('#log-search')).toBeVisible();
+      await expect(page.locator('#search-input')).toBeFocused();
+    } else {
+      await expect(active).toHaveText(/Scan/);
+      await expect(page.locator('#log-scan')).toBeVisible();
+    }
+  });
+
+  test('desktop Log Food, Settings and Fasting use two columns', async ({ page, isMobile }) => {
+    test.skip(isMobile || page.viewportSize().width < 1024, 'desktop layout only');
+    const besides = async (left, right, what) => {
+      const l = await page.locator(left).boundingBox();
+      const r = await page.locator(right).boundingBox();
+      expect(r.x, `${what}: right column starts left of the main column's edge`).toBeGreaterThanOrEqual(l.x + l.width);
+      expect(Math.abs(r.y - l.y), `${what}: columns don't start level`).toBeLessThan(2);
+    };
+    await openView(page, 'Log Food');
+    await besides('#log-search > .field', '#frequent-foods', 'Log Food search');
+    await openView(page, 'Settings');
+    await besides('.settings-main', '.settings-side', 'Settings');
+    await openView(page, 'Fasting');
+    await besides('#if-status-card', '#if-protocol-card', 'Fasting');
+  });
+
+  test('Enter adds a food to a recipe', async ({ page }) => {
+    await openView(page, 'Recipes');
+    await page.locator('#view-recipes').getByRole('button', { name: '+ New' }).click();
+    const sheet = page.locator('#ingredient-modal');
+    await page.locator('#recipe-edit-modal').getByRole('button', { name: '+ Search' }).click();
+    await page.fill('#ing-search', 'banana');
+    await page.press('#ing-search', 'Enter'); // searches; the generic foods need no network
+    await expect(sheet).toHaveClass(/\bopen\b/);
+    await page.locator('#ing-search-results .result-item').first().click();
+    await page.fill('#ing-weight-final', '120');
+    await page.press('#ing-weight-final', 'Enter');
+    await expect(sheet).not.toHaveClass(/\bopen\b/);
+    await expect(page.locator('#recipe-ingredients-list .ingredient-row')).toHaveCount(1);
+    await expect(page.locator('#recipe-ingredients-list .ingredient-row input').first()).toHaveValue('120');
+
+    await page.locator('#recipe-edit-modal').getByRole('button', { name: '+ Manual' }).click();
+    await page.fill('#ing-name', 'Smoke tomatoes');
+    await page.fill('#ing-weight', '400');
+    await page.press('#ing-weight', 'Enter');
+    await expect(sheet).not.toHaveClass(/\bopen\b/);
+    await expect(page.locator('#recipe-ingredients-list .ingredient-row')).toHaveCount(2);
+    await expect(page.locator('#recipe-ingredients-list')).toContainText('Smoke tomatoes');
+  });
+
   test('quick add logs an entry that shows on Today and survives a reload', async ({ page }) => {
     await expect(page.locator('#kcal-val')).toHaveText('0');
     await quickAdd(page, SNACK);

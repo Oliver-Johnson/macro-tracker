@@ -836,15 +836,15 @@
     .view {
       padding: 32px max(40px, calc((100% - var(--sidebar-w) - 760px) / 2)) 40px;
     }
-    #view-today, #view-trends {
+    #view-today, #view-trends, #view-log, #view-settings, #view-fasting {
       padding-left: max(40px, calc((100% - var(--sidebar-w) - 1160px) / 2));
       padding-right: max(40px, calc((100% - var(--sidebar-w) - 1160px) / 2));
     }
-    #view-today.active {
+    #view-today.active, #view-settings.active {
       display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
       column-gap: 20px; align-items: start; align-content: start;
     }
-    #view-today > .section-header, #view-today > .stat-chips { grid-column: 1 / -1; }
+    #view-today > .section-header, #view-today > .stat-chips, #view-settings > .section-title { grid-column: 1 / -1; }
 
     /* Sheets become centred dialogs over the content area; the sidebar stays usable, as the bottom nav does on phones */
     .modal-backdrop { left: var(--sidebar-w); align-items: center; padding: 24px; }
@@ -862,6 +862,87 @@
 
     /* Ko-fi card sits in the empty foot of the sidebar instead of over the content */
     #kofi-overlay { left: 12px; right: auto; bottom: 12px; width: calc(var(--sidebar-w) - 24px); z-index: 8002; }
+
+    /* ── Log Food: each tab uses the width (tabs clear their inline display, so these grids apply) ── */
+    /* Search: results on the left, frequent foods in a panel on the right */
+    #log-search {
+      display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); grid-template-rows: auto 1fr;
+      column-gap: 20px; align-items: start;
+    }
+    #log-search > .field { grid-column: 1; grid-row: 1; }
+    #search-results { grid-column: 1; grid-row: 2; }
+    #frequent-foods {
+      grid-column: 2; grid-row: 1 / span 2;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 12px 4px;
+    }
+    #frequent-foods .result-item:last-child { border-bottom: none; }
+    #frequent-foods:empty::before {
+      content: 'Foods you log often will show up here, ready to add again in one click.';
+      display: block; font-size: 13px; color: var(--muted); padding-bottom: 10px;
+    }
+    /* Scan: camera on the left, nutrition label tools on the right */
+    #log-scan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
+    .scan-label > div:first-child { margin-top: 0 !important; }
+    /* Manual and Quick: the fields run in two columns */
+    #log-manual, #log-quickadd { max-height: none !important; overflow: visible !important; }
+    .log-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; }
+    .log-form > button { grid-column: 1 / -1; margin-top: 8px; }
+    .log-form > div:last-child:not(.hidden) {
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 40px; grid-column: 1 / -1;
+    }
+    /* Boxed fields are easier to find and click with a mouse than the phone's bare right-aligned values */
+    .log-form input {
+      width: 150px !important; padding: 7px 10px !important; border-radius: 8px;
+      background: var(--bg3) !important; border: 1px solid var(--border) !important;
+    }
+    .log-form input:focus { border-color: var(--accent) !important; }
+    /* Actions sit under the right-hand column */
+    #log-manual > div:last-child, #log-quickadd > .btn, #qa-meal-pills { max-width: calc(50% - 20px); margin-left: auto; }
+    #log-quickadd > .btn { display: block; }
+    /* Describe: the description on the left, the estimate to review on the right */
+    #log-ai { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 24px; align-items: start; }
+    #log-ai > :not(#ai-results) { grid-column: 1; }
+    #ai-results { grid-column: 2; grid-row: 1 / span 3; margin-top: 0 !important; }
+
+    /* ── Settings: targets, saved foods and the developer cards on the left; help, appearance and data on the right ── */
+    .settings-side > .card:first-child { margin-top: 0 !important; }
+    #settings-targets-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; }
+    #settings-targets-card > .card-title { grid-column: 1 / -1; }
+    #settings-targets-card > .field-row { display: contents; }
+    #settings-targets-card > .field { max-width: none !important; }
+    #settings-targets-card > .setting-row { margin-bottom: 12px; }
+    #settings-targets-card > .btn { grid-column: 1 / -1; }
+    #appearance-body { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); column-gap: 24px; }
+    #appearance-body > :not(.toggle-row) { grid-column: 1 / -1; }
+    #data-body { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+    #data-body > :not(.btn), #data-body > .btn:last-child { grid-column: 1 / -1; }
+    #data-body > .btn { margin-top: 0 !important; padding: 11px 8px; font-size: 13px; }
+
+    /* ── Fasting: status and history on the left, the protocol on the right ── */
+    #view-fasting.active {
+      display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); grid-template-rows: auto auto auto 1fr;
+      column-gap: 20px; align-items: start;
+    }
+    #view-fasting > .section-title { grid-column: 1 / -1; }
+    #if-status-card { grid-column: 1; grid-row: 2; }
+    #if-history-card { grid-column: 1; grid-row: 3; }
+    #if-protocol-card { grid-column: 2; grid-row: 2 / span 3; }
+    #view-fasting .if-status-display { padding: 40px 16px 32px; }
+    #view-fasting .if-day-chip { width: 48px; }
+    #view-fasting .if-day-dot { width: 34px; height: 34px; font-size: 12px; }
+    #view-fasting .if-day-lbl { font-size: 10px; }
+  }
+
+  /* Wide desktops: the four main targets share a row */
+  @media (min-width: 1280px) {
+    #settings-targets-card { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    #settings-targets-card > .btn-primary { grid-column: 1 / span 2; }
+    #settings-targets-card > .btn-secondary { grid-column: span 2; margin-top: 0 !important; }
+  }
+
+  /* With a mouse and keyboard, Search is the default Log Food tab, so it comes first */
+  @media (min-width: 1024px) and (pointer: fine) {
+    #view-log .tab[onclick*="'search'"] { order: -1; }
   }
 
   /* The Bold style's floating pill nav becomes the sidebar on desktop, and stays put under sheets */
@@ -1044,6 +1125,8 @@
 
     <!-- Scan -->
     <div id="log-scan" class="log-tab">
+      <!-- Camera half; the label half sits beside it on desktop -->
+      <div class="scan-camera">
       <div id="scan-container">
         <video id="scan-video" playsinline muted></video>
         <div class="scan-overlay"><div class="scan-frame"></div></div>
@@ -1057,6 +1140,8 @@
       </div>
       <button class="btn btn-secondary" id="scan-image-btn" onclick="pickBarcodeImage()" style="margin-top:8px;">🖼️ Barcode from Image</button>
       <div class="pointer-hint">You can also drop or paste a photo or screenshot of a barcode anywhere on this page.</div>
+      </div>
+      <div class="scan-label">
       <div style="display:flex;gap:8px;margin-top:8px;box-sizing:border-box;max-width:100%;">
         <button class="btn btn-secondary" onclick="ocrFromCamera()" style="flex:1;min-width:0;">📷 Scan Label</button>
         <button class="btn btn-secondary" onclick="ocrFromFile()" style="flex:1;min-width:0;">🖼️ Upload Label</button>
@@ -1071,6 +1156,7 @@
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Or paste nutrition text:</div>
         <textarea id="ocr-paste-input" placeholder="Paste nutrition table text here…" style="width:100%;box-sizing:border-box;height:90px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;resize:vertical;"></textarea>
         <button class="btn btn-secondary" onclick="parseFromPaste()" style="width:100%;margin-top:6px;">Parse Text</button>
+      </div>
       </div>
     </div>
 
@@ -1088,7 +1174,7 @@
 
     <!-- Manual -->
     <div id="log-manual" class="log-tab" style="display:none; max-height:70vh; overflow-y:auto;">
-      <div style="padding:0 4px;">
+      <div class="log-form" style="padding:0 4px;">
         <div class="flex items-center justify-between py-3 border-b border-gray-100" style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; font-weight:600; color:var(--text);">Food Name</label>
           <input type="text" id="manual-name" placeholder="Required" style="width:160px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text);">
@@ -1150,7 +1236,7 @@
     <!-- Quick Add -->
     <div id="log-quickadd" class="log-tab" style="display:none; max-height:70vh; overflow-y:auto;">
       <div class="card-title" style="margin-bottom:12px;">Quick Add Macros</div>
-      <div style="padding:0 4px;">
+      <div class="log-form" style="padding:0 4px;">
         <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border);">
           <label style="font-size:14px; color:var(--muted);">Name (optional)</label>
           <input type="text" id="qa-name" placeholder="e.g. Misc snack" style="width:160px; text-align:right; background:transparent; border:none; outline:none; font-size:14px; color:var(--text);">
@@ -1271,7 +1357,9 @@
   <!-- ═══ SETTINGS VIEW ═══ -->
   <div id="view-settings" class="view">
     <div class="section-title" style="margin-bottom:14px;">Settings</div>
-    <div class="card">
+    <!-- Main column on desktop; a plain block on phones -->
+    <div class="settings-main">
+    <div class="card" id="settings-targets-card">
       <div class="card-title">Daily Targets</div>
       <div class="field">
         <label>Calories (kcal)</label>
@@ -1354,6 +1442,10 @@
       </div>
       <div id="custom-foods-list" style="display:none;"></div>
     </div>
+    </div>
+
+    <!-- Side column on desktop; a plain block on phones -->
+    <div class="settings-side">
     <!-- ─── Documentation link ─── -->
     <div class="card" style="margin-top:8px;">
       <a href="/docs/" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);">
@@ -1562,6 +1654,7 @@
         <div id="restore-result" style="font-size:12px;color:var(--muted);margin-top:6px;text-align:center;display:none;"></div>
       </div>
     </div>
+    </div>
   </div>
 
   <!-- ═══ TRENDS VIEW ═══ -->
@@ -1619,7 +1712,7 @@
     <div class="section-title" style="margin-bottom:14px;">Intermittent Fasting</div>
 
     <!-- Protocol selector -->
-    <div class="card">
+    <div class="card" id="if-protocol-card">
       <div class="card-title">Protocol</div>
       <div class="if-preset-pills" id="if-preset-pills">
         <button class="if-preset-pill" onclick="ifSelectPreset(16,this)">16:8</button>
@@ -1675,7 +1768,7 @@
     </div>
 
     <!-- 7-day history -->
-    <div class="card">
+    <div class="card" id="if-history-card">
       <div class="card-title">Last 7 Days</div>
       <div id="if-history-chips" style="display:flex; gap:6px; justify-content:space-between;"></div>
       <div style="display:flex; gap:14px; margin-top:10px; font-size:11px; color:var(--muted);">
@@ -2509,7 +2602,17 @@ function switchView(name, btn) {
   if (name === 'settings') renderSettings();
   if (name === 'trends') renderTrends();
   if (name === 'fasting') renderFastingView();
-  if (name === 'log') { /* keep current tab */ }
+  // Keep the current tab, but refresh Search's frequent foods since it may stay open between visits
+  if (name === 'log' && document.getElementById('log-search').style.display !== 'none') {
+    renderFrequentFoods();
+    if (isDesktopPointer()) document.getElementById('search-input').focus();
+  }
+}
+
+// The desktop layout with a mouse and keyboard, where a camera is rarely to hand.
+// Tablets in landscape get the desktop layout too, but keep their camera-first defaults.
+function isDesktopPointer() {
+  return window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches;
 }
 
 // ═══════════════════════════════════════════════════
@@ -2936,7 +3039,7 @@ let pendingFood = null; // {name, kcal100, protein100, carbs100, fat100}
 function switchLogTab(tab, btn) {
   document.querySelectorAll('.log-tab').forEach(t => t.style.display = 'none');
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('log-' + tab).style.display = 'block';
+  document.getElementById('log-' + tab).style.display = ''; // the stylesheet decides (a grid on desktop)
   btn.classList.add('active');
   if (tab !== 'scan' && scanActive) stopScan();
   if (tab === 'scan' && !scanActive) startScan();
@@ -3914,6 +4017,7 @@ function addRecipeIngredient(mode) {
       <div class="field"><label>Weight (g)</label><input type="number" id="ing-weight" placeholder="100"></div>
       <button class="btn btn-primary" onclick="addManualIngredient()">Add</button>`;
     openModal('ingredient-modal');
+    if (isDesktopPointer()) document.getElementById('ing-name').focus();
     return;
   }
 
@@ -3925,6 +4029,7 @@ function addRecipeIngredient(mode) {
       </div>
       <div id="ing-search-results"></div>`;
     openModal('ingredient-modal');
+    if (isDesktopPointer()) document.getElementById('ing-search').focus();
   }
 }
 
@@ -3962,7 +4067,21 @@ function showIngredientWeight(food) {
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Per 100g: ${food.kcal} kcal · P ${food.protein}g · C ${food.carbs}g · F ${food.fat}g</div>
     <div class="field"><label>Weight (g)</label><input type="number" id="ing-weight-final" value="100" min="1"></div>
     <button class="btn btn-primary" onclick="confirmIngredient()">Add to Recipe</button>`;
+  if (isDesktopPointer()) {
+    const w = document.getElementById('ing-weight-final');
+    w.focus();
+    w.select();
+  }
 }
+
+// Enter adds the ingredient from anywhere in the sheet: "Add to Recipe" on the weight step, "Add" on the manual form
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  if (!document.getElementById('ingredient-modal').classList.contains('open')) return;
+  if (['BUTTON', 'TEXTAREA', 'A', 'SELECT'].includes(e.target.tagName)) return; // these handle Enter themselves
+  if (document.getElementById('ing-weight-final')) { e.preventDefault(); confirmIngredient(); }
+  else if (document.getElementById('ing-name')) { e.preventDefault(); addManualIngredient(); }
+});
 
 function confirmIngredient() {
   const w = parseFloat(document.getElementById('ing-weight-final').value);
@@ -5467,6 +5586,8 @@ deduplicateLogs();
 recordTodayTargets();
 applyDisplayPrefs();
 renderToday();
+// Log Food opens on Search on desktop, and on Scan everywhere else
+if (isDesktopPointer()) switchLogTab('search', document.querySelector('#view-log .tab[onclick*="\'search\'"]'));
 fetchSyncTargets();
 syncNow({ quiet: true });
 // First-run tour takes priority; it calls checkOnboarding() when done.
@@ -7250,7 +7371,7 @@ function renderFastingView() {
       statusLabel.textContent = 'IF tracking disabled';
       statusLabel.style.color = 'var(--muted)';
       statusCountdown.style.display = 'none';
-      statusSub.textContent = 'Enable IF above to begin tracking';
+      statusSub.textContent = 'Turn on the IF tracker in Protocol to begin'; // Protocol is beside this card on desktop, not above
       if (windowDisplay) windowDisplay.textContent = '';
       if (logBtn) logBtn.style.display = 'none';
     } else {
